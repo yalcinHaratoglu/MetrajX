@@ -11,10 +11,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     () => (localStorage.getItem("metrajx-theme") as Theme) ?? "light",
   );
   const [primaryPreset, setPrimaryPresetState] = useState<PrimaryPresetId>(
-    () => (localStorage.getItem("metrajx-primary-preset") as PrimaryPresetId) ?? "slate",
+    () => (localStorage.getItem("metrajx-primary-preset") as PrimaryPresetId) ?? "steel",
   );
   const [customHex, setCustomHexState] = useState(
-    () => localStorage.getItem("metrajx-custom-hex") ?? "#334155",
+    () => localStorage.getItem("metrajx-custom-hex") ?? "#475569",
   );
   const [useCustom, setUseCustom] = useState(
     () => localStorage.getItem("metrajx-use-custom-color") === "true",

@@ -1,11 +1,14 @@
 {
   "app": {
     "name": "MetrajX",
-    "tagline": "Rebar takeoff and cutting optimization"
+    "tagline": "Rebar takeoff & cut optimization",
+    "badge": "Construction engineering platform"
   },
   "nav": {
     "dashboard": "Dashboard",
-    "settings": "Settings"
+    "settings": "Settings",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
   },
   "header": {
     "welcome": "Welcome",
@@ -37,7 +40,23 @@
   },
   "dashboard": {
     "title": "Dashboard",
-    "welcome": "Welcome to MetrajX"
+    "welcome": "Welcome to MetrajX",
+    "hero": {
+      "label": "MetrajX Platform",
+      "greeting": "Hello, {{name}}",
+      "defaultName": "Engineer",
+      "desc": "Extract rebar quantities from DXF/PDF projects, plan floor-based requirements, and optimize cuts from 12m stock bars with minimum waste."
+    },
+    "stats": {
+      "projects": "Active Projects",
+      "floors": "Total Floors",
+      "cuts": "Cutting Plans",
+      "waste": "Waste Rate"
+    },
+    "banner": {
+      "title": "Phase 1 — Rebar Optimization",
+      "desc": "Project import, manual rebar entry, and 1D cutting stock algorithm are in active development. Use the API to create your first project."
+    }
   },
   "settings": {
     "title": "Settings",

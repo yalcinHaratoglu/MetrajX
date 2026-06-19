@@ -1,11 +1,14 @@
 {
   "app": {
     "name": "MetrajX",
-    "tagline": "Donatı metraj ve kesim optimizasyonu"
+    "tagline": "Donatı metraj & kesim optimizasyonu",
+    "badge": "İnşaat mühendisliği platformu"
   },
   "nav": {
     "dashboard": "Kontrol Paneli",
-    "settings": "Ayarlar"
+    "settings": "Ayarlar",
+    "openMenu": "Menüyü aç",
+    "closeMenu": "Menüyü kapat"
   },
   "header": {
     "welcome": "Hoş geldiniz",
@@ -37,7 +40,23 @@
   },
   "dashboard": {
     "title": "Kontrol Paneli",
-    "welcome": "MetrajX'e hoş geldiniz"
+    "welcome": "MetrajX'e hoş geldiniz",
+    "hero": {
+      "label": "MetrajX Platform",
+      "greeting": "Merhaba, {{name}}",
+      "defaultName": "Mühendis",
+      "desc": "DXF/PDF projelerinizden donatı metrajını çıkarın, kat bazlı ihtiyaçları planlayın ve 12m çubuklardan minimum fire ile kesim optimizasyonu yapın."
+    },
+    "stats": {
+      "projects": "Aktif Proje",
+      "floors": "Toplam Kat",
+      "cuts": "Kesim Planı",
+      "waste": "Fire Oranı"
+    },
+    "banner": {
+      "title": "Faz 1 — Donatı Optimizasyonu",
+      "desc": "Proje import, manuel demir girişi ve 1D Cutting Stock algoritması aktif geliştirme aşamasında. İlk projenizi oluşturmak için API'yi kullanabilirsiniz."
+    }
   },
   "settings": {
     "title": "Ayarlar",

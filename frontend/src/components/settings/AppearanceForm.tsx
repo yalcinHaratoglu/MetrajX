@@ -1,13 +1,13 @@
 import { Check, Moon, Sun } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "../ui/Button";
-import { useLanguage, useTheme } from "../../hooks/useTheme";
+import { LanguageSelect } from "../ui/LanguageSelect";
+import { useTheme } from "../../hooks/useTheme";
 import { PRIMARY_PRESETS } from "../../utils/color";
 
 export function AppearanceForm() {
   const { t } = useTranslation();
   const { theme, setTheme, primaryPreset, setPrimaryPreset, customHex, setCustomHex } = useTheme();
-  const { language, changeLanguage } = useLanguage();
 
   return (
     <div className="form-stack max-w-xl">
@@ -37,14 +37,7 @@ export function AppearanceForm() {
       <div className="appearance-card">
         <h3 className="appearance-card-title">{t("settings.appearance.language.title")}</h3>
         <p className="appearance-card-desc">{t("settings.appearance.language.desc")}</p>
-        <select
-          className="select w-full"
-          value={language}
-          onChange={(e) => changeLanguage(e.target.value as "tr" | "en")}
-        >
-          <option value="tr">🇹🇷 {t("settings.appearance.language.tr")}</option>
-          <option value="en">🇬🇧 {t("settings.appearance.language.en")}</option>
-        </select>
+        <LanguageSelect className="w-full" />
       </div>
 
       <div className="appearance-card">

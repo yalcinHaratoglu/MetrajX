@@ -16,11 +16,13 @@
     "test:backend": "pnpm --filter @metrajx/backend test",
     "test": "pnpm test:backend && pnpm test:frontend",
     "check": "pnpm lint && pnpm typecheck && pnpm test:backend",
+    "commit": "node scripts/commit.mjs",
     "prepare": "husky"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
+    "@inquirer/prompts": "^7.5.1",
     "concurrently": "^9.1.2",
     "husky": "^9.1.7"
   }

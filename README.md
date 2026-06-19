@@ -91,8 +91,23 @@ pnpm dev:backend    # http://localhost:8000
 | POST | `/api/auth/team/invite/` | Ekip daveti |
 | POST | `/api/auth/feedback/` | Geri bildirim |
 | GET | `/api/auth/health/` | Sağlık kontrolü |
+| GET/POST | `/api/projects/` | Proje listesi / oluşturma |
+| GET/PATCH/DELETE | `/api/projects/{id}/` | Proje detay |
+| GET/POST | `/api/projects/{id}/requirements/` | Demir girişi |
+| POST | `/api/projects/{id}/optimize/` | Kesim optimizasyonu (501 — motor hazırlanıyor) |
 
-Kayıt sonrası aktivasyon e-postası geliştirme ortamında **terminal/konsola** yazdırılır (console email backend).
+## Git Commit
+
+```bash
+pnpm commit
+```
+
+İnteraktif sihirbaz: tip → kapsam (frontend/backend/all) → mesaj  
+Örnek çıktı: `feat(backend): add rebar optimizer models`
+
+Manuel commit için aynı format zorunludur (commitlint).
+
+Kayıt sonrası aktivasyon e-postası geliştirme ortamında **terminal/konsola** yazdırılır.
 
 ### Superuser (Admin)
 

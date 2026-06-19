@@ -1,11 +1,11 @@
 export const PRIMARY_PRESETS = [
+  { id: "steel", hex: "#475569", rgb: "71 85 105" },
+  { id: "amber", hex: "#d97706", rgb: "217 119 6" },
+  { id: "blue", hex: "#2563eb", rgb: "37 99 235" },
+  { id: "teal", hex: "#0d9488", rgb: "13 148 136" },
   { id: "slate", hex: "#334155", rgb: "51 65 85" },
-  { id: "blue", hex: "#3b82f6", rgb: "59 130 246" },
-  { id: "green", hex: "#22c55e", rgb: "34 197 94" },
-  { id: "rose", hex: "#f43f5e", rgb: "244 63 94" },
-  { id: "orange", hex: "#f97316", rgb: "249 115 22" },
-  { id: "purple", hex: "#a855f7", rgb: "168 85 247" },
-  { id: "cyan", hex: "#06b6d4", rgb: "6 182 212" },
+  { id: "orange", hex: "#ea580c", rgb: "234 88 12" },
+  { id: "concrete", hex: "#78716c", rgb: "120 113 108" },
 ] as const;
 
 export type PrimaryPresetId = (typeof PRIMARY_PRESETS)[number]["id"];
