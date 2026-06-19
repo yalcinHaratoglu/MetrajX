@@ -1,15 +1,27 @@
 {
   "name": "metrajx",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "concurrently \"pnpm dev:backend\" \"pnpm dev:frontend\"",
     "dev:frontend": "pnpm --filter @metrajx/frontend dev",
     "dev:backend": "pnpm --filter @metrajx/backend dev",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
-    "migrate": "pnpm --filter @metrajx/backend migrate"
+    "migrate": "pnpm --filter @metrajx/backend migrate",
+    "lint": "pnpm --filter @metrajx/frontend lint",
+    "typecheck": "pnpm --filter @metrajx/frontend exec tsc -b --noEmit",
+    "build": "pnpm --filter @metrajx/frontend build",
+    "test:frontend": "pnpm --filter @metrajx/frontend build",
+    "test:backend": "pnpm --filter @metrajx/backend test",
+    "test": "pnpm test:backend && pnpm test:frontend",
+    "check": "pnpm lint && pnpm typecheck && pnpm test:backend",
+    "prepare": "husky"
   },
   "devDependencies": {
-    "concurrently": "^9.1.2"
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
+    "concurrently": "^9.1.2",
+    "husky": "^9.1.7"
   }
 }

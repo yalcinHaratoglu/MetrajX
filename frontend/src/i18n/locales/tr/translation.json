@@ -3,6 +3,21 @@
     "name": "MetrajX",
     "tagline": "Donatı metraj ve kesim optimizasyonu"
   },
+  "nav": {
+    "dashboard": "Kontrol Paneli",
+    "settings": "Ayarlar"
+  },
+  "header": {
+    "welcome": "Hoş geldiniz",
+    "language": "Dil",
+    "toggleTheme": "Tema değiştir"
+  },
+  "notFound": {
+    "title": "Sayfa bulunamadı",
+    "description": "Aradığınız sayfa mevcut değil veya taşınmış olabilir.",
+    "backHome": "Ana sayfaya dön",
+    "goBack": "Geri git"
+  },
   "auth": {
     "login": "Giriş Yap",
     "register": "Kayıt Ol",
@@ -24,8 +39,90 @@
     "title": "Kontrol Paneli",
     "welcome": "MetrajX'e hoş geldiniz"
   },
+  "settings": {
+    "title": "Ayarlar",
+    "subtitle": "Hesap, şirket ve görünüm tercihlerinizi yönetin.",
+    "tabs": {
+      "profile": "Profil",
+      "security": "Güvenlik",
+      "company": "Şirket",
+      "users": "Kullanıcılar",
+      "appearance": "Görünüm",
+      "feedback": "Geri Bildirim"
+    },
+    "profile": {
+      "title": "Profil Bilgileri",
+      "desc": "Ad ve soyad bilgilerinizi güncelleyin.",
+      "success": "Profil güncellendi."
+    },
+    "password": {
+      "title": "Güvenlik",
+      "desc": "Hesap şifrenizi güncelleyin.",
+      "current": "Mevcut Şifre",
+      "new": "Yeni Şifre",
+      "confirm": "Yeni Şifre (Tekrar)",
+      "success": "Şifre güncellendi.",
+      "error": "Şifre güncellenemedi. Mevcut şifrenizi kontrol edin.",
+      "mismatch": "Yeni şifreler eşleşmiyor."
+    },
+    "company": {
+      "title": "Şirket Bilgileri",
+      "desc": "Firma adı, vergi no ve adres bilgilerinizi yönetin.",
+      "name": "Firma Adı",
+      "taxNumber": "Vergi No",
+      "address": "Adres",
+      "success": "Şirket bilgileri kaydedildi."
+    },
+    "team": {
+      "title": "Kullanıcılar",
+      "desc": "Ekip üyelerinizi görüntüleyin ve yeni kullanıcı davet edin.",
+      "name": "Ad Soyad",
+      "role": "Rol",
+      "status": "Durum",
+      "active": "Aktif",
+      "pending": "Beklemede",
+      "inviteTitle": "Kullanıcı Davet Et",
+      "invite": "Davet Gönder",
+      "inviteSuccess": "Davet başarıyla gönderildi.",
+      "roles": {
+        "member": "Üye",
+        "admin": "Yönetici",
+        "owner": "Sahip"
+      }
+    },
+    "appearance": {
+      "title": "Görünüm",
+      "desc": "Tema, dil ve ana renk tercihlerinizi özelleştirin.",
+      "theme": {
+        "title": "Tema",
+        "desc": "Açık veya koyu görünüm seçin.",
+        "light": "Açık",
+        "dark": "Koyu"
+      },
+      "language": {
+        "title": "Dil",
+        "desc": "Uygulama arayüz dilini seçin.",
+        "tr": "Türkçe",
+        "en": "English"
+      },
+      "color": {
+        "title": "Ana Renk",
+        "desc": "Butonlar ve vurgular için birincil rengi özelleştirin.",
+        "custom": "Özel renk",
+        "preview": "Örnek Buton"
+      }
+    },
+    "feedback": {
+      "title": "Geri Bildirim",
+      "desc": "Öneri ve sorunlarınızı bizimle paylaşın.",
+      "subject": "Konu",
+      "message": "Mesajınız",
+      "success": "Geri bildiriminiz alındı. Teşekkürler!"
+    }
+  },
   "common": {
     "submit": "Gönder",
+    "save": "Kaydet",
     "loading": "Yükleniyor...",
     "error": "Bir hata oluştu"
   }

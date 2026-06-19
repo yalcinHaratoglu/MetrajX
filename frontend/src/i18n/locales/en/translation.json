@@ -3,6 +3,21 @@
     "name": "MetrajX",
     "tagline": "Rebar takeoff and cutting optimization"
   },
+  "nav": {
+    "dashboard": "Dashboard",
+    "settings": "Settings"
+  },
+  "header": {
+    "welcome": "Welcome",
+    "language": "Language",
+    "toggleTheme": "Toggle theme"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "description": "The page you are looking for does not exist or may have been moved.",
+    "backHome": "Back to home",
+    "goBack": "Go back"
+  },
   "auth": {
     "login": "Sign In",
     "register": "Sign Up",
@@ -24,8 +39,90 @@
     "title": "Dashboard",
     "welcome": "Welcome to MetrajX"
   },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Manage your account, company, and appearance preferences.",
+    "tabs": {
+      "profile": "Profile",
+      "security": "Security",
+      "company": "Company",
+      "users": "Users",
+      "appearance": "Appearance",
+      "feedback": "Feedback"
+    },
+    "profile": {
+      "title": "Profile Information",
+      "desc": "Update your first and last name.",
+      "success": "Profile updated."
+    },
+    "password": {
+      "title": "Security",
+      "desc": "Update your account password.",
+      "current": "Current Password",
+      "new": "New Password",
+      "confirm": "Confirm New Password",
+      "success": "Password updated.",
+      "error": "Could not update password. Check your current password.",
+      "mismatch": "New passwords do not match."
+    },
+    "company": {
+      "title": "Company Information",
+      "desc": "Manage company name, tax number, and address.",
+      "name": "Company Name",
+      "taxNumber": "Tax Number",
+      "address": "Address",
+      "success": "Company information saved."
+    },
+    "team": {
+      "title": "Users",
+      "desc": "View team members and invite new users.",
+      "name": "Full Name",
+      "role": "Role",
+      "status": "Status",
+      "active": "Active",
+      "pending": "Pending",
+      "inviteTitle": "Invite User",
+      "invite": "Send Invite",
+      "inviteSuccess": "Invite sent successfully.",
+      "roles": {
+        "member": "Member",
+        "admin": "Admin",
+        "owner": "Owner"
+      }
+    },
+    "appearance": {
+      "title": "Appearance",
+      "desc": "Customize theme, language, and primary color.",
+      "theme": {
+        "title": "Theme",
+        "desc": "Choose light or dark appearance.",
+        "light": "Light",
+        "dark": "Dark"
+      },
+      "language": {
+        "title": "Language",
+        "desc": "Select the application interface language.",
+        "tr": "Turkish",
+        "en": "English"
+      },
+      "color": {
+        "title": "Primary Color",
+        "desc": "Customize the primary color for buttons and accents.",
+        "custom": "Custom color",
+        "preview": "Sample Button"
+      }
+    },
+    "feedback": {
+      "title": "Feedback",
+      "desc": "Share your suggestions and issues with us.",
+      "subject": "Subject",
+      "message": "Your message",
+      "success": "Feedback received. Thank you!"
+    }
+  },
   "common": {
     "submit": "Submit",
+    "save": "Save",
     "loading": "Loading...",
     "error": "An error occurred"
   }

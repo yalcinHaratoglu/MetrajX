@@ -13,6 +13,7 @@ from .serializers import (
     FeedbackSerializer,
     RegisterSerializer,
     TeamInviteSerializer,
+    TeamMemberSerializer,
     UserProfileSerializer,
 )
 
@@ -171,6 +172,15 @@ class TeamInviteView(APIView):
             {"detail": "Davet gönderildi.", "email": user.email},
             status=status.HTTP_201_CREATED,
         )
+
+
+class TeamListView(APIView):
+    def get(self, request):
+        if not request.user.company:
+            return Response([])
+
+        members = User.objects.filter(company=request.user.company).order_by("email")
+        return Response(TeamMemberSerializer(members, many=True).data)
 
 
 class FeedbackView(generics.CreateAPIView):

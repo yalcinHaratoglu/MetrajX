@@ -67,6 +67,12 @@ class TeamInviteSerializer(serializers.Serializer):
     role = serializers.ChoiceField(choices=User.Role.choices, default=User.Role.MEMBER)
 
 
+class TeamMemberSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ("id", "email", "first_name", "last_name", "role", "is_active")
+
+
 class FeedbackSerializer(serializers.ModelSerializer):
     class Meta:
         model = Feedback

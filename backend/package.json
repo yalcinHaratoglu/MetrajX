@@ -3,6 +3,8 @@
   "private": true,
   "scripts": {
     "dev": "venv\\Scripts\\python.exe manage.py runserver",
-    "migrate": "venv\\Scripts\\python.exe manage.py migrate"
+    "migrate": "venv\\Scripts\\python.exe manage.py migrate",
+    "test": "venv\\Scripts\\python.exe manage.py test",
+    "check": "venv\\Scripts\\python.exe manage.py check"
   }
 }

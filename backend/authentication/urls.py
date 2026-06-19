@@ -12,6 +12,7 @@ from .views import (
     ProfileView,
     RegisterView,
     TeamInviteView,
+    TeamListView,
 )
 
 urlpatterns = [
@@ -25,5 +26,6 @@ urlpatterns = [
     path("change-password/", ChangePasswordView.as_view(), name="change-password"),
     path("company/", CompanyView.as_view(), name="company"),
     path("team/invite/", TeamInviteView.as_view(), name="team-invite"),
+    path("team/", TeamListView.as_view(), name="team-list"),
     path("feedback/", FeedbackView.as_view(), name="feedback"),
 ]

@@ -94,6 +94,31 @@ pnpm dev:backend    # http://localhost:8000
 
 Kayıt sonrası aktivasyon e-postası geliştirme ortamında **terminal/konsola** yazdırılır (console email backend).
 
+### Superuser (Admin)
+
+```bash
+cd backend
+venv\Scripts\python.exe manage.py create_superuser
+```
+
+| Alan | Değer |
+|------|-------|
+| E-posta | `admin@metrajx.com` |
+| Şifre | `MetrajX@Admin2024` |
+
+- Django Admin: http://localhost:8000/admin/
+- API login: http://localhost:5173/login
+
+## Git Hooks (Husky)
+
+| Hook | Ne yapar? |
+|------|-----------|
+| `pre-commit` | ESLint + TypeScript + backend testleri (`pnpm check`) |
+| `commit-msg` | Commitlint — conventional commit formatı zorunlu |
+| `pre-push` | Tam test suite (`pnpm test`) — build dahil |
+
+Commit mesajı örneği: `feat: add settings page` veya `fix: resolve login redirect`
+
 ## Canlı Ortam (Production)
 
 ### Neon — Veritabanı

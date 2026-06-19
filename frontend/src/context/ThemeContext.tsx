@@ -1,31 +1,23 @@
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from "react";
-import i18n from "../i18n";
-
-type Theme = "light" | "dark";
-type PrimaryColor = "blue" | "green" | "orange";
-
-interface ThemeContextValue {
-  theme: Theme;
-  primaryColor: PrimaryColor;
-  toggleTheme: () => void;
-  setPrimaryColor: (color: PrimaryColor) => void;
-}
-
-const ThemeContext = createContext<ThemeContextValue | null>(null);
+  getPresetById,
+  hexToRgb,
+  type PrimaryPresetId,
+} from "../utils/color";
+import { ThemeContext, type Theme } from "./theme-context";
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(
+  const [theme, setThemeState] = useState<Theme>(
     () => (localStorage.getItem("metrajx-theme") as Theme) ?? "light",
   );
-  const [primaryColor, setPrimaryColorState] = useState<PrimaryColor>(
-    () => (localStorage.getItem("metrajx-primary-color") as PrimaryColor) ?? "blue",
+  const [primaryPreset, setPrimaryPresetState] = useState<PrimaryPresetId>(
+    () => (localStorage.getItem("metrajx-primary-preset") as PrimaryPresetId) ?? "slate",
+  );
+  const [customHex, setCustomHexState] = useState(
+    () => localStorage.getItem("metrajx-custom-hex") ?? "#334155",
+  );
+  const [useCustom, setUseCustom] = useState(
+    () => localStorage.getItem("metrajx-use-custom-color") === "true",
   );
 
   useEffect(() => {
@@ -36,43 +28,33 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const root = document.documentElement;
-    if (primaryColor === "blue") {
-      root.removeAttribute("data-theme-color");
-    } else {
-      root.setAttribute("data-theme-color", primaryColor);
-    }
-    localStorage.setItem("metrajx-primary-color", primaryColor);
-  }, [primaryColor]);
+    const rgb = useCustom
+      ? hexToRgb(customHex) ?? getPresetById(primaryPreset).rgb
+      : getPresetById(primaryPreset).rgb;
+    root.style.setProperty("--color-primary", rgb);
+    localStorage.setItem("metrajx-primary-preset", primaryPreset);
+    localStorage.setItem("metrajx-custom-hex", customHex);
+    localStorage.setItem("metrajx-use-custom-color", String(useCustom));
+  }, [primaryPreset, customHex, useCustom]);
 
   const value = useMemo(
     () => ({
       theme,
-      primaryColor,
-      toggleTheme: () => setTheme((prev) => (prev === "light" ? "dark" : "light")),
-      setPrimaryColor: setPrimaryColorState,
+      primaryPreset,
+      customHex,
+      setTheme: setThemeState,
+      setPrimaryPreset: (preset: PrimaryPresetId) => {
+        setUseCustom(false);
+        setPrimaryPresetState(preset);
+      },
+      setCustomHex: (hex: string) => {
+        setUseCustom(true);
+        setCustomHexState(hex);
+      },
+      toggleTheme: () => setThemeState((prev) => (prev === "light" ? "dark" : "light")),
     }),
-    [theme, primaryColor],
+    [theme, primaryPreset, customHex],
   );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
-}
-
-export function useTheme() {
-  const context = useContext(ThemeContext);
-  if (!context) {
-    throw new Error("useTheme must be used within ThemeProvider");
-  }
-  return context;
-}
-
-export function useLanguage() {
-  const changeLanguage = (lng: "tr" | "en") => {
-    void i18n.changeLanguage(lng);
-    localStorage.setItem("metrajx-language", lng);
-  };
-
-  return {
-    language: i18n.language as "tr" | "en",
-    changeLanguage,
-  };
 }

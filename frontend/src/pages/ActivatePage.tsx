@@ -26,18 +26,18 @@ export function ActivatePage() {
   }, [token]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
-      <Card className="w-full max-w-md text-center">
+    <div className="page-center">
+      <Card variant="narrow" className="text-center">
         {status === "loading" && <p>{t("auth.activateLoading")}</p>}
         {status === "success" && (
           <>
-            <p className="mb-4 text-green-600">{t("auth.activateSuccess")}</p>
-            <Link to="/login" className="text-[rgb(var(--color-primary))] hover:underline">
+            <p className="text-success mb-4">{t("auth.activateSuccess")}</p>
+            <Link to="/login" className="link-primary">
               {t("auth.login")}
             </Link>
           </>
         )}
-        {status === "error" && <p className="text-red-500">{t("auth.activateError")}</p>}
+        {status === "error" && <p className="text-error">{t("auth.activateError")}</p>}
       </Card>
     </div>
   );

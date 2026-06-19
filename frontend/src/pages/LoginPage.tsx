@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { Input } from "../components/ui/Input";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../hooks/useAuth";
 
 export function LoginPage() {
   const { t } = useTranslation();
@@ -30,13 +30,13 @@ export function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <div className="mb-6 text-center">
-          <h1 className="text-2xl font-bold text-[rgb(var(--color-primary))]">{t("app.name")}</h1>
-          <p className="mt-1 text-sm opacity-70">{t("app.tagline")}</p>
+    <div className="page-center">
+      <Card variant="narrow">
+        <div className="auth-header">
+          <h1 className="auth-title">{t("app.name")}</h1>
+          <p className="auth-subtitle">{t("app.tagline")}</p>
         </div>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="form-stack">
           <Input
             label={t("auth.email")}
             type="email"
@@ -53,14 +53,14 @@ export function LoginPage() {
             onChange={(e) => setPassword(e.target.value)}
             required
           />
-          {error && <p className="text-sm text-red-500">{error}</p>}
+          {error && <p className="text-error">{error}</p>}
           <Button type="submit" disabled={loading}>
             {loading ? t("common.loading") : t("auth.login")}
           </Button>
         </form>
         <p className="mt-4 text-center text-sm">
           {t("auth.noAccount")}{" "}
-          <Link to="/register" className="text-[rgb(var(--color-primary))] hover:underline">
+          <Link to="/register" className="link-primary">
             {t("auth.register")}
           </Link>
         </p>
