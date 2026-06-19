@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: metrajx-api
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn core_backend.wsgi:application --bind 0.0.0.0:$PORT
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: metrajx-api.onrender.com
+      - key: FRONTEND_URL
+        value: https://metrajx.vercel.app
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://metrajx.vercel.app

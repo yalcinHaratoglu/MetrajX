@@ -1,0 +1,32 @@
+{
+  "app": {
+    "name": "MetrajX",
+    "tagline": "Rebar takeoff and cutting optimization"
+  },
+  "auth": {
+    "login": "Sign In",
+    "register": "Sign Up",
+    "logout": "Sign Out",
+    "email": "Email",
+    "password": "Password",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "companyName": "Company Name",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "loginSuccess": "Login successful",
+    "registerSuccess": "Registration successful. Please check your email.",
+    "activateSuccess": "Your account has been activated. You can sign in.",
+    "activateError": "Activation failed.",
+    "activateLoading": "Activating your account..."
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome to MetrajX"
+  },
+  "common": {
+    "submit": "Submit",
+    "loading": "Loading...",
+    "error": "An error occurred"
+  }
+}

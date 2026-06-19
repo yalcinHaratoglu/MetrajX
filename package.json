@@ -1,0 +1,15 @@
+{
+  "name": "metrajx",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"pnpm dev:backend\" \"pnpm dev:frontend\"",
+    "dev:frontend": "pnpm --filter @metrajx/frontend dev",
+    "dev:backend": "pnpm --filter @metrajx/backend dev",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "migrate": "pnpm --filter @metrajx/backend migrate"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

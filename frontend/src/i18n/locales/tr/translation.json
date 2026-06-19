@@ -1,0 +1,32 @@
+{
+  "app": {
+    "name": "MetrajX",
+    "tagline": "Donatı metraj ve kesim optimizasyonu"
+  },
+  "auth": {
+    "login": "Giriş Yap",
+    "register": "Kayıt Ol",
+    "logout": "Çıkış Yap",
+    "email": "E-posta",
+    "password": "Şifre",
+    "firstName": "Ad",
+    "lastName": "Soyad",
+    "companyName": "Firma Adı",
+    "noAccount": "Hesabınız yok mu?",
+    "hasAccount": "Zaten hesabınız var mı?",
+    "loginSuccess": "Giriş başarılı",
+    "registerSuccess": "Kayıt başarılı. Lütfen e-postanızı kontrol edin.",
+    "activateSuccess": "Hesabınız aktifleştirildi. Giriş yapabilirsiniz.",
+    "activateError": "Aktivasyon başarısız.",
+    "activateLoading": "Hesabınız aktifleştiriliyor..."
+  },
+  "dashboard": {
+    "title": "Kontrol Paneli",
+    "welcome": "MetrajX'e hoş geldiniz"
+  },
+  "common": {
+    "submit": "Gönder",
+    "loading": "Yükleniyor...",
+    "error": "Bir hata oluştu"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "name": "@metrajx/backend",
+  "private": true,
+  "scripts": {
+    "dev": "venv\\Scripts\\python.exe manage.py runserver",
+    "migrate": "venv\\Scripts\\python.exe manage.py migrate"
+  }
+}
