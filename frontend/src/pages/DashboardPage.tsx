@@ -1,16 +1,47 @@
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Building2, Layers, Scissors, TrendingDown } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
+import { projectService } from "../services/projectService";
 
 export function DashboardPage() {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const [stats, setStats] = useState({
+    projects: "—",
+    floors: "—",
+    cuts: "—",
+    waste: "—",
+  });
 
-  const stats = [
-    { icon: Building2, label: t("dashboard.stats.projects"), value: "—" },
-    { icon: Layers, label: t("dashboard.stats.floors"), value: "—" },
-    { icon: Scissors, label: t("dashboard.stats.cuts"), value: "—" },
-    { icon: TrendingDown, label: t("dashboard.stats.waste"), value: "—" },
+  useEffect(() => {
+    let active = true;
+
+    void projectService
+      .getStats()
+      .then((data) => {
+        if (!active) return;
+        setStats({
+          projects: String(data.projects),
+          floors: String(data.floors),
+          cuts: String(data.requirements),
+          waste: "—",
+        });
+      })
+      .catch(() => {
+        if (!active) return;
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const statCards = [
+    { icon: Building2, label: t("dashboard.stats.projects"), value: stats.projects },
+    { icon: Layers, label: t("dashboard.stats.floors"), value: stats.floors },
+    { icon: Scissors, label: t("dashboard.stats.cuts"), value: stats.cuts },
+    { icon: TrendingDown, label: t("dashboard.stats.waste"), value: stats.waste },
   ];
 
   return (
@@ -29,7 +60,7 @@ export function DashboardPage() {
       </div>
 
       <div className="stat-grid">
-        {stats.map(({ icon: Icon, label, value }) => (
+        {statCards.map(({ icon: Icon, label, value }) => (
           <div key={label} className="stat-card">
             <div className="stat-card-icon">
               <Icon size={20} />

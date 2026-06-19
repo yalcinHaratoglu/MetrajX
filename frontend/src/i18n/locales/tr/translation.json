@@ -1,8 +1,7 @@
 {
   "app": {
     "name": "MetrajX",
-    "tagline": "Donatı metraj & kesim optimizasyonu",
-    "badge": "İnşaat mühendisliği platformu"
+    "tagline": "Donatı metraj & kesim optimizasyonu"
   },
   "nav": {
     "dashboard": "Kontrol Paneli",
@@ -62,6 +61,7 @@
     "title": "Ayarlar",
     "subtitle": "Hesap, şirket ve görünüm tercihlerinizi yönetin.",
     "tabs": {
+      "select": "Ayar bölümü",
       "profile": "Profil",
       "security": "Güvenlik",
       "company": "Şirket",

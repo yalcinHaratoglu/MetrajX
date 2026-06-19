@@ -10,7 +10,7 @@ export function AppearanceForm() {
   const { theme, setTheme, primaryPreset, setPrimaryPreset, customHex, setCustomHex } = useTheme();
 
   return (
-    <div className="form-stack max-w-xl">
+    <div className="form-stack">
       <div className="appearance-card">
         <h3 className="appearance-card-title">{t("settings.appearance.theme.title")}</h3>
         <p className="appearance-card-desc">{t("settings.appearance.theme.desc")}</p>

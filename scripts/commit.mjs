@@ -22,13 +22,20 @@ const SCOPES = [
 ];
 
 function git(...args) {
-  const result = spawnSync("git", args, { stdio: "inherit" });
+  const result = spawnSync("git", args, {
+    stdio: "inherit",
+    encoding: "utf-8",
+  });
   return result.status ?? 1;
 }
 
+function gitOutput(...args) {
+  return spawnSync("git", args, { encoding: "utf-8" });
+}
+
 function hasStagedFiles() {
-  const result = spawnSync("git", ["diff", "--cached", "--quiet"]);
-  return result.status === 0;
+  const staged = gitOutput("diff", "--cached", "--name-only");
+  return Boolean(staged.stdout?.trim());
 }
 
 async function main() {
@@ -46,6 +53,10 @@ async function main() {
     const addCode = git("add", ".");
     if (addCode !== 0) {
       process.exit(addCode);
+    }
+    if (!hasStagedFiles()) {
+      console.log("Commitlenecek değişiklik bulunamadı.");
+      process.exit(1);
     }
   }
 

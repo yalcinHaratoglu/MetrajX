@@ -8,6 +8,8 @@ import {
   Users,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { Select } from "../ui/Select";
+import { useMediaQuery } from "../../hooks/useMediaQuery";
 import { AppearanceForm } from "./AppearanceForm";
 import { CompanyForm } from "./CompanyForm";
 import { FeedbackForm } from "./FeedbackForm";
@@ -17,12 +19,7 @@ import { TeamManagement } from "./TeamManagement";
 
 export type SettingsTab = "profile" | "security" | "company" | "users" | "appearance" | "feedback";
 
-interface SettingsNavProps {
-  active: SettingsTab;
-  onChange: (tab: SettingsTab) => void;
-}
-
-const tabs: { id: SettingsTab; icon: typeof User; labelKey: string }[] = [
+const TAB_CONFIG: { id: SettingsTab; icon: typeof User; labelKey: string }[] = [
   { id: "profile", icon: User, labelKey: "settings.tabs.profile" },
   { id: "security", icon: KeyRound, labelKey: "settings.tabs.security" },
   { id: "company", icon: Building2, labelKey: "settings.tabs.company" },
@@ -31,12 +28,37 @@ const tabs: { id: SettingsTab; icon: typeof User; labelKey: string }[] = [
   { id: "feedback", icon: MessageSquare, labelKey: "settings.tabs.feedback" },
 ];
 
+interface SettingsNavProps {
+  active: SettingsTab;
+  onChange: (tab: SettingsTab) => void;
+}
+
 export function SettingsNav({ active, onChange }: SettingsNavProps) {
   const { t } = useTranslation();
+  const isMobile = useMediaQuery("(max-width: 768px)");
+
+  const options = TAB_CONFIG.map(({ id, icon: Icon, labelKey }) => ({
+    value: id,
+    label: t(labelKey),
+    icon: <Icon size={18} />,
+  }));
+
+  if (isMobile) {
+    return (
+      <div className="settings-nav-mobile surface-card">
+        <Select
+          label={t("settings.tabs.select")}
+          value={active}
+          onChange={onChange}
+          options={options}
+        />
+      </div>
+    );
+  }
 
   return (
     <nav className="settings-nav surface-card">
-      {tabs.map(({ id, icon: Icon, labelKey }) => (
+      {TAB_CONFIG.map(({ id, icon: Icon, labelKey }) => (
         <button
           key={id}
           type="button"
@@ -99,7 +121,7 @@ export function SettingsPanel({ tab }: SettingsPanelProps) {
         <h2 className="settings-panel-title">{panel.title}</h2>
         <p className="settings-panel-desc">{panel.desc}</p>
       </div>
-      {panel.content}
+      <div className="settings-panel-body">{panel.content}</div>
     </div>
   );
 }

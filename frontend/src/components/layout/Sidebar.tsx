@@ -1,6 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { HardHat, LayoutDashboard, LogOut, Ruler, Settings, X } from "lucide-react";
+import { HardHat, LayoutDashboard, LogOut, Settings, X } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 
 interface SidebarProps {
@@ -47,10 +47,6 @@ export function Sidebar({ mobileOpen = false, onNavigate, onClose }: SidebarProp
       </nav>
 
       <div className="sidebar-footer">
-        <div className="sidebar-badge">
-          <Ruler size={14} />
-          <span>{t("app.badge")}</span>
-        </div>
         <button
           type="button"
           className="sidebar-logout"

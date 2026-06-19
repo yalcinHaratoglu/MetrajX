@@ -1,26 +1,32 @@
-import type { SelectHTMLAttributes } from "react";
+import { Dropdown, type DropdownOption } from "./Dropdown";
 
-interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
+interface SelectProps<T extends string = string> {
   label?: string;
+  value: T;
+  onChange: (value: T) => void;
+  options: DropdownOption<T>[];
+  className?: string;
+  ariaLabel?: string;
 }
 
-export function Select({ label, id, className = "", children, ...props }: SelectProps) {
-  const selectId = id ?? props.name;
-
-  if (label) {
-    return (
-      <label className="form-label">
-        <span className="form-label-text">{label}</span>
-        <select id={selectId} className={`select ${className}`.trim()} {...props}>
-          {children}
-        </select>
-      </label>
-    );
-  }
-
+export function Select<T extends string>({
+  label,
+  value,
+  onChange,
+  options,
+  className = "",
+  ariaLabel,
+}: SelectProps<T>) {
   return (
-    <select id={selectId} className={`select ${className}`.trim()} {...props}>
-      {children}
-    </select>
+    <Dropdown
+      label={label}
+      value={value}
+      onChange={onChange}
+      options={options}
+      className={className}
+      ariaLabel={ariaLabel}
+    />
   );
 }
+
+export type { DropdownOption };

@@ -1,8 +1,7 @@
 {
   "app": {
     "name": "MetrajX",
-    "tagline": "Rebar takeoff & cut optimization",
-    "badge": "Construction engineering platform"
+    "tagline": "Rebar takeoff & cut optimization"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -62,6 +61,7 @@
     "title": "Settings",
     "subtitle": "Manage your account, company, and appearance preferences.",
     "tabs": {
+      "select": "Settings section",
       "profile": "Profile",
       "security": "Security",
       "company": "Company",

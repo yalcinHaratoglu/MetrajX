@@ -129,12 +129,13 @@ export function TeamManagement() {
         <Select
           label={t("settings.team.role")}
           value={invite.role}
-          onChange={(e) => setInvite((p) => ({ ...p, role: e.target.value }))}
-        >
-          <option value="member">{t("settings.team.roles.member")}</option>
-          <option value="admin">{t("settings.team.roles.admin")}</option>
-          <option value="owner">{t("settings.team.roles.owner")}</option>
-        </Select>
+          onChange={(role) => setInvite((p) => ({ ...p, role }))}
+          options={[
+            { value: "member", label: t("settings.team.roles.member") },
+            { value: "admin", label: t("settings.team.roles.admin") },
+            { value: "owner", label: t("settings.team.roles.owner") },
+          ]}
+        />
         {message && <p className="text-success">{message}</p>}
         {error && <p className="text-error">{error}</p>}
         <Button type="submit" disabled={loading}>

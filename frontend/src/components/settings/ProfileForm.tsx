@@ -37,7 +37,7 @@ export function ProfileForm() {
   };
 
   return (
-    <form key={user.id} onSubmit={handleSubmit} className="form-stack max-w-lg">
+    <form key={user.id} onSubmit={handleSubmit} className="form-stack">
       <label className="form-label">
         <span className="form-label-text">{t("auth.email")}</span>
         <input className="input" value={user.email} disabled readOnly />
