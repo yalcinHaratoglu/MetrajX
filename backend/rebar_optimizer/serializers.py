@@ -60,7 +60,8 @@ class ProjectSerializer(serializers.ModelSerializer):
 class ProjectCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
-        fields = ("name", "source_file")
+        fields = ("id", "name", "source_file", "status", "created_at")
+        read_only_fields = ("id", "status", "created_at")
 
 
 class OptimizationRunSerializer(serializers.ModelSerializer):

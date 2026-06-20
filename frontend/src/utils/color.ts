@@ -1,9 +1,10 @@
 export const PRIMARY_PRESETS = [
+  { id: "blueprint", hex: "#0284c7", rgb: "2 132 199" },
+  { id: "cyan", hex: "#0891b2", rgb: "8 145 178" },
   { id: "steel", hex: "#475569", rgb: "71 85 105" },
   { id: "amber", hex: "#d97706", rgb: "217 119 6" },
   { id: "blue", hex: "#2563eb", rgb: "37 99 235" },
   { id: "teal", hex: "#0d9488", rgb: "13 148 136" },
-  { id: "slate", hex: "#334155", rgb: "51 65 85" },
   { id: "orange", hex: "#ea580c", rgb: "234 88 12" },
   { id: "concrete", hex: "#78716c", rgb: "120 113 108" },
 ] as const;

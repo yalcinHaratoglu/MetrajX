@@ -1,5 +1,7 @@
 import api from "./api";
 
+export type ProjectStatus = "draft" | "processing" | "ready" | "error";
+
 export interface Floor {
   id: number;
   name: string;
@@ -9,7 +11,7 @@ export interface Floor {
 export interface Project {
   id: number;
   name: string;
-  status: string;
+  status: ProjectStatus;
   source_file: string | null;
   floors: Floor[];
   requirements_count: number;
@@ -17,10 +19,42 @@ export interface Project {
   updated_at: string;
 }
 
-export interface ProjectStats {
-  projects: number;
-  floors: number;
-  requirements: number;
+export interface RebarRequirement {
+  id: number;
+  diameter_mm: number;
+  length_m: string;
+  quantity: number;
+  element_ref: string;
+  notes: string;
+}
+
+export interface Cut {
+  length: number;
+  element_ref: string;
+  position: number;
+}
+
+export interface CuttingBar {
+  stock_index: number;
+  cuts: Cut[];
+  waste_m: number;
+}
+
+export interface OptimizationResult {
+  run_id: number;
+  bar_length_m: number;
+  total_bars: number;
+  total_waste_m: number;
+  waste_percent: number;
+  plans: Record<string, CuttingBar[]>;
+  created_at?: string;
+}
+
+export interface NewRequirement {
+  diameter_mm: number;
+  length_m: number;
+  quantity: number;
+  element_ref?: string;
 }
 
 export const projectService = {
@@ -29,20 +63,82 @@ export const projectService = {
     return response.data;
   },
 
-  async getStats(): Promise<ProjectStats> {
-    const projects = await this.list();
-    return {
-      projects: projects.length,
-      floors: projects.reduce((sum, project) => sum + project.floors.length, 0),
-      requirements: projects.reduce((sum, project) => sum + project.requirements_count, 0),
-    };
+  async get(id: number): Promise<Project> {
+    const response = await api.get<Project>(`/projects/${id}/`);
+    return response.data;
   },
 
-  async create(name: string, sourceFile?: string) {
-    const response = await api.post<Project>("/projects/", {
-      name,
-      source_file: sourceFile ?? "",
+  async create(name: string): Promise<Project> {
+    const response = await api.post<Project>("/projects/", { name });
+    return response.data;
+  },
+
+  async remove(id: number): Promise<void> {
+    await api.delete(`/projects/${id}/`);
+  },
+
+  async getRequirements(id: number): Promise<RebarRequirement[]> {
+    const response = await api.get<RebarRequirement[]>(`/projects/${id}/requirements/`);
+    return response.data;
+  },
+
+  async addRequirement(id: number, data: NewRequirement): Promise<RebarRequirement> {
+    const response = await api.post<RebarRequirement>(`/projects/${id}/requirements/`, data);
+    return response.data;
+  },
+
+  async removeRequirement(requirementId: number): Promise<void> {
+    await api.delete(`/requirements/${requirementId}/`);
+  },
+
+  async upload(id: number, file: File): Promise<{ imported: number; requirements: RebarRequirement[] }> {
+    const form = new FormData();
+    form.append("file", file);
+    const response = await api.post(`/projects/${id}/upload/`, form, {
+      headers: { "Content-Type": "multipart/form-data" },
     });
     return response.data;
   },
+
+  async optimize(id: number): Promise<OptimizationResult> {
+    const response = await api.post<OptimizationResult>(`/projects/${id}/optimize/`);
+    return response.data;
+  },
+
+  async getResult(id: number): Promise<OptimizationResult | null> {
+    try {
+      const response = await api.get<OptimizationResult>(`/projects/${id}/result/`, {
+        suppressErrorToast: true,
+      });
+      return response.data;
+    } catch {
+      return null;
+    }
+  },
+
+  async downloadTemplate(): Promise<void> {
+    const response = await api.get("/projects/template/", { responseType: "blob" });
+    triggerDownload(response.data, "metrajx-donati-sablonu.xlsx");
+  },
+
+  async exportExcel(id: number, projectName: string): Promise<void> {
+    const response = await api.get(`/projects/${id}/export/excel/`, { responseType: "blob" });
+    triggerDownload(response.data, `${projectName}-metraj.xlsx`);
+  },
+
+  async exportPdf(id: number, projectName: string): Promise<void> {
+    const response = await api.get(`/projects/${id}/export/pdf/`, { responseType: "blob" });
+    triggerDownload(response.data, `${projectName}-kesim-plani.pdf`);
+  },
 };
+
+function triggerDownload(data: Blob, filename: string) {
+  const url = window.URL.createObjectURL(data);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+}

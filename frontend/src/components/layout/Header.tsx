@@ -1,6 +1,8 @@
-import { Menu } from "lucide-react";
+import { Menu, Moon, Sun } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../hooks/useAuth";
+import { useTheme } from "../../hooks/useTheme";
+import { LanguageSelect } from "../ui/LanguageSelect";
 
 interface HeaderProps {
   onMenuOpen?: () => void;
@@ -9,6 +11,7 @@ interface HeaderProps {
 export function Header({ onMenuOpen }: HeaderProps) {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <header className="dashboard-header">
@@ -27,6 +30,20 @@ export function Header({ onMenuOpen }: HeaderProps) {
             {user?.first_name} {user?.last_name}
           </p>
         </div>
+      </div>
+
+      <div className="header-actions">
+        <div className="header-lang">
+          <LanguageSelect />
+        </div>
+        <button
+          type="button"
+          className="btn-icon"
+          onClick={toggleTheme}
+          aria-label={t("header.toggleTheme")}
+        >
+          {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+        </button>
       </div>
     </header>
   );

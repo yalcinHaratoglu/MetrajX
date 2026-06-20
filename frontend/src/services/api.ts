@@ -1,6 +1,15 @@
 import axios from "axios";
+import { getApiErrorMessage } from "../lib/apiError";
+import { toast } from "../lib/toast";
 
 const baseURL = import.meta.env.VITE_API_URL ?? "http://localhost:8000/api";
+
+declare module "axios" {
+  export interface AxiosRequestConfig {
+    /** true ise bu istek hatasında otomatik toast gösterilmez. */
+    suppressErrorToast?: boolean;
+  }
+}
 
 const api = axios.create({
   baseURL,
@@ -21,7 +30,9 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    const status = error.response?.status;
+
+    if (status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       const refresh = localStorage.getItem("refresh_token");
       if (refresh) {
@@ -38,6 +49,13 @@ api.interceptors.response.use(
         }
       }
     }
+
+    // Backend hatalarını kullanıcıya bildirim olarak göster.
+    // 401 (kimlik) ilgili akışlarda yönetildiği için atlanır.
+    if (status !== 401 && !originalRequest?.suppressErrorToast) {
+      toast.error(getApiErrorMessage(error));
+    }
+
     return Promise.reject(error);
   },
 );

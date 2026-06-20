@@ -5,6 +5,7 @@
   },
   "nav": {
     "dashboard": "Dashboard",
+    "projects": "Projects",
     "settings": "Settings",
     "openMenu": "Open menu",
     "closeMenu": "Close menu"
@@ -31,11 +32,23 @@
     "companyName": "Company Name",
     "noAccount": "Don't have an account?",
     "hasAccount": "Already have an account?",
+    "loginSubtitle": "Sign in to access your projects and cutting plans.",
+    "registerSubtitle": "Create your account and start optimizing rebar.",
     "loginSuccess": "Login successful",
     "registerSuccess": "Registration successful. Please check your email.",
     "activateSuccess": "Your account has been activated. You can sign in.",
     "activateError": "Activation failed.",
-    "activateLoading": "Activating your account..."
+    "activateLoading": "Activating your account...",
+    "hero": {
+      "eyebrow": "Rebar Optimization Engine",
+      "title": "Less waste, sharper cutting plans.",
+      "desc": "MetrajX extracts rebar from your DXF/PDF drawings, computes 1D cutting stock from 12m bars, and delivers shop-ready plans.",
+      "features": {
+        "takeoff": "Automatic takeoff from DXF / PDF",
+        "cutting": "OR-Tools optimized cutting plans",
+        "waste": "Minimized waste, Excel & PDF reports"
+      }
+    }
   },
   "dashboard": {
     "title": "Dashboard",
@@ -55,6 +68,77 @@
     "banner": {
       "title": "Phase 1 — Rebar Optimization",
       "desc": "Project import, manual rebar entry, and 1D cutting stock algorithm are in active development. Use the API to create your first project."
+    },
+    "recentProjects": "Recent Projects",
+    "viewAll": "View all"
+  },
+  "projects": {
+    "title": "Projects",
+    "subtitle": "Manage your rebar takeoff and cutting optimization projects.",
+    "new": "New Project",
+    "create": "Create Project",
+    "name": "Project Name",
+    "namePlaceholder": "e.g. Block A — Structural",
+    "createTitle": "Create New Project",
+    "empty": "No projects yet",
+    "emptyDesc": "Create your first project to upload drawings or enter rebar manually.",
+    "delete": "Delete Project",
+    "deleteTitle": "Delete Project",
+    "deleteDesc": "The project \"{{name}}\" and all its rebar data will be permanently deleted. This action cannot be undone.",
+    "requirements": "Rebar items",
+    "floors": "Floors",
+    "createdAt": "Created",
+    "open": "Open",
+    "status": {
+      "draft": "Draft",
+      "processing": "Processing",
+      "ready": "Ready",
+      "error": "Error"
+    },
+    "detail": {
+      "back": "Back to projects",
+      "source": "Data Source",
+      "upload": "Upload File",
+      "uploadTab": "DXF / PDF",
+      "importTab": "XLSX Template",
+      "manualTab": "Manual Entry",
+      "uploadTitle": "Drop a DXF or PDF file",
+      "uploadHint": "or click to browse — .dxf, .pdf",
+      "importTitle": "Upload a filled template",
+      "importHint": "or click to browse — .xlsx",
+      "downloadTemplate": "Download XLSX template",
+      "parse": "Parse & Import",
+      "manual": {
+        "diameter": "Diameter (mm)",
+        "length": "Length (m)",
+        "quantity": "Quantity",
+        "ref": "Element Ref",
+        "add": "Add Item"
+      },
+      "requirements": "Rebar Requirements",
+      "requirementsEmpty": "No rebar items yet. Upload a file or add manually.",
+      "diameter": "Diameter",
+      "length": "Length",
+      "quantity": "Qty",
+      "ref": "Ref",
+      "optimize": "Optimize Cutting",
+      "optimizing": "Optimizing...",
+      "results": "Optimization Results",
+      "resultsEmpty": "Run optimization to see the cutting plan.",
+      "wastePercent": "Waste Rate",
+      "totalBars": "Stock Bars",
+      "barLength": "Bar Length",
+      "totalItems": "Rebar Items",
+      "exportExcel": "Excel",
+      "exportPdf": "PDF",
+      "chartWaste": "Waste by Diameter",
+      "chartBars": "Bars by Diameter",
+      "cuttingPlan": "Cutting Plan",
+      "bar": "Bar",
+      "uploadSuccess": "File parsed and rebar imported.",
+      "optimizeSuccess": "Optimization completed.",
+      "addSuccess": "Item added.",
+      "deleteSuccess": "Item removed."
     }
   },
   "settings": {
@@ -142,7 +226,11 @@
   "common": {
     "submit": "Submit",
     "save": "Save",
+    "cancel": "Cancel",
+    "create": "Create",
+    "delete": "Delete",
     "loading": "Loading...",
-    "error": "An error occurred"
+    "error": "An error occurred",
+    "networkError": "Could not reach the server. Please check your connection."
   }
 }

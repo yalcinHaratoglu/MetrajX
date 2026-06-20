@@ -5,6 +5,7 @@
   },
   "nav": {
     "dashboard": "Kontrol Paneli",
+    "projects": "Projeler",
     "settings": "Ayarlar",
     "openMenu": "Menüyü aç",
     "closeMenu": "Menüyü kapat"
@@ -31,11 +32,23 @@
     "companyName": "Firma Adı",
     "noAccount": "Hesabınız yok mu?",
     "hasAccount": "Zaten hesabınız var mı?",
+    "loginSubtitle": "Projelerinize ve kesim planlarınıza erişmek için giriş yapın.",
+    "registerSubtitle": "Hesabınızı oluşturun ve donatı optimizasyonuna başlayın.",
     "loginSuccess": "Giriş başarılı",
     "registerSuccess": "Kayıt başarılı. Lütfen e-postanızı kontrol edin.",
     "activateSuccess": "Hesabınız aktifleştirildi. Giriş yapabilirsiniz.",
     "activateError": "Aktivasyon başarısız.",
-    "activateLoading": "Hesabınız aktifleştiriliyor..."
+    "activateLoading": "Hesabınız aktifleştiriliyor...",
+    "hero": {
+      "eyebrow": "Donatı Optimizasyon Motoru",
+      "title": "Daha az fire, daha akıllı kesim planları.",
+      "desc": "MetrajX, DXF/PDF çizimlerinizden donatıyı ayıklar, 12m çubuklardan 1D kesim optimizasyonu yapar ve şantiyeye hazır planlar üretir.",
+      "features": {
+        "takeoff": "DXF / PDF'ten otomatik metraj",
+        "cutting": "OR-Tools ile optimize kesim planı",
+        "waste": "Minimum fire, Excel & PDF rapor"
+      }
+    }
   },
   "dashboard": {
     "title": "Kontrol Paneli",
@@ -55,6 +68,77 @@
     "banner": {
       "title": "Faz 1 — Donatı Optimizasyonu",
       "desc": "Proje import, manuel demir girişi ve 1D Cutting Stock algoritması aktif geliştirme aşamasında. İlk projenizi oluşturmak için API'yi kullanabilirsiniz."
+    },
+    "recentProjects": "Son Projeler",
+    "viewAll": "Tümünü gör"
+  },
+  "projects": {
+    "title": "Projeler",
+    "subtitle": "Donatı metrajı ve kesim optimizasyonu projelerinizi yönetin.",
+    "new": "Yeni Proje",
+    "create": "Proje Oluştur",
+    "name": "Proje Adı",
+    "namePlaceholder": "ör. A Blok — Statik",
+    "createTitle": "Yeni Proje Oluştur",
+    "empty": "Henüz proje yok",
+    "emptyDesc": "Çizim yüklemek veya manuel donatı girmek için ilk projenizi oluşturun.",
+    "delete": "Projeyi Sil",
+    "deleteTitle": "Projeyi Sil",
+    "deleteDesc": "\"{{name}}\" projesi ve tüm donatı verileri kalıcı olarak silinecek. Bu işlem geri alınamaz.",
+    "requirements": "Donatı kalemi",
+    "floors": "Kat",
+    "createdAt": "Oluşturulma",
+    "open": "Aç",
+    "status": {
+      "draft": "Taslak",
+      "processing": "İşleniyor",
+      "ready": "Hazır",
+      "error": "Hata"
+    },
+    "detail": {
+      "back": "Projelere dön",
+      "source": "Veri Kaynağı",
+      "upload": "Dosya Yükle",
+      "uploadTab": "DXF / PDF",
+      "importTab": "XLSX Şablon",
+      "manualTab": "Manuel Giriş",
+      "uploadTitle": "DXF veya PDF dosyası bırakın",
+      "uploadHint": "veya tıklayıp seçin — .dxf, .pdf",
+      "importTitle": "Doldurulmuş şablonu yükleyin",
+      "importHint": "veya tıklayıp seçin — .xlsx",
+      "downloadTemplate": "XLSX şablon indir",
+      "parse": "Ayıkla & İçe Aktar",
+      "manual": {
+        "diameter": "Çap (mm)",
+        "length": "Boy (m)",
+        "quantity": "Adet",
+        "ref": "Eleman No",
+        "add": "Kalem Ekle"
+      },
+      "requirements": "Donatı İhtiyaçları",
+      "requirementsEmpty": "Henüz donatı kalemi yok. Dosya yükleyin veya manuel ekleyin.",
+      "diameter": "Çap",
+      "length": "Boy",
+      "quantity": "Adet",
+      "ref": "No",
+      "optimize": "Kesimi Optimize Et",
+      "optimizing": "Optimize ediliyor...",
+      "results": "Optimizasyon Sonuçları",
+      "resultsEmpty": "Kesim planını görmek için optimizasyonu çalıştırın.",
+      "wastePercent": "Fire Oranı",
+      "totalBars": "Stok Çubuk",
+      "barLength": "Çubuk Boyu",
+      "totalItems": "Donatı Kalemi",
+      "exportExcel": "Excel",
+      "exportPdf": "PDF",
+      "chartWaste": "Çapa Göre Fire",
+      "chartBars": "Çapa Göre Çubuk",
+      "cuttingPlan": "Kesim Planı",
+      "bar": "Çubuk",
+      "uploadSuccess": "Dosya ayıklandı ve donatı içe aktarıldı.",
+      "optimizeSuccess": "Optimizasyon tamamlandı.",
+      "addSuccess": "Kalem eklendi.",
+      "deleteSuccess": "Kalem silindi."
     }
   },
   "settings": {
@@ -142,7 +226,11 @@
   "common": {
     "submit": "Gönder",
     "save": "Kaydet",
+    "cancel": "İptal",
+    "create": "Oluştur",
+    "delete": "Sil",
     "loading": "Yükleniyor...",
-    "error": "Bir hata oluştu"
+    "error": "Bir hata oluştu",
+    "networkError": "Sunucuya ulaşılamadı. Bağlantınızı kontrol edin."
   }
 }

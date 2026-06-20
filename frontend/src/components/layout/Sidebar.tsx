@@ -1,6 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { HardHat, LayoutDashboard, LogOut, Settings, X } from "lucide-react";
+import { Boxes, FolderKanban, LayoutDashboard, LogOut, Settings, X } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 
 interface SidebarProps {
@@ -27,7 +27,7 @@ export function Sidebar({ mobileOpen = false, onNavigate, onClose }: SidebarProp
 
       <div className="sidebar-brand-block">
         <div className="sidebar-logo">
-          <HardHat size={22} />
+          <Boxes size={22} />
         </div>
         <div>
           <div className="sidebar-brand">{t("app.name")}</div>
@@ -39,6 +39,10 @@ export function Sidebar({ mobileOpen = false, onNavigate, onClose }: SidebarProp
         <NavLink to="/dashboard" className={linkClass} onClick={onNavigate}>
           <LayoutDashboard size={18} />
           {t("nav.dashboard")}
+        </NavLink>
+        <NavLink to="/projects" className={linkClass} onClick={onNavigate}>
+          <FolderKanban size={18} />
+          {t("nav.projects")}
         </NavLink>
         <NavLink to="/settings" className={linkClass} onClick={onNavigate}>
           <Settings size={18} />
