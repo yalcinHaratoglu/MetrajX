@@ -1,6 +1,7 @@
 """Aşama 1 — Veri Ayıklama (Parsing Engine).
 
-DXF, PDF ve XLSX kaynaklarından donatı verisini ayıklayıp standart JSON'a çevirir.
+XLSX şablonundan donatı verisini ayıklayıp standart JSON'a çevirir.
+(PDF/DXF okuma kapsam dışıdır; yalnızca Excel şablonu ve manuel giriş desteklenir.)
 
 Standart çıktı formatı (her satır):
     {
@@ -13,24 +14,7 @@ Standart çıktı formatı (her satır):
 
 from __future__ import annotations
 
-import re
 from typing import IO, Any
-
-# Donatı notasyonu: "Ø16", "T16", "D16", "fi16", "Φ16", "⌀16" + boy/adet
-_DIAMETER_RE = re.compile(r"(?:Ø|Φ|⌀|T|D|fi|FI|q|Q)\s?0?(\d{1,2})\b", re.IGNORECASE)
-_COUNT_DIA_RE = re.compile(
-    r"(\d{1,3})\s?(?:Ø|Φ|⌀|T|D|fi|FI|q|Q)\s?0?(\d{1,2})\b", re.IGNORECASE
-)
-_LENGTH_RE = re.compile(
-    r"(?:L\s?=?\s?|boy\s?:?\s?|uzunluk\s?:?\s?|length\s?:?\s?)(\d+(?:[.,]\d+)?)",
-    re.IGNORECASE,
-)
-_QTY_RE = re.compile(r"(\d+)\s?(?:adet|ad\.?|x|pcs|nos?)\b", re.IGNORECASE)
-
-
-def _is_plausible_length(value: float) -> bool:
-    """Boy değeri makul mü? (50–1300 cm veya 0.5–13 m aralığı)."""
-    return (50 <= value <= 1300) or (0.5 <= value <= 13)
 
 
 def _to_float(value: Any) -> float | None:
@@ -74,129 +58,8 @@ def _make_row(diameter: Any, length: Any, quantity: Any, ref: str = "") -> dict 
     }
 
 
-def parse_dxf(file: IO[bytes] | str) -> list[dict]:
-    """DXF dosyasındaki donatı (rebar) katmanı metinlerinden veri ayıklar."""
-    import ezdxf
-
-    if hasattr(file, "read"):
-        import io
-
-        raw = file.read()
-        text_stream = io.StringIO(raw.decode("utf-8", errors="ignore") if isinstance(raw, bytes) else raw)
-        doc = ezdxf.read(text_stream)
-    else:
-        doc = ezdxf.readfile(file)
-
-    msp = doc.modelspace()
-    rebar_layers = {"rebar", "donati", "donatı", "demir", "reinforcement", "s-rebar"}
-    rows: list[dict] = []
-
-    for entity in msp:
-        if entity.dxftype() not in {"TEXT", "MTEXT"}:
-            continue
-        layer = str(getattr(entity.dxf, "layer", "")).strip().lower()
-        if rebar_layers and layer not in rebar_layers:
-            # Katman eşleşmese de donatı notasyonu içeren metinleri değerlendir
-            pass
-
-        content = entity.plain_text() if entity.dxftype() == "MTEXT" else entity.dxf.text
-        row = _parse_text_fragment(content)
-        if row:
-            rows.append(row)
-
-    return _merge_rows(rows)
-
-
-def _parse_text_fragment(text: str) -> dict | None:
-    if not text:
-        return None
-    text = text.strip()
-    diameter_match = _DIAMETER_RE.search(text)
-    if not diameter_match:
-        return None
-    diameter = diameter_match.group(1)
-
-    # Adet: "10Ø16" gibi öndeki sayı ya da "x10 / 10 adet"
-    quantity_value = 1
-    count_dia = _COUNT_DIA_RE.search(text)
-    if count_dia and count_dia.group(2) == diameter:
-        quantity_value = _to_int(count_dia.group(1)) or 1
-    qty_match = _QTY_RE.search(text)
-    if qty_match:
-        quantity_value = _to_int(qty_match.group(1)) or quantity_value
-
-    # Boy: önce "L=..." kalıbı, sonra çaptan sonraki makul sayı
-    length_value: float | None = None
-    length_match = _LENGTH_RE.search(text)
-    if length_match:
-        length_value = _to_float(length_match.group(1))
-
-    if length_value is None:
-        for number in re.findall(r"\d+(?:[.,]\d+)?", text[diameter_match.end():]):
-            candidate = _to_float(number)
-            if candidate is not None and _is_plausible_length(candidate):
-                length_value = candidate
-                break
-
-    if length_value is None:
-        return None
-    return _make_row(diameter, length_value, quantity_value)
-
-
-def parse_pdf(file: IO[bytes] | str) -> list[dict]:
-    """PDF içindeki tablolardan ve metinden donatı verisini ayıklar."""
-    import pdfplumber
-
-    rows: list[dict] = []
-    with pdfplumber.open(file) as pdf:
-        for page in pdf.pages:
-            for table in page.extract_tables() or []:
-                rows.extend(_parse_table(table))
-
-            text = page.extract_text() or ""
-            for line in text.splitlines():
-                row = _parse_text_fragment(line)
-                if row:
-                    rows.append(row)
-
-    return _merge_rows(rows)
-
-
-def _parse_table(table: list[list[Any]]) -> list[dict]:
-    if not table:
-        return []
-
-    header = [str(cell or "").strip().lower() for cell in table[0]]
-    col = {"diameter": None, "length": None, "quantity": None, "ref": None}
-    for idx, name in enumerate(header):
-        if any(key in name for key in ("çap", "cap", "diameter", "ø", "diam")):
-            col["diameter"] = idx
-        elif any(key in name for key in ("boy", "length", "uzunluk")):
-            col["length"] = idx
-        elif any(key in name for key in ("adet", "quantity", "qty", "miktar")):
-            col["quantity"] = idx
-        elif any(key in name for key in ("eleman", "ref", "poz", "element")):
-            col["ref"] = idx
-
-    if col["diameter"] is None or col["length"] is None:
-        return []
-
-    rows: list[dict] = []
-    for raw in table[1:]:
-        def cell(index: int | None) -> Any:
-            if index is None or index >= len(raw):
-                return None
-            return raw[index]
-
-        ref = str(cell(col["ref"]) or "").strip()
-        row = _make_row(cell(col["diameter"]), cell(col["length"]), cell(col["quantity"]), ref)
-        if row:
-            rows.append(row)
-    return rows
-
-
 def parse_xlsx(file: IO[bytes] | str) -> list[dict]:
-    """MetrajX XLSX şablonundan donatı verisini okur.
+    """ConManage XLSX şablonundan donatı verisini okur.
 
     Beklenen sütun başlıkları (ilk satır): çap | boy | adet | eleman
     """
@@ -243,12 +106,8 @@ def _merge_rows(rows: list[dict]) -> list[dict]:
 
 
 def parse_file(file: IO[bytes] | str, filename: str) -> list[dict]:
-    """Uzantıya göre uygun parser'ı seçer."""
+    """Uzantıya göre uygun parser'ı seçer (yalnızca XLSX desteklenir)."""
     name = filename.lower()
-    if name.endswith(".dxf"):
-        return parse_dxf(file)
-    if name.endswith(".pdf"):
-        return parse_pdf(file)
     if name.endswith((".xlsx", ".xlsm")):
         return parse_xlsx(file)
-    raise ValueError(f"Desteklenmeyen dosya türü: {filename}. DXF, PDF veya XLSX yükleyin.")
+    raise ValueError(f"Desteklenmeyen dosya türü: {filename}. Lütfen XLSX şablonu yükleyin.")

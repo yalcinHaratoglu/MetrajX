@@ -4,13 +4,13 @@ from django.core.mail import send_mail
 
 def send_activation_email(user, token):
     activation_url = f"{settings.FRONTEND_URL}/activate/{token}"
-    subject = "MetrajX — Hesap Aktivasyonu"
+    subject = "ConManage — Hesap Aktivasyonu"
     message = (
         f"Merhaba {user.first_name or user.email},\n\n"
-        f"MetrajX hesabınızı aktifleştirmek için aşağıdaki bağlantıya tıklayın:\n\n"
+        f"ConManage hesabınızı aktifleştirmek için aşağıdaki bağlantıya tıklayın:\n\n"
         f"{activation_url}\n\n"
         f"Bu bağlantı tek kullanımlıktır.\n\n"
-        f"MetrajX Ekibi"
+        f"ConManage Ekibi"
     )
     send_mail(
         subject=subject,

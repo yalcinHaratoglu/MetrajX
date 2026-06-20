@@ -75,8 +75,8 @@ else:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
-            "NAME": os.getenv("DB_NAME", "metrajx"),
-            "USER": os.getenv("DB_USER", "metrajx"),
+            "NAME": os.getenv("DB_NAME", "conmanage"),
+            "USER": os.getenv("DB_USER", "conmanage"),
             "PASSWORD": os.getenv("DB_PASSWORD", ""),
             "HOST": os.getenv("DB_HOST", "localhost"),
             "PORT": os.getenv("DB_PORT", "5432"),
@@ -124,5 +124,5 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@metrajx.com")
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@conmanage.com")
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")

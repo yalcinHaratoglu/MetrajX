@@ -10,7 +10,7 @@ class AuthAPITestCase(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.user = User.objects.create_user(
-            email="test@metrajx.com",
+            email="test@conmanage.com",
             password="TestPass123!",
             first_name="Test",
             last_name="User",
@@ -25,7 +25,7 @@ class AuthAPITestCase(TestCase):
     def test_login_with_email(self):
         response = self.client.post(
             "/api/auth/login/",
-            {"email": "test@metrajx.com", "password": "TestPass123!"},
+            {"email": "test@conmanage.com", "password": "TestPass123!"},
             format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -40,4 +40,4 @@ class AuthAPITestCase(TestCase):
         self.client.force_authenticate(user=self.user)
         response = self.client.get("/api/auth/profile/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["email"], "test@metrajx.com")
+        self.assertEqual(response.data["email"], "test@conmanage.com")

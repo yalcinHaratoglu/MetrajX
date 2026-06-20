@@ -4,11 +4,11 @@ from authentication.models import CustomUser
 
 
 class Command(BaseCommand):
-    help = "MetrajX varsayılan superuser oluşturur (yoksa)"
+    help = "ConManage varsayılan superuser oluşturur (yoksa)"
 
     def handle(self, *args, **options):
-        email = "admin@metrajx.com"
-        password = "MetrajX@Admin2024"
+        email = "admin@conmanage.com"
+        password = "ConManage@Admin2024"
 
         if CustomUser.objects.filter(email=email).exists():
             user = CustomUser.objects.get(email=email)
@@ -23,7 +23,7 @@ class Command(BaseCommand):
                 email=email,
                 password=password,
                 first_name="Admin",
-                last_name="MetrajX",
+                last_name="ConManage",
             )
             self.stdout.write(self.style.SUCCESS(f"Superuser oluşturuldu: {email}"))
 

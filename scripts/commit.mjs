@@ -39,7 +39,7 @@ function hasStagedFiles() {
 }
 
 async function main() {
-  console.log("\n MetrajX — Commit Oluşturucu\n");
+  console.log("\n ConManage — Commit Oluşturucu\n");
 
   if (!hasStagedFiles()) {
     const stageAll = await confirm({

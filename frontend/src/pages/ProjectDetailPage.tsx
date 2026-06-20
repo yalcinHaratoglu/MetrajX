@@ -16,7 +16,6 @@ import {
   Check,
   Download,
   FileSpreadsheet,
-  FileText,
   Layers,
   Pencil,
   Plus,
@@ -41,7 +40,7 @@ import {
   type RebarRequirement,
 } from "../services/projectService";
 
-type SourceTab = "upload" | "import" | "manual";
+type SourceTab = "import" | "manual";
 
 function groupBars(bars: CuttingBar[]): { bar: CuttingBar; count: number }[] {
   const groups: { bar: CuttingBar; count: number }[] = [];
@@ -80,7 +79,7 @@ export function ProjectDetailPage() {
   const [loadError, setLoadError] = useState(false);
   const [requirements, setRequirements] = useState<RebarRequirement[]>([]);
   const [result, setResult] = useState<OptimizationResult | null>(null);
-  const [tab, setTab] = useState<SourceTab>("upload");
+  const [tab, setTab] = useState<SourceTab>("import");
   const [busy, setBusy] = useState(false);
   const [optimizing, setOptimizing] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -105,7 +104,7 @@ export function ProjectDetailPage() {
     try {
       const response = await projectService.upload(projectId, file);
       setRequirements(response.requirements);
-      toast.success(t("projects.detail.uploadSuccess"));
+      toast.success(t("projects.detail.uploadSuccessReplaced", { count: response.imported }));
     } catch {
       // Hata mesajı global interceptor tarafından gösterilir.
     } finally {
@@ -177,16 +176,10 @@ export function ProjectDetailPage() {
         </div>
         <div className="page-toolbar-actions">
           {result && (
-            <>
-              <Button variant="ghost" onClick={() => projectService.exportExcel(projectId, project.name)}>
-                <FileSpreadsheet size={16} />
-                {t("projects.detail.exportExcel")}
-              </Button>
-              <Button variant="ghost" onClick={() => projectService.exportPdf(projectId, project.name)}>
-                <FileText size={16} />
-                {t("projects.detail.exportPdf")}
-              </Button>
-            </>
+            <Button variant="ghost" onClick={() => projectService.exportExcel(projectId, project.name)}>
+              <FileSpreadsheet size={16} />
+              {t("projects.detail.exportExcel")}
+            </Button>
           )}
           <button
             type="button"
@@ -220,6 +213,11 @@ export function ProjectDetailPage() {
           await projectService.removeRequirement(reqId);
           await loadRequirements();
           toast.success(t("projects.detail.deleteSuccess"));
+        }}
+        onClear={async () => {
+          await projectService.clearRequirements(projectId);
+          await loadRequirements();
+          toast.success(t("projects.detail.clearSuccess"));
         }}
         onOptimize={handleOptimize}
         optimizing={optimizing}
@@ -288,12 +286,10 @@ function SourceSection({ tab, onTab, busy, onUpload, projectId, onAdded }: Sourc
 
   return (
     <div className="surface-card" style={{ padding: "1.5rem" }}>
-      <h2 className="detail-section-title">{t("projects.detail.source")}</h2>
+      <div className="page-toolbar">
+        <h2 className="detail-section-title">{t("projects.detail.source")}</h2>
+      </div>
       <div className="tabs">
-        <button type="button" className={tab === "upload" ? "tab tab-active" : "tab"} onClick={() => onTab("upload")}>
-          <FileText size={15} />
-          {t("projects.detail.uploadTab")}
-        </button>
         <button type="button" className={tab === "import" ? "tab tab-active" : "tab"} onClick={() => onTab("import")}>
           <FileSpreadsheet size={15} />
           {t("projects.detail.importTab")}
@@ -305,15 +301,6 @@ function SourceSection({ tab, onTab, busy, onUpload, projectId, onAdded }: Sourc
       </div>
 
       <div className="tab-panel">
-        {tab === "upload" && (
-          <FileDropzone
-            accept=".dxf,.pdf"
-            onSelect={onUpload}
-            title={busy ? t("common.loading") : t("projects.detail.uploadTitle")}
-            hint={t("projects.detail.uploadHint")}
-          />
-        )}
-
         {tab === "import" && (
           <div className="form-stack">
             <FileDropzone
@@ -375,6 +362,7 @@ interface RequirementsSectionProps {
   requirements: RebarRequirement[];
   onUpdate: (id: number, data: Partial<NewRequirement>) => Promise<void>;
   onDelete: (id: number) => Promise<void>;
+  onClear: () => Promise<void>;
   onOptimize: (barLengthM: number) => void;
   optimizing: boolean;
 }
@@ -385,6 +373,7 @@ function RequirementsSection({
   requirements,
   onUpdate,
   onDelete,
+  onClear,
   onOptimize,
   optimizing,
 }: RequirementsSectionProps) {
@@ -398,6 +387,20 @@ function RequirementsSection({
     element_ref: "",
   });
   const [saving, setSaving] = useState(false);
+  const [clearOpen, setClearOpen] = useState(false);
+  const [clearing, setClearing] = useState(false);
+
+  const handleClear = async () => {
+    setClearing(true);
+    try {
+      await onClear();
+      setClearOpen(false);
+    } catch {
+      // Hata mesajı global interceptor tarafından gösterilir.
+    } finally {
+      setClearing(false);
+    }
+  };
 
   const startEdit = (req: RebarRequirement) => {
     setEditingId(req.id);
@@ -439,6 +442,16 @@ function RequirementsSection({
           {t("projects.detail.requirements")}
         </h2>
         <div className="optimize-controls">
+          {requirements.length > 0 && (
+            <button
+              type="button"
+              className="btn-danger btn-sm"
+              onClick={() => setClearOpen(true)}
+            >
+              <Trash2 size={15} />
+              {t("projects.detail.clearAll")}
+            </button>
+          )}
           <label className="bar-length-field">
             <span className="bar-length-label">{t("projects.detail.barLengthInput")}</span>
             <input
@@ -573,6 +586,25 @@ function RequirementsSection({
           </table>
         </div>
       )}
+
+      <Modal
+        open={clearOpen}
+        onClose={() => setClearOpen(false)}
+        title={t("projects.detail.clearTitle")}
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setClearOpen(false)}>
+              {t("common.cancel")}
+            </Button>
+            <button type="button" className="btn-danger" onClick={handleClear} disabled={clearing}>
+              <Trash2 size={16} />
+              {clearing ? t("common.loading") : t("projects.detail.clearAll")}
+            </button>
+          </>
+        }
+      >
+        <p className="text-sm">{t("projects.detail.clearDesc", { count: requirements.length })}</p>
+      </Modal>
     </div>
   );
 }

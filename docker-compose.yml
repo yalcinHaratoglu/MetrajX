@@ -1,18 +1,18 @@
 services:
   db:
     image: postgres:16-alpine
-    container_name: metrajx-db
+    container_name: conmanage-db
     restart: unless-stopped
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_DB: metrajx
-      POSTGRES_USER: metrajx
+      POSTGRES_DB: conmanage
+      POSTGRES_USER: conmanage
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U metrajx -d metrajx"]
+      test: ["CMD-SHELL", "pg_isready -U conmanage -d conmanage"]
       interval: 5s
       timeout: 5s
       retries: 5

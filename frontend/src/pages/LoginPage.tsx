@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { AuthHero } from "../components/layout/AuthHero";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
+import { PasswordInput } from "../components/ui/PasswordInput";
 import { useAuth } from "../hooks/useAuth";
 
 export function LoginPage() {
@@ -47,9 +48,8 @@ export function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
             />
-            <Input
+            <PasswordInput
               label={t("auth.password")}
-              type="password"
               name="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}

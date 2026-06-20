@@ -44,9 +44,16 @@ class OptimizerService:
     @classmethod
     @transaction.atomic
     def import_from_file(cls, project: Project, file, filename: str) -> list[dict]:
-        """DXF/PDF/XLSX dosyasından donatı ayıklayıp kaydeder."""
+        """XLSX şablonundan donatı ayıklar ve mevcut veriyi DEĞİŞTİRİR.
+
+        Dosya importu append değil replace mantığıyla çalışır: yeni satır
+        bulunursa projenin tüm mevcut donatı kalemleri silinip yenisi yazılır.
+        Hiç satır bulunamazsa mevcut veriye dokunulmaz.
+        """
         rows = parsers.parse_file(file, filename)
-        cls._persist_rows(project, rows)
+        if rows:
+            project.requirements.all().delete()
+            cls._persist_rows(project, rows)
         return rows
 
     @classmethod
@@ -156,13 +163,6 @@ class OptimizerService:
         if not result:
             raise ValueError("Önce optimizasyon çalıştırın.")
         return exporters.export_excel(project.name, result)
-
-    @classmethod
-    def export_pdf(cls, project: Project) -> io.BytesIO:
-        result = cls.build_result(project)
-        if not result:
-            raise ValueError("Önce optimizasyon çalıştırın.")
-        return exporters.export_pdf(project.name, result)
 
     @staticmethod
     def build_template() -> io.BytesIO:

@@ -1,9 +1,10 @@
 {
-  "name": "@metrajx/backend",
+  "name": "@conmanage/backend",
   "private": true,
   "scripts": {
     "dev": "venv\\Scripts\\python.exe manage.py runserver",
     "migrate": "venv\\Scripts\\python.exe manage.py migrate",
+    "create-superuser": "venv\\Scripts\\python.exe manage.py create_superuser",
     "test": "venv\\Scripts\\python.exe manage.py test",
     "check": "venv\\Scripts\\python.exe manage.py check"
   }

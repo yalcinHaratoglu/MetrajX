@@ -102,6 +102,10 @@ export const projectService = {
     await api.delete(`/requirements/${requirementId}/`);
   },
 
+  async clearRequirements(id: number): Promise<void> {
+    await api.delete(`/projects/${id}/requirements/`);
+  },
+
   async upload(id: number, file: File): Promise<{ imported: number; requirements: RebarRequirement[] }> {
     const form = new FormData();
     form.append("file", file);
@@ -130,17 +134,12 @@ export const projectService = {
 
   async downloadTemplate(): Promise<void> {
     const response = await api.get("/projects/template/", { responseType: "blob" });
-    triggerDownload(response.data, "metrajx-donati-sablonu.xlsx");
+    triggerDownload(response.data, "conmanage-donati-sablonu.xlsx");
   },
 
   async exportExcel(id: number, projectName: string): Promise<void> {
     const response = await api.get(`/projects/${id}/export/excel/`, { responseType: "blob" });
     triggerDownload(response.data, `${projectName}-metraj.xlsx`);
-  },
-
-  async exportPdf(id: number, projectName: string): Promise<void> {
-    const response = await api.get(`/projects/${id}/export/pdf/`, { responseType: "blob" });
-    triggerDownload(response.data, `${projectName}-kesim-plani.pdf`);
   },
 };
 

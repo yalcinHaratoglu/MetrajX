@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "../ui/Button";
-import { Input } from "../ui/Input";
+import { PasswordInput } from "../ui/PasswordInput";
 import { settingsService } from "../../services/settingsService";
 
 export function PasswordForm() {
@@ -39,24 +39,21 @@ export function PasswordForm() {
 
   return (
     <form onSubmit={handleSubmit} className="form-stack">
-      <Input
+      <PasswordInput
         label={t("settings.password.current")}
-        type="password"
         value={form.current_password}
         onChange={(e) => setForm((p) => ({ ...p, current_password: e.target.value }))}
         required
       />
-      <Input
+      <PasswordInput
         label={t("settings.password.new")}
-        type="password"
         value={form.new_password}
         onChange={(e) => setForm((p) => ({ ...p, new_password: e.target.value }))}
         required
         minLength={8}
       />
-      <Input
+      <PasswordInput
         label={t("settings.password.confirm")}
-        type="password"
         value={form.confirm_password}
         onChange={(e) => setForm((p) => ({ ...p, confirm_password: e.target.value }))}
         required

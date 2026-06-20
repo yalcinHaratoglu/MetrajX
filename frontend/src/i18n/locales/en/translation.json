@@ -1,7 +1,7 @@
 {
   "app": {
-    "name": "MetrajX",
-    "tagline": "Rebar takeoff & cut optimization"
+    "name": "ConManage",
+    "tagline": "Construction & site management platform"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -27,37 +27,39 @@
     "logout": "Sign Out",
     "email": "Email",
     "password": "Password",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
     "firstName": "First Name",
     "lastName": "Last Name",
     "companyName": "Company Name",
     "noAccount": "Don't have an account?",
     "hasAccount": "Already have an account?",
-    "loginSubtitle": "Sign in to access your projects and cutting plans.",
-    "registerSubtitle": "Create your account and start optimizing rebar.",
+    "loginSubtitle": "Sign in to access your sites and projects.",
+    "registerSubtitle": "Create your account and start managing your sites.",
     "loginSuccess": "Login successful",
     "registerSuccess": "Registration successful. Please check your email.",
     "activateSuccess": "Your account has been activated. You can sign in.",
     "activateError": "Activation failed.",
     "activateLoading": "Activating your account...",
     "hero": {
-      "eyebrow": "Rebar Optimization Engine",
-      "title": "Less waste, sharper cutting plans.",
-      "desc": "MetrajX extracts rebar from your DXF/PDF drawings, computes 1D cutting stock from 12m bars, and delivers shop-ready plans.",
+      "eyebrow": "Construction & Site Management",
+      "title": "All your sites in one platform.",
+      "desc": "Manage takeoff, progress, timesheets and costs from a single place with ConManage, and track your sites from any device.",
       "features": {
-        "takeoff": "Automatic takeoff from DXF / PDF",
-        "cutting": "OR-Tools optimized cutting plans",
-        "waste": "Minimized waste, Excel & PDF reports"
+        "takeoff": "Site-based takeoff & progress tracking",
+        "cutting": "Excel template or manual data entry",
+        "waste": "Cost and payment control"
       }
     }
   },
   "dashboard": {
     "title": "Dashboard",
-    "welcome": "Welcome to MetrajX",
+    "welcome": "Welcome to ConManage",
     "hero": {
-      "label": "MetrajX Platform",
+      "label": "ConManage",
       "greeting": "Hello, {{name}}",
       "defaultName": "Engineer",
-      "desc": "Extract rebar quantities from DXF/PDF projects, plan floor-based requirements, and optimize cuts from 12m stock bars with minimum waste."
+      "desc": "Manage takeoff, progress and costs of your sites from a single panel, and track the field with your team from any device."
     },
     "stats": {
       "projects": "Active Projects",
@@ -98,12 +100,8 @@
     "detail": {
       "back": "Back to projects",
       "source": "Data Source",
-      "upload": "Upload File",
-      "uploadTab": "DXF / PDF",
       "importTab": "XLSX Template",
       "manualTab": "Manual Entry",
-      "uploadTitle": "Drop a DXF or PDF file",
-      "uploadHint": "or click to browse — .dxf, .pdf",
       "importTitle": "Upload a filled template",
       "importHint": "or click to browse — .xlsx",
       "downloadTemplate": "Download XLSX template",
@@ -116,13 +114,17 @@
         "add": "Add Item"
       },
       "requirements": "Rebar Requirements",
-      "requirementsEmpty": "No rebar items yet. Upload a file or add manually.",
+      "requirementsEmpty": "No rebar items yet. Upload an Excel template or add manually.",
       "diameter": "Diameter",
       "length": "Length",
       "quantity": "Qty",
       "ref": "Ref",
       "barLengthInput": "Bar Length (m)",
       "identicalBars": "Identical bars count",
+      "clearAll": "Clear All",
+      "clearTitle": "Delete All Rebar Items",
+      "clearDesc": "{{count}} rebar items will be permanently deleted. This action cannot be undone.",
+      "clearSuccess": "All items deleted.",
       "optimize": "Optimize Cutting",
       "optimizing": "Optimizing...",
       "results": "Optimization Results",
@@ -132,7 +134,6 @@
       "barLength": "Bar Length",
       "totalItems": "Rebar Items",
       "exportExcel": "Excel",
-      "exportPdf": "PDF",
       "chartWaste": "Waste by Diameter",
       "chartBars": "Bars by Diameter",
       "chartWasteLabel": "Waste (m)",
@@ -140,6 +141,7 @@
       "cuttingPlan": "Cutting Plan",
       "bar": "Bar",
       "uploadSuccess": "File parsed and rebar imported.",
+      "uploadSuccessReplaced": "{{count}} items found — previous data replaced.",
       "optimizeSuccess": "Optimization completed.",
       "addSuccess": "Item added.",
       "updateSuccess": "Item updated.",
@@ -235,6 +237,7 @@
     "cancel": "Cancel",
     "create": "Create",
     "delete": "Delete",
+    "gotIt": "Got it",
     "loading": "Loading...",
     "error": "An error occurred",
     "networkError": "Could not reach the server. Please check your connection."

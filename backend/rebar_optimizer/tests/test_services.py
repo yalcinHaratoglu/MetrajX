@@ -51,13 +51,11 @@ class ParserTests(TestCase):
         self.assertEqual(first["quantity"], 10)
         self.assertEqual(first["element_ref"], "K-101")
 
-    def test_parse_text_fragment_notation(self):
-        rows = parsers.parse_dxf  # ensure attribute exists
-        self.assertTrue(callable(rows))
-
     def test_unsupported_extension(self):
         with self.assertRaises(ValueError):
-            parsers.parse_file(io.BytesIO(b""), "drawing.dwg")
+            parsers.parse_file(io.BytesIO(b""), "drawing.dxf")
+        with self.assertRaises(ValueError):
+            parsers.parse_file(io.BytesIO(b""), "drawing.pdf")
 
 
 class ExporterTests(TestCase):
@@ -72,9 +70,3 @@ class ExporterTests(TestCase):
         data = buffer.getvalue()
         self.assertGreater(len(data), 0)
         self.assertEqual(data[:2], b"PK")
-
-    def test_export_pdf(self):
-        buffer = exporters.export_pdf("Test", _sample_result())
-        data = buffer.getvalue()
-        self.assertGreater(len(data), 0)
-        self.assertEqual(data[:4], b"%PDF")

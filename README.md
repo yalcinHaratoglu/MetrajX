@@ -1,11 +1,11 @@
-# MetrajX
+# ConManage
 
-İnşaat projelerinde donatı metrajı, kesim optimizasyonu ve şantiye planlaması için SaaS platformu.
+İnşaat ve şantiye yönetimi (ERP) için SaaS platformu: çoklu şantiye, metraj ve ilerleme, puantaj, finans ve maliyet takibi.
 
 ## Mimari
 
 ```
-MetrajX/
+ConManage/
 ├── frontend/     → React + Vite + TypeScript (pnpm)
 ├── backend/      → Django REST Framework + PostgreSQL
 ├── docker-compose.yml
@@ -34,13 +34,19 @@ MetrajX/
 cp .env.example .env
 ```
 
-`.env` dosyasında `DB_PASSWORD` değerini kontrol edin (varsayılan: `metrajx_dev_secret`).
+`.env` dosyasında `DB_PASSWORD` değerini kontrol edin (varsayılan: `conmanage_dev_secret`).
+
+> **Not:** Veritabanı kullanıcı/adı değiştiyse (ör. `metrajx` → `conmanage`) mevcut Docker volume eski kimlik bilgilerini tutar. Bu durumda:
+> ```bash
+> pnpm setup:db
+> ```
+> komutu volume'u sıfırlar, migrasyonları uygular ve superuser oluşturur. Ardından `pnpm dev` sürecini yeniden başlatın.
 
 ### 2. PostgreSQL servisini başlatın
 
 ```bash
 docker compose up -d
-docker compose ps   # metrajx-db "healthy" olmalı
+docker compose ps   # conmanage-db "healthy" olmalı
 ```
 
 ### 3. Bağımlılıkları kurun
@@ -118,8 +124,8 @@ venv\Scripts\python.exe manage.py create_superuser
 
 | Alan | Değer |
 |------|-------|
-| E-posta | `admin@metrajx.com` |
-| Şifre | `MetrajX@Admin2024` |
+| E-posta | `admin@conmanage.com` |
+| Şifre | `ConManage@Admin2024` |
 
 - Django Admin: http://localhost:8000/admin/
 - API login: http://localhost:5173/login
@@ -138,7 +144,7 @@ Commit mesajı örneği: `feat: add settings page` veya `fix: resolve login redi
 
 ### Neon — Veritabanı
 
-1. [neon.tech](https://neon.tech) üzerinde `metrajx-prod` projesi oluşturun
+1. [neon.tech](https://neon.tech) üzerinde `conmanage-prod` projesi oluşturun
 2. Connection string'i kopyalayın
 3. Render ortam değişkenine `DATABASE_URL` olarak ekleyin
 
@@ -152,14 +158,14 @@ Commit mesajı örneği: `feat: add settings page` veya `fix: resolve login redi
 
 - Root Directory: `frontend`
 - Build: `pnpm build`
-- Env: `VITE_API_URL=https://metrajx-api.onrender.com/api`
+- Env: `VITE_API_URL=https://conmanage-api.onrender.com/api`
 
 ## Proje Fazları
 
-- **Phase 1:** Core Rebar Optimization & Cutting Stock Algorithm
-- **Phase 2:** Automated Formwork (Kalıp) & Wall (Duvar) area estimations from DXF layers
-- **Phase 3:** Opening deduction (Minha) algorithms for doors and windows
-- **Phase 4:** Comprehensive Bill of Quantities (BoQ) export for plaster, paint, and concrete
+- **Faz 0:** Yeniden markalama (ConManage) + PDF/DXF kaldırma (yalnızca Excel şablonu + manuel giriş)
+- **Faz 1:** Rol tabanlı yetkilendirme (Müteahhit/Şef/Muhasebe) + Şantiye modeli + Şantiye seçici
+- **Faz 2:** Genel metraj & ilerleme (beton, demir, sıva, kalıp, boya) ve iş bitirme yüzdeleri
+- **Faz 3+:** Puantaj & taşeron, finans/cari/depo, şantiye takvimi, günlük rapor & demirbaş
 
 ## Faydalı Komutlar
 

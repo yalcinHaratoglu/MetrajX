@@ -90,6 +90,13 @@ class ProjectRequirementsView(APIView):
             RebarRequirementSerializer(requirement).data, status=status.HTTP_201_CREATED
         )
 
+    def delete(self, request, project_id):
+        project = _get_project_or_none(request, project_id)
+        if not project:
+            return Response({"detail": "Proje bulunamadı."}, status=status.HTTP_404_NOT_FOUND)
+        project.requirements.all().delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class RequirementDetailView(APIView):
     def _get_requirement(self, request, pk):
@@ -225,10 +232,6 @@ class ProjectExportView(APIView):
                     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 )
                 filename = f"{project.name}-metraj.xlsx"
-            elif fmt == "pdf":
-                buffer = OptimizerService.export_pdf(project)
-                content_type = "application/pdf"
-                filename = f"{project.name}-kesim-plani.pdf"
             else:
                 return Response(
                     {"detail": "Geçersiz format."}, status=status.HTTP_400_BAD_REQUEST
@@ -248,5 +251,5 @@ class TemplateDownloadView(APIView):
             buffer.getvalue(),
             content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         )
-        response["Content-Disposition"] = 'attachment; filename="metrajx-donati-sablonu.xlsx"'
+        response["Content-Disposition"] = 'attachment; filename="conmanage-donati-sablonu.xlsx"'
         return response

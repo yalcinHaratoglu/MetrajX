@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: metrajx-api
+    name: conmanage-api
     runtime: python
     rootDir: backend
     buildCommand: pip install -r requirements.txt
@@ -13,8 +13,8 @@ services:
       - key: DEBUG
         value: "False"
       - key: ALLOWED_HOSTS
-        value: metrajx-api.onrender.com
+        value: conmanage-api.onrender.com
       - key: FRONTEND_URL
-        value: https://metrajx.vercel.app
+        value: https://conmanage.vercel.app
       - key: CORS_ALLOWED_ORIGINS
-        value: https://metrajx.vercel.app
+        value: https://conmanage.vercel.app

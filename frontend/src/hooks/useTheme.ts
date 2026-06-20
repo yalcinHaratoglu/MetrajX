@@ -13,7 +13,7 @@ export function useTheme() {
 export function useLanguage() {
   const changeLanguage = (lng: "tr" | "en") => {
     void i18n.changeLanguage(lng);
-    localStorage.setItem("metrajx-language", lng);
+    localStorage.setItem("conmanage-language", lng);
   };
 
   return {
