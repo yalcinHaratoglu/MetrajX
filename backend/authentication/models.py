@@ -44,7 +44,10 @@ class CustomUserManager(BaseUserManager):
 
 class CustomUser(AbstractUser):
     class Role(models.TextChoices):
-        OWNER = "owner", "Sahip"
+        OWNER = "owner", "Müteahhit"
+        SITE_MANAGER = "site_manager", "Şantiye Şefi"
+        ACCOUNTANT = "accountant", "Muhasebe"
+        # Geriye dönük uyumluluk
         ADMIN = "admin", "Yönetici"
         MEMBER = "member", "Üye"
 
@@ -73,12 +76,21 @@ class CustomUser(AbstractUser):
 
 
 class ActivationToken(models.Model):
+    class Purpose(models.TextChoices):
+        REGISTRATION = "registration", "Kayıt aktivasyonu"
+        INVITE = "invite", "Organizasyon daveti"
+
     user = models.ForeignKey(
         CustomUser,
         on_delete=models.CASCADE,
         related_name="activation_tokens",
     )
     token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    purpose = models.CharField(
+        max_length=20,
+        choices=Purpose.choices,
+        default=Purpose.REGISTRATION,
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     is_used = models.BooleanField(default=False)
 

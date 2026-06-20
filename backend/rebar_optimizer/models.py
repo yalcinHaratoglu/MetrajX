@@ -9,6 +9,13 @@ class Project(models.Model):
         READY = "ready", "Hazır"
         ERROR = "error", "Hata"
 
+    site = models.OneToOneField(
+        "sites.Site",
+        on_delete=models.CASCADE,
+        related_name="rebar_project",
+        null=True,
+        blank=True,
+    )
     company = models.ForeignKey(
         "authentication.Company",
         on_delete=models.CASCADE,

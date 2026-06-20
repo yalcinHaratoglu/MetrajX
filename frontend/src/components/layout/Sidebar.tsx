@@ -1,9 +1,10 @@
 import { NavLink } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Boxes, FolderKanban, LayoutDashboard, LogOut, Moon, Settings, Sun, X } from "lucide-react";
+import { Boxes, Building2, LayoutDashboard, LogOut, Moon, Settings, Sun, X } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { useTheme } from "../../hooks/useTheme";
 import { LanguageSelect } from "../ui/LanguageSelect";
+import { SiteSelector } from "./SiteSelector";
 
 interface SidebarProps {
   mobileOpen?: boolean;
@@ -51,14 +52,16 @@ export function Sidebar({ mobileOpen = false, onNavigate, onClose }: SidebarProp
         </div>
       )}
 
+      <SiteSelector />
+
       <nav className="sidebar-nav">
         <NavLink to="/dashboard" className={linkClass} onClick={onNavigate}>
           <LayoutDashboard size={18} />
           {t("nav.dashboard")}
         </NavLink>
-        <NavLink to="/projects" className={linkClass} onClick={onNavigate}>
-          <FolderKanban size={18} />
-          {t("nav.projects")}
+        <NavLink to="/sites" className={linkClass} onClick={onNavigate}>
+          <Building2 size={18} />
+          {t("nav.sites")}
         </NavLink>
         <NavLink to="/settings" className={linkClass} onClick={onNavigate}>
           <Settings size={18} />

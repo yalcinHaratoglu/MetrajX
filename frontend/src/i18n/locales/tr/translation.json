@@ -5,6 +5,7 @@
   },
   "nav": {
     "dashboard": "Kontrol Paneli",
+    "sites": "Şantiyeler",
     "projects": "Projeler",
     "settings": "Ayarlar",
     "openMenu": "Menüyü aç",
@@ -41,6 +42,18 @@
     "activateSuccess": "Hesabınız aktifleştirildi. Giriş yapabilirsiniz.",
     "activateError": "Aktivasyon başarısız.",
     "activateLoading": "Hesabınız aktifleştiriliyor...",
+    "invite": {
+      "title": "Organizasyona Katıl",
+      "subtitle": "Daveti kabul etmek için şifrenizi oluşturun.",
+      "loading": "Davet bilgileri yükleniyor...",
+      "error": "Davet bağlantısı geçersiz veya süresi dolmuş.",
+      "organization": "Organizasyon",
+      "password": "Şifre",
+      "passwordConfirm": "Şifre Tekrar",
+      "passwordMismatch": "Şifreler eşleşmiyor.",
+      "submit": "Şifreyi Kaydet ve Katıl",
+      "success": "Hesabınız hazır. Giriş yapabilirsiniz."
+    },
     "hero": {
       "eyebrow": "İnşaat & Şantiye Yönetimi",
       "title": "Tüm şantiyeleriniz tek platformda.",
@@ -62,17 +75,47 @@
       "desc": "Şantiyelerinizin metrajını, ilerlemesini ve maliyetlerini tek panelden yönetin; ekibinizle birlikte sahayı her cihazdan takip edin."
     },
     "stats": {
-      "projects": "Aktif Proje",
-      "floors": "Toplam Kat",
-      "cuts": "Kesim Planı",
-      "waste": "Fire Oranı"
+      "sites": "Şantiye",
+      "requirements": "Donatı Kalemi",
+      "activeSites": "Aktif Şantiye",
+      "role": "Rolünüz"
     },
     "banner": {
-      "title": "Faz 1 — Donatı Optimizasyonu",
-      "desc": "Proje import, manuel demir girişi ve 1D Cutting Stock algoritması aktif geliştirme aşamasında. İlk projenizi oluşturmak için API'yi kullanabilirsiniz."
+      "title": "Faz 1 — Çok Şantiyeli Yönetim",
+      "desc": "RBAC, şantiye seçici ve kullanıcı yönetimi aktif. Şantiye oluşturup ekibinize rol ve şantiye atayabilirsiniz."
     },
-    "recentProjects": "Son Projeler",
+    "recentSites": "Son Şantiyeler",
     "viewAll": "Tümünü gör"
+  },
+  "sites": {
+    "title": "Şantiyeler",
+    "subtitle": "İnşaat şantiyelerinizi yönetin ve detaylarına gidin.",
+    "new": "Yeni Şantiye",
+    "create": "Şantiye Oluştur",
+    "name": "Şantiye Adı",
+    "namePlaceholder": "ör. A Blok Konut",
+    "code": "Şantiye Kodu",
+    "codePlaceholder": "ör. A-BLOK",
+    "createTitle": "Yeni Şantiye Oluştur",
+    "empty": "Henüz şantiye yok",
+    "emptyDesc": "İlk şantiyenizi oluşturarak metraj ve demir işlemlerine başlayın.",
+    "delete": "Şantiyeyi Sil",
+    "deleteTitle": "Şantiyeyi Sil",
+    "deleteDesc": "\"{{name}}\" şantiyesi ve tüm verileri kalıcı olarak silinecek.",
+    "status": {
+      "planning": "Planlama",
+      "active": "Aktif",
+      "paused": "Duraklatıldı",
+      "completed": "Tamamlandı"
+    },
+    "selector": {
+      "label": "Şantiye Seçici",
+      "all": "Tüm Şantiyeler",
+      "empty": "Erişilebilir şantiye yok"
+    },
+    "detail": {
+      "back": "Şantiyelere dön"
+    }
   },
   "projects": {
     "title": "Projeler",
@@ -195,10 +238,16 @@
       "invite": "Davet Gönder",
       "inviteSuccess": "Davet başarıyla gönderildi.",
       "roles": {
-        "member": "Üye",
+        "owner": "Müteahhit",
+        "site_manager": "Şantiye Şefi",
+        "accountant": "Muhasebe",
         "admin": "Yönetici",
-        "owner": "Sahip"
-      }
+        "member": "Üye"
+      },
+      "sites": "Atanan Şantiyeler",
+      "assignSites": "Şantiye Ata",
+      "noSites": "Atanacak şantiye yok. Önce şantiye oluşturun.",
+      "ownerOnly": "Kullanıcı yönetimi yalnızca müteahhit tarafından yapılabilir."
     },
     "appearance": {
       "title": "Görünüm",

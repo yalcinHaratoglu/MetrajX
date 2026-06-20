@@ -14,10 +14,10 @@ ConManage/
 
 ### Ortamlar
 
-| Ortam | Frontend | Backend | Veritabanı |
-|-------|----------|---------|------------|
-| Local | Vite `:5173` | Django `:8000` | Docker PostgreSQL |
-| Production | Vercel | Render | Neon.tech |
+| Ortam      | Frontend     | Backend        | Veritabanı        |
+| ---------- | ------------ | -------------- | ----------------- |
+| Local      | Vite `:5173` | Django `:8000` | Docker PostgreSQL |
+| Production | Vercel       | Render         | Neon.tech         |
 
 ## Ön Gereksinimler
 
@@ -37,9 +37,11 @@ cp .env.example .env
 `.env` dosyasında `DB_PASSWORD` değerini kontrol edin (varsayılan: `conmanage_dev_secret`).
 
 > **Not:** Veritabanı kullanıcı/adı değiştiyse (ör. `metrajx` → `conmanage`) mevcut Docker volume eski kimlik bilgilerini tutar. Bu durumda:
+>
 > ```bash
 > pnpm setup:db
 > ```
+>
 > komutu volume'u sıfırlar, migrasyonları uygular ve superuser oluşturur. Ardından `pnpm dev` sürecini yeniden başlatın.
 
 ### 2. PostgreSQL servisini başlatın
@@ -84,23 +86,23 @@ pnpm dev:backend    # http://localhost:8000
 
 ## API Endpoints (Auth)
 
-| Method | Endpoint | Açıklama |
-|--------|----------|----------|
-| POST | `/api/auth/register/` | Kayıt (is_active=False) |
-| GET | `/api/auth/activate/<uuid>/` | Hesap aktivasyonu |
-| POST | `/api/auth/login/` | JWT access + refresh |
-| POST | `/api/auth/logout/` | Çıkış (token blacklist) |
-| POST | `/api/auth/token/refresh/` | Token yenileme |
-| GET/PATCH | `/api/auth/profile/` | Profil |
-| POST | `/api/auth/change-password/` | Şifre değiştirme |
-| GET/PATCH | `/api/auth/company/` | Şirket bilgileri |
-| POST | `/api/auth/team/invite/` | Ekip daveti |
-| POST | `/api/auth/feedback/` | Geri bildirim |
-| GET | `/api/auth/health/` | Sağlık kontrolü |
-| GET/POST | `/api/projects/` | Proje listesi / oluşturma |
-| GET/PATCH/DELETE | `/api/projects/{id}/` | Proje detay |
-| GET/POST | `/api/projects/{id}/requirements/` | Demir girişi |
-| POST | `/api/projects/{id}/optimize/` | Kesim optimizasyonu (501 — motor hazırlanıyor) |
+| Method           | Endpoint                           | Açıklama                                       |
+| ---------------- | ---------------------------------- | ---------------------------------------------- |
+| POST             | `/api/auth/register/`              | Kayıt (is_active=False)                        |
+| GET              | `/api/auth/activate/<uuid>/`       | Hesap aktivasyonu                              |
+| POST             | `/api/auth/login/`                 | JWT access + refresh                           |
+| POST             | `/api/auth/logout/`                | Çıkış (token blacklist)                        |
+| POST             | `/api/auth/token/refresh/`         | Token yenileme                                 |
+| GET/PATCH        | `/api/auth/profile/`               | Profil                                         |
+| POST             | `/api/auth/change-password/`       | Şifre değiştirme                               |
+| GET/PATCH        | `/api/auth/company/`               | Şirket bilgileri                               |
+| POST             | `/api/auth/team/invite/`           | Ekip daveti                                    |
+| POST             | `/api/auth/feedback/`              | Geri bildirim                                  |
+| GET              | `/api/auth/health/`                | Sağlık kontrolü                                |
+| GET/POST         | `/api/projects/`                   | Proje listesi / oluşturma                      |
+| GET/PATCH/DELETE | `/api/projects/{id}/`              | Proje detay                                    |
+| GET/POST         | `/api/projects/{id}/requirements/` | Demir girişi                                   |
+| POST             | `/api/projects/{id}/optimize/`     | Kesim optimizasyonu (501 — motor hazırlanıyor) |
 
 ## Git Commit
 
@@ -122,21 +124,21 @@ cd backend
 venv\Scripts\python.exe manage.py create_superuser
 ```
 
-| Alan | Değer |
-|------|-------|
+| Alan    | Değer                 |
+| ------- | --------------------- |
 | E-posta | `admin@conmanage.com` |
-| Şifre | `ConManage@Admin2024` |
+| Şifre   | `ConManage@Admin2024` |
 
 - Django Admin: http://localhost:8000/admin/
 - API login: http://localhost:5173/login
 
 ## Git Hooks (Husky)
 
-| Hook | Ne yapar? |
-|------|-----------|
+| Hook         | Ne yapar?                                             |
+| ------------ | ----------------------------------------------------- |
 | `pre-commit` | ESLint + TypeScript + backend testleri (`pnpm check`) |
-| `commit-msg` | Commitlint — conventional commit formatı zorunlu |
-| `pre-push` | Tam test suite (`pnpm test`) — build dahil |
+| `commit-msg` | Commitlint — conventional commit formatı zorunlu      |
+| `pre-push`   | Tam test suite (`pnpm test`) — build dahil            |
 
 Commit mesajı örneği: `feat: add settings page` veya `fix: resolve login redirect`
 
@@ -162,10 +164,14 @@ Commit mesajı örneği: `feat: add settings page` veya `fix: resolve login redi
 
 ## Proje Fazları
 
-- **Faz 0:** Yeniden markalama (ConManage) + PDF/DXF kaldırma (yalnızca Excel şablonu + manuel giriş)
-- **Faz 1:** Rol tabanlı yetkilendirme (Müteahhit/Şef/Muhasebe) + Şantiye modeli + Şantiye seçici
-- **Faz 2:** Genel metraj & ilerleme (beton, demir, sıva, kalıp, boya) ve iş bitirme yüzdeleri
-- **Faz 3+:** Puantaj & taşeron, finans/cari/depo, şantiye takvimi, günlük rapor & demirbaş
+- **Faz 0:** Yeniden Markalama (ConManage) ve PDF/DXF Temizligi
+- **Faz 1:** RBAC + Santiye Modeli + Santiye Secici + Kullanici Ekleme
+- **Faz 2:** Genel Metraj & Ilerleme Modulu
+- **Faz 3:** Isci Puantaj & Taseron Sozlesme Modulu
+- **Faz 4:** Entegre Finans, Cari & Depo Stok Modulu
+- **Faz 5:** RSantiye Takvimi (Construction Calendar)
+- **Faz 6:** Gunluk Santiye Raporu & Demirbas Takibi
+- **Faz 7:** UI/UX Cila, Tooltip ve Mobil
 
 ## Faydalı Komutlar
 

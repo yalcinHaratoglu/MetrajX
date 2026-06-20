@@ -21,6 +21,16 @@ export interface UserProfile {
   role: string;
   is_active: boolean;
   company_name?: string;
+  site_ids?: number[];
+}
+
+export interface InvitePreview {
+  email: string;
+  first_name: string;
+  last_name: string;
+  company_name: string;
+  role: string;
+  already_accepted: boolean;
 }
 
 export const authService = {
@@ -37,7 +47,25 @@ export const authService = {
   },
 
   async activate(token: string) {
-    const { data } = await api.get(`/auth/activate/${token}/`);
+    const { data } = await api.get(`/auth/activate/${token}/`, {
+      suppressErrorToast: true,
+    });
+    return data;
+  },
+
+  async getInvite(token: string) {
+    const { data } = await api.get<InvitePreview>(`/auth/invite/${token}/`, {
+      suppressErrorToast: true,
+    });
+    return data;
+  },
+
+  async acceptInvite(token: string, password: string, password_confirm: string) {
+    const { data } = await api.post(
+      `/auth/invite/${token}/`,
+      { password, password_confirm },
+      { suppressErrorToast: true },
+    );
     return data;
   },
 

@@ -4,6 +4,8 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from sites.services import sites_for_user
+
 from .models import Floor, Project, RebarRequirement
 from .serializers import (
     ProjectCreateSerializer,
@@ -15,18 +17,36 @@ from .serializers import (
 from .services import OptimizerService
 
 
+def _projects_queryset(user):
+    if not getattr(user, "company", None):
+        return Project.objects.none()
+
+    qs = Project.objects.filter(company=user.company).select_related("site")
+    accessible_site_ids = sites_for_user(user).values_list("id", flat=True)
+    user_role = user.role
+
+    from authentication.models import CustomUser
+
+    if user_role in (
+        CustomUser.Role.OWNER,
+        CustomUser.Role.ADMIN,
+        CustomUser.Role.ACCOUNTANT,
+    ):
+        return qs.prefetch_related("floors")
+
+    if user_role == CustomUser.Role.SITE_MANAGER:
+        return qs.filter(site_id__in=accessible_site_ids).prefetch_related("floors")
+
+    return Project.objects.none()
+
+
 def _get_project_or_none(request, project_id):
-    if not getattr(request.user, "company", None):
-        return None
-    return Project.objects.filter(id=project_id, company=request.user.company).first()
+    return _projects_queryset(request.user).filter(id=project_id).first()
 
 
 class ProjectListCreateView(generics.ListCreateAPIView):
     def get_queryset(self):
-        user = self.request.user
-        if not user.company:
-            return Project.objects.none()
-        return Project.objects.filter(company=user.company).prefetch_related("floors")
+        return _projects_queryset(self.request.user)
 
     def get_serializer_class(self):
         if self.request.method == "POST":
@@ -41,10 +61,7 @@ class ProjectDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ProjectSerializer
 
     def get_queryset(self):
-        user = self.request.user
-        if not user.company:
-            return Project.objects.none()
-        return Project.objects.filter(company=user.company).prefetch_related("floors")
+        return _projects_queryset(self.request.user)
 
 
 class ProjectRequirementsView(APIView):
@@ -100,10 +117,9 @@ class ProjectRequirementsView(APIView):
 
 class RequirementDetailView(APIView):
     def _get_requirement(self, request, pk):
-        if not request.user.company:
-            return None
         return RebarRequirement.objects.filter(
-            id=pk, project__company=request.user.company
+            id=pk,
+            project_id__in=_projects_queryset(request.user).values_list("id", flat=True),
         ).first()
 
     def patch(self, request, pk):

@@ -36,6 +36,7 @@ class ImportReplaceTests(TestCase):
             last_name="User",
             is_active=True,
             company=self.company,
+            role=User.Role.OWNER,
         )
         self.project = Project.objects.create(company=self.company, name="P1")
 
@@ -75,6 +76,7 @@ class BulkDeleteApiTests(TestCase):
             last_name="User",
             is_active=True,
             company=self.company,
+            role=User.Role.OWNER,
         )
         self.client.force_authenticate(user=self.user)
         self.project = Project.objects.create(company=self.company, name="P1")

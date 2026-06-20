@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Card } from "../components/ui/Card";
@@ -8,8 +8,12 @@ export function ActivatePage() {
   const { token } = useParams<{ token: string }>();
   const { t } = useTranslation();
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
+  const startedRef = useRef(false);
 
   useEffect(() => {
+    if (startedRef.current) return;
+    startedRef.current = true;
+
     const activate = async () => {
       if (!token) {
         setStatus("error");
@@ -37,7 +41,14 @@ export function ActivatePage() {
             </Link>
           </>
         )}
-        {status === "error" && <p className="text-error">{t("auth.activateError")}</p>}
+        {status === "error" && (
+          <>
+            <p className="text-error mb-4">{t("auth.activateError")}</p>
+            <Link to="/login" className="link-primary">
+              {t("auth.login")}
+            </Link>
+          </>
+        )}
       </Card>
     </div>
   );

@@ -10,6 +10,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { Select } from "../ui/Select";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
+import { useAuth } from "../../hooks/useAuth";
 import { AppearanceForm } from "./AppearanceForm";
 import { CompanyForm } from "./CompanyForm";
 import { FeedbackForm } from "./FeedbackForm";
@@ -35,9 +36,14 @@ interface SettingsNavProps {
 
 export function SettingsNav({ active, onChange }: SettingsNavProps) {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const isMobile = useMediaQuery("(max-width: 768px)");
 
-  const options = TAB_CONFIG.map(({ id, icon: Icon, labelKey }) => ({
+  const visibleTabs = TAB_CONFIG.filter(
+    (tab) => tab.id !== "users" || user?.role === "owner",
+  );
+
+  const options = visibleTabs.map(({ id, icon: Icon, labelKey }) => ({
     value: id,
     label: t(labelKey),
     icon: <Icon size={18} />,
@@ -58,7 +64,7 @@ export function SettingsNav({ active, onChange }: SettingsNavProps) {
 
   return (
     <nav className="settings-nav surface-card">
-      {TAB_CONFIG.map(({ id, icon: Icon, labelKey }) => (
+      {visibleTabs.map(({ id, icon: Icon, labelKey }) => (
         <button
           key={id}
           type="button"

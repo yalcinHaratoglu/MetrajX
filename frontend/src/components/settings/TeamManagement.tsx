@@ -10,21 +10,28 @@ import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
 import { Select } from "../ui/Select";
 import { settingsService, type TeamMember } from "../../services/settingsService";
+import { siteService, type Site } from "../../services/siteService";
+import { useAuth } from "../../hooks/useAuth";
 
 const columnHelper = createColumnHelper<TeamMember>();
 
 export function TeamManagement() {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [members, setMembers] = useState<TeamMember[]>([]);
+  const [sites, setSites] = useState<Site[]>([]);
   const [invite, setInvite] = useState({
     email: "",
     first_name: "",
     last_name: "",
-    role: "member",
+    role: "site_manager",
+    site_ids: [] as number[],
   });
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const isOwner = user?.role === "owner";
 
   const loadTeam = useCallback(async () => {
     const data = await settingsService.getTeam();
@@ -33,6 +40,7 @@ export function TeamManagement() {
 
   useEffect(() => {
     void loadTeam();
+    void siteService.list().then(setSites).catch(() => undefined);
   }, [loadTeam]);
 
   const columns = useMemo(
@@ -42,7 +50,17 @@ export function TeamManagement() {
         (row) => `${row.first_name} ${row.last_name}`.trim(),
         { id: "name", header: t("settings.team.name") },
       ),
-      columnHelper.accessor("role", { header: t("settings.team.role") }),
+      columnHelper.accessor("role", {
+        header: t("settings.team.role"),
+        cell: (info) => t(`settings.team.roles.${info.getValue()}`, info.getValue()),
+      }),
+      columnHelper.accessor("site_names", {
+        header: t("settings.team.sites"),
+        cell: (info) => {
+          const names = info.getValue();
+          return names?.length ? names.join(", ") : "—";
+        },
+      }),
       columnHelper.accessor("is_active", {
         header: t("settings.team.status"),
         cell: (info) => (info.getValue() ? t("settings.team.active") : t("settings.team.pending")),
@@ -59,6 +77,18 @@ export function TeamManagement() {
     getCoreRowModel: getCoreRowModel(),
   });
 
+  const toggleSite = (siteId: number) => {
+    setInvite((prev) => {
+      const exists = prev.site_ids.includes(siteId);
+      return {
+        ...prev,
+        site_ids: exists
+          ? prev.site_ids.filter((id) => id !== siteId)
+          : [...prev.site_ids, siteId],
+      };
+    });
+  };
+
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -66,7 +96,7 @@ export function TeamManagement() {
     setLoading(true);
     try {
       await settingsService.inviteMember(invite);
-      setInvite({ email: "", first_name: "", last_name: "", role: "member" });
+      setInvite({ email: "", first_name: "", last_name: "", role: "site_manager", site_ids: [] });
       setMessage(t("settings.team.inviteSuccess"));
       await loadTeam();
     } catch {
@@ -75,6 +105,10 @@ export function TeamManagement() {
       setLoading(false);
     }
   };
+
+  if (!isOwner) {
+    return <p className="text-sm text-muted">{t("settings.team.ownerOnly")}</p>;
+  }
 
   return (
     <div className="form-stack">
@@ -129,13 +163,40 @@ export function TeamManagement() {
         <Select
           label={t("settings.team.role")}
           value={invite.role}
-          onChange={(role) => setInvite((p) => ({ ...p, role }))}
+          onChange={(role) =>
+            setInvite((p) => ({
+              ...p,
+              role,
+              site_ids: role === "site_manager" ? p.site_ids : [],
+            }))
+          }
           options={[
-            { value: "member", label: t("settings.team.roles.member") },
             { value: "admin", label: t("settings.team.roles.admin") },
-            { value: "owner", label: t("settings.team.roles.owner") },
+            { value: "site_manager", label: t("settings.team.roles.site_manager") },
+            { value: "accountant", label: t("settings.team.roles.accountant") },
           ]}
         />
+        {invite.role === "site_manager" && (
+          <div className="form-label">
+            <span className="form-label-text">{t("settings.team.assignSites")}</span>
+            <div className="site-checkbox-list">
+              {sites.length === 0 ? (
+                <p className="text-sm text-muted">{t("settings.team.noSites")}</p>
+              ) : (
+                sites.map((site) => (
+                  <label key={site.id} className="site-checkbox-item">
+                    <input
+                      type="checkbox"
+                      checked={invite.site_ids.includes(site.id)}
+                      onChange={() => toggleSite(site.id)}
+                    />
+                    <span>{site.code ? `${site.name} (${site.code})` : site.name}</span>
+                  </label>
+                ))
+              )}
+            </div>
+          </div>
+        )}
         {message && <p className="text-success">{message}</p>}
         {error && <p className="text-error">{error}</p>}
         <Button type="submit" disabled={loading}>

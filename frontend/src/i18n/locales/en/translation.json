@@ -5,6 +5,7 @@
   },
   "nav": {
     "dashboard": "Dashboard",
+    "sites": "Sites",
     "projects": "Projects",
     "settings": "Settings",
     "openMenu": "Open menu",
@@ -41,6 +42,18 @@
     "activateSuccess": "Your account has been activated. You can sign in.",
     "activateError": "Activation failed.",
     "activateLoading": "Activating your account...",
+    "invite": {
+      "title": "Join Organization",
+      "subtitle": "Create your password to accept the invitation.",
+      "loading": "Loading invitation details...",
+      "error": "This invitation link is invalid or has expired.",
+      "organization": "Organization",
+      "password": "Password",
+      "passwordConfirm": "Confirm Password",
+      "passwordMismatch": "Passwords do not match.",
+      "submit": "Save Password & Join",
+      "success": "Your account is ready. You can sign in."
+    },
     "hero": {
       "eyebrow": "Construction & Site Management",
       "title": "All your sites in one platform.",
@@ -62,17 +75,47 @@
       "desc": "Manage takeoff, progress and costs of your sites from a single panel, and track the field with your team from any device."
     },
     "stats": {
-      "projects": "Active Projects",
-      "floors": "Total Floors",
-      "cuts": "Cutting Plans",
-      "waste": "Waste Rate"
+      "sites": "Sites",
+      "requirements": "Rebar Items",
+      "activeSites": "Active Sites",
+      "role": "Your Role"
     },
     "banner": {
-      "title": "Phase 1 — Rebar Optimization",
-      "desc": "Project import, manual rebar entry, and 1D cutting stock algorithm are in active development. Use the API to create your first project."
+      "title": "Phase 1 — Multi-Site Management",
+      "desc": "RBAC, site selector and user management are active. Create sites and assign roles and sites to your team."
     },
-    "recentProjects": "Recent Projects",
+    "recentSites": "Recent Sites",
     "viewAll": "View all"
+  },
+  "sites": {
+    "title": "Sites",
+    "subtitle": "Manage your construction sites and open their details.",
+    "new": "New Site",
+    "create": "Create Site",
+    "name": "Site Name",
+    "namePlaceholder": "e.g. Block A Residential",
+    "code": "Site Code",
+    "codePlaceholder": "e.g. BLOCK-A",
+    "createTitle": "Create New Site",
+    "empty": "No sites yet",
+    "emptyDesc": "Create your first site to start takeoff and rebar operations.",
+    "delete": "Delete Site",
+    "deleteTitle": "Delete Site",
+    "deleteDesc": "Site \"{{name}}\" and all its data will be permanently deleted.",
+    "status": {
+      "planning": "Planning",
+      "active": "Active",
+      "paused": "Paused",
+      "completed": "Completed"
+    },
+    "selector": {
+      "label": "Site Selector",
+      "all": "All Sites",
+      "empty": "No accessible sites"
+    },
+    "detail": {
+      "back": "Back to sites"
+    }
   },
   "projects": {
     "title": "Projects",
@@ -195,10 +238,16 @@
       "invite": "Send Invite",
       "inviteSuccess": "Invite sent successfully.",
       "roles": {
-        "member": "Member",
+        "owner": "Contractor",
+        "site_manager": "Site Manager",
+        "accountant": "Accountant",
         "admin": "Admin",
-        "owner": "Owner"
-      }
+        "member": "Member"
+      },
+      "sites": "Assigned Sites",
+      "assignSites": "Assign Sites",
+      "noSites": "No sites to assign. Create a site first.",
+      "ownerOnly": "User management is only available to the contractor."
     },
     "appearance": {
       "title": "Appearance",

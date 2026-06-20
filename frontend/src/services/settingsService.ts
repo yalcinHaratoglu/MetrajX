@@ -15,6 +15,8 @@ export interface TeamMember {
   last_name: string;
   role: string;
   is_active: boolean;
+  site_ids?: number[];
+  site_names?: string[];
 }
 
 export const settingsService = {
@@ -51,6 +53,7 @@ export const settingsService = {
     first_name?: string;
     last_name?: string;
     role?: string;
+    site_ids?: number[];
   }) {
     const response = await api.post("/auth/team/invite/", data);
     return response.data;

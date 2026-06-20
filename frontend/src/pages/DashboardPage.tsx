@@ -3,19 +3,20 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ArrowRight, Boxes, Building2, Layers, Scissors, TrendingDown } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
-import { projectService, type Project } from "../services/projectService";
+import { useFilteredSites } from "../hooks/useSite";
+import { siteService, type Site } from "../services/siteService";
 
 export function DashboardPage() {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [sites, setSites] = useState<Site[]>([]);
 
   useEffect(() => {
     let active = true;
-    void projectService
+    void siteService
       .list()
       .then((data) => {
-        if (active) setProjects(data);
+        if (active) setSites(data);
       })
       .catch(() => undefined);
     return () => {
@@ -23,15 +24,15 @@ export function DashboardPage() {
     };
   }, []);
 
-  const floors = projects.reduce((sum, project) => sum + (project.floors?.length ?? 0), 0);
-  const requirements = projects.reduce((sum, project) => sum + project.requirements_count, 0);
-  const ready = projects.filter((project) => project.status === "ready").length;
+  const filteredSites = useFilteredSites(sites);
+  const requirements = filteredSites.reduce((sum, site) => sum + site.requirements_count, 0);
+  const activeSites = filteredSites.filter((site) => site.status === "active").length;
 
   const statCards = [
-    { icon: Building2, label: t("dashboard.stats.projects"), value: String(projects.length) },
-    { icon: Layers, label: t("dashboard.stats.floors"), value: String(floors) },
-    { icon: Scissors, label: t("dashboard.stats.cuts"), value: String(requirements) },
-    { icon: TrendingDown, label: t("dashboard.stats.waste"), value: String(ready) },
+    { icon: Building2, label: t("dashboard.stats.sites"), value: String(filteredSites.length) },
+    { icon: Layers, label: t("dashboard.stats.requirements"), value: String(requirements) },
+    { icon: Scissors, label: t("dashboard.stats.activeSites"), value: String(activeSites) },
+    { icon: TrendingDown, label: t("dashboard.stats.role"), value: t(`settings.team.roles.${user?.role ?? "member"}`) },
   ];
 
   return (
@@ -43,8 +44,8 @@ export function DashboardPage() {
             {t("dashboard.hero.greeting", { name: user?.first_name || t("dashboard.hero.defaultName") })}
           </h1>
           <p className="dashboard-hero-desc">{t("dashboard.hero.desc")}</p>
-          <Link to="/projects" className="btn-primary mt-4">
-            {t("projects.new")}
+          <Link to="/sites" className="btn-primary mt-4">
+            {t("sites.new")}
             <ArrowRight size={16} />
           </Link>
         </div>
@@ -69,35 +70,31 @@ export function DashboardPage() {
 
       <div>
         <div className="page-toolbar">
-          <h2 className="detail-section-title">{t("dashboard.recentProjects")}</h2>
-          <Link to="/projects" className="link-primary text-sm">
+          <h2 className="detail-section-title">{t("dashboard.recentSites")}</h2>
+          <Link to="/sites" className="link-primary text-sm">
             {t("dashboard.viewAll")}
           </Link>
         </div>
 
-        {projects.length === 0 ? (
+        {filteredSites.length === 0 ? (
           <div className="info-banner">
-            <p className="info-banner-title">{t("projects.empty")}</p>
-            <p className="info-banner-desc">{t("projects.emptyDesc")}</p>
+            <p className="info-banner-title">{t("sites.empty")}</p>
+            <p className="info-banner-desc">{t("sites.emptyDesc")}</p>
           </div>
         ) : (
           <div className="project-grid">
-            {projects.slice(0, 6).map((project) => (
-              <Link key={project.id} to={`/projects/${project.id}`} className="project-card">
+            {filteredSites.slice(0, 6).map((site) => (
+              <Link key={site.id} to={`/sites/${site.id}`} className="project-card">
                 <div className="project-card-header">
-                  <span className="project-card-title">{project.name}</span>
-                  <span className={`badge badge-${project.status}`}>
-                    {t(`projects.status.${project.status}`)}
+                  <span className="project-card-title">{site.name}</span>
+                  <span className={`badge badge-${site.status === "active" ? "ready" : "draft"}`}>
+                    {t(`sites.status.${site.status}`)}
                   </span>
                 </div>
                 <div className="project-card-meta">
                   <span className="project-card-metric">
-                    <span className="project-card-metric-value">{project.requirements_count}</span>
+                    <span className="project-card-metric-value">{site.requirements_count}</span>
                     {t("projects.requirements")}
-                  </span>
-                  <span className="project-card-metric">
-                    <span className="project-card-metric-value">{project.floors?.length ?? 0}</span>
-                    {t("projects.floors")}
                   </span>
                 </div>
               </Link>

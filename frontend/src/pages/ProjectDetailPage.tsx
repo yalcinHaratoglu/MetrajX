@@ -39,6 +39,7 @@ import {
   type Project,
   type RebarRequirement,
 } from "../services/projectService";
+import { siteService, type Site } from "../services/siteService";
 
 type SourceTab = "import" | "manual";
 
@@ -73,8 +74,9 @@ export function ProjectDetailPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const projectId = Number(id);
+  const siteId = Number(id);
 
+  const [site, setSite] = useState<Site | null>(null);
   const [project, setProject] = useState<Project | null>(null);
   const [loadError, setLoadError] = useState(false);
   const [requirements, setRequirements] = useState<RebarRequirement[]>([]);
@@ -85,19 +87,33 @@ export function ProjectDetailPage() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
+  const projectId = site?.project_id ?? 0;
+
   const loadRequirements = useCallback(async () => {
+    if (!projectId) return;
     const data = await projectService.getRequirements(projectId);
     setRequirements(data);
   }, [projectId]);
 
-  const invalidId = !projectId || Number.isNaN(projectId);
+  const invalidId = !siteId || Number.isNaN(siteId);
 
   useEffect(() => {
     if (invalidId) return;
-    void projectService.get(projectId).then(setProject).catch(() => setLoadError(true));
-    void projectService.getRequirements(projectId).then(setRequirements).catch(() => undefined);
-    void projectService.getResult(projectId).then(setResult).catch(() => undefined);
-  }, [projectId, invalidId]);
+    void siteService
+      .get(siteId)
+      .then((loadedSite) => {
+        setSite(loadedSite);
+        if (!loadedSite.project_id) {
+          setLoadError(true);
+          return;
+        }
+        const pid = loadedSite.project_id;
+        void projectService.get(pid).then(setProject).catch(() => setLoadError(true));
+        void projectService.getRequirements(pid).then(setRequirements).catch(() => undefined);
+        void projectService.getResult(pid).then(setResult).catch(() => undefined);
+      })
+      .catch(() => setLoadError(true));
+  }, [siteId, invalidId]);
 
   const handleUpload = async (file: File) => {
     setBusy(true);
@@ -115,8 +131,8 @@ export function ProjectDetailPage() {
   const handleDelete = async () => {
     setDeleting(true);
     try {
-      await projectService.remove(projectId);
-      navigate("/projects");
+      await siteService.remove(siteId);
+      navigate("/sites");
     } catch {
       setDeleting(false);
     }
@@ -142,8 +158,8 @@ export function ProjectDetailPage() {
           icon={<Scissors size={26} />}
           title={t("common.error")}
           action={
-            <Link to="/projects" className="link-primary text-sm">
-              {t("projects.detail.back")}
+            <Link to="/sites" className="link-primary text-sm">
+              {t("sites.detail.back")}
             </Link>
           }
         />
@@ -151,7 +167,7 @@ export function ProjectDetailPage() {
     );
   }
 
-  if (!project) {
+  if (!project || !site) {
     return (
       <div className="empty-state">
         <div className="spinner" />
@@ -163,12 +179,12 @@ export function ProjectDetailPage() {
     <div className="dashboard-page">
       <div className="detail-header">
         <div>
-          <Link to="/projects" className="link-primary text-sm">
+          <Link to="/sites" className="link-primary text-sm">
             <ArrowLeft size={14} style={{ display: "inline", marginRight: 4 }} />
-            {t("projects.detail.back")}
+            {t("sites.detail.back")}
           </Link>
           <h1 className="detail-title">
-            {project.name}
+            {site.name}
             <span className={`badge badge-${project.status}`}>
               {t(`projects.status.${project.status}`)}
             </span>
@@ -184,8 +200,8 @@ export function ProjectDetailPage() {
           <button
             type="button"
             className="btn-icon"
-            aria-label={t("projects.delete")}
-            title={t("projects.delete")}
+            aria-label={t("sites.delete")}
+            title={t("sites.delete")}
             onClick={() => setDeleteOpen(true)}
           >
             <Trash2 size={18} />
@@ -228,7 +244,7 @@ export function ProjectDetailPage() {
       <Modal
         open={deleteOpen}
         onClose={() => setDeleteOpen(false)}
-        title={t("projects.deleteTitle")}
+        title={t("sites.deleteTitle")}
         footer={
           <>
             <Button variant="ghost" onClick={() => setDeleteOpen(false)}>
@@ -241,7 +257,7 @@ export function ProjectDetailPage() {
           </>
         }
       >
-        <p className="text-sm">{t("projects.deleteDesc", { name: project.name })}</p>
+        <p className="text-sm">{t("sites.deleteDesc", { name: site.name })}</p>
       </Modal>
     </div>
   );
