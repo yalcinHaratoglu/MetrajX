@@ -1,7 +1,9 @@
 import { NavLink } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Boxes, FolderKanban, LayoutDashboard, LogOut, Settings, X } from "lucide-react";
+import { Boxes, FolderKanban, LayoutDashboard, LogOut, Moon, Settings, Sun, X } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
+import { useTheme } from "../../hooks/useTheme";
+import { LanguageSelect } from "../ui/LanguageSelect";
 
 interface SidebarProps {
   mobileOpen?: boolean;
@@ -11,10 +13,17 @@ interface SidebarProps {
 
 export function Sidebar({ mobileOpen = false, onNavigate, onClose }: SidebarProps) {
   const { t } = useTranslation();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     isActive ? "sidebar-link-active" : "sidebar-link";
+
+  const displayName =
+    user?.company_name?.trim() ||
+    `${user?.first_name ?? ""} ${user?.last_name ?? ""}`.trim() ||
+    user?.email ||
+    "";
 
   return (
     <aside className={`sidebar ${mobileOpen ? "sidebar-mobile-open" : ""}`}>
@@ -35,6 +44,13 @@ export function Sidebar({ mobileOpen = false, onNavigate, onClose }: SidebarProp
         </div>
       </div>
 
+      {displayName && (
+        <div className="sidebar-user">
+          <p className="sidebar-user-label">{t("header.welcome")}</p>
+          <p className="sidebar-user-name">{displayName}</p>
+        </div>
+      )}
+
       <nav className="sidebar-nav">
         <NavLink to="/dashboard" className={linkClass} onClick={onNavigate}>
           <LayoutDashboard size={18} />
@@ -51,6 +67,17 @@ export function Sidebar({ mobileOpen = false, onNavigate, onClose }: SidebarProp
       </nav>
 
       <div className="sidebar-footer">
+        <div className="sidebar-utilities">
+          <LanguageSelect className="sidebar-lang" />
+          <button
+            type="button"
+            className="btn-icon sidebar-theme-btn"
+            onClick={toggleTheme}
+            aria-label={t("header.toggleTheme")}
+          >
+            {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
+        </div>
         <button
           type="button"
           className="sidebar-logout"

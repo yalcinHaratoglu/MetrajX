@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from rest_framework import serializers
 
 from .models import CuttingPlan, Floor, OptimizationRun, Project, RebarElement, RebarRequirement
@@ -26,6 +28,22 @@ class RebarRequirementCreateSerializer(serializers.Serializer):
     element_ref = serializers.CharField(max_length=64, required=False, allow_blank=True)
     floor_name = serializers.CharField(max_length=100, required=False, allow_blank=True)
     notes = serializers.CharField(max_length=255, required=False, allow_blank=True)
+
+
+class RebarRequirementUpdateSerializer(serializers.ModelSerializer):
+    diameter_mm = serializers.IntegerField(min_value=4)
+    length_m = serializers.DecimalField(
+        max_digits=8, decimal_places=2, min_value=Decimal("0.1")
+    )
+    quantity = serializers.IntegerField(min_value=1)
+
+    class Meta:
+        model = RebarRequirement
+        fields = ("diameter_mm", "length_m", "quantity", "element_ref", "notes")
+        extra_kwargs = {
+            "element_ref": {"required": False, "allow_blank": True},
+            "notes": {"required": False, "allow_blank": True},
+        }
 
 
 class FloorSerializer(serializers.ModelSerializer):

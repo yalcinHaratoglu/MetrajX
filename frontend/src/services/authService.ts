@@ -20,6 +20,7 @@ export interface UserProfile {
   last_name: string;
   role: string;
   is_active: boolean;
+  company_name?: string;
 }
 
 export const authService = {

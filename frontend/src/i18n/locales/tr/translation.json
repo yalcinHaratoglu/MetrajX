@@ -121,6 +121,8 @@
       "length": "Boy",
       "quantity": "Adet",
       "ref": "No",
+      "barLengthInput": "Çubuk Boyu (m)",
+      "identicalBars": "Aynı desende çubuk adedi",
       "optimize": "Kesimi Optimize Et",
       "optimizing": "Optimize ediliyor...",
       "results": "Optimizasyon Sonuçları",
@@ -133,11 +135,14 @@
       "exportPdf": "PDF",
       "chartWaste": "Çapa Göre Fire",
       "chartBars": "Çapa Göre Çubuk",
+      "chartWasteLabel": "Fire (m)",
+      "chartBarsLabel": "Çubuk",
       "cuttingPlan": "Kesim Planı",
       "bar": "Çubuk",
       "uploadSuccess": "Dosya ayıklandı ve donatı içe aktarıldı.",
       "optimizeSuccess": "Optimizasyon tamamlandı.",
       "addSuccess": "Kalem eklendi.",
+      "updateSuccess": "Kalem güncellendi.",
       "deleteSuccess": "Kalem silindi."
     }
   },
@@ -226,6 +231,7 @@
   "common": {
     "submit": "Gönder",
     "save": "Kaydet",
+    "edit": "Düzenle",
     "cancel": "İptal",
     "create": "Oluştur",
     "delete": "Sil",

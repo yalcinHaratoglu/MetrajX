@@ -87,6 +87,17 @@ export const projectService = {
     return response.data;
   },
 
+  async updateRequirement(
+    requirementId: number,
+    data: Partial<NewRequirement>,
+  ): Promise<RebarRequirement> {
+    const response = await api.patch<RebarRequirement>(
+      `/requirements/${requirementId}/`,
+      data,
+    );
+    return response.data;
+  },
+
   async removeRequirement(requirementId: number): Promise<void> {
     await api.delete(`/requirements/${requirementId}/`);
   },
@@ -100,8 +111,9 @@ export const projectService = {
     return response.data;
   },
 
-  async optimize(id: number): Promise<OptimizationResult> {
-    const response = await api.post<OptimizationResult>(`/projects/${id}/optimize/`);
+  async optimize(id: number, barLengthM?: number): Promise<OptimizationResult> {
+    const body = barLengthM ? { bar_length_m: barLengthM } : {};
+    const response = await api.post<OptimizationResult>(`/projects/${id}/optimize/`, body);
     return response.data;
   },
 

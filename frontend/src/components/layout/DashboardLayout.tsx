@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { Menu } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Outlet } from "react-router-dom";
-import { Header } from "./Header";
 import { Sidebar } from "./Sidebar";
 
 export function DashboardLayout() {
+  const { t } = useTranslation();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const closeMobile = () => setMobileOpen(false);
@@ -22,7 +24,14 @@ export function DashboardLayout() {
       <Sidebar mobileOpen={mobileOpen} onNavigate={closeMobile} onClose={closeMobile} />
 
       <div className="dashboard-main">
-        <Header onMenuOpen={() => setMobileOpen(true)} />
+        <button
+          type="button"
+          className="mobile-menu-fab"
+          onClick={() => setMobileOpen(true)}
+          aria-label={t("nav.openMenu")}
+        >
+          <Menu size={20} />
+        </button>
         <main className="dashboard-content">
           <Outlet />
         </main>

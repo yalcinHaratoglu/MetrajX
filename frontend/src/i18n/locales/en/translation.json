@@ -121,6 +121,8 @@
       "length": "Length",
       "quantity": "Qty",
       "ref": "Ref",
+      "barLengthInput": "Bar Length (m)",
+      "identicalBars": "Identical bars count",
       "optimize": "Optimize Cutting",
       "optimizing": "Optimizing...",
       "results": "Optimization Results",
@@ -133,11 +135,14 @@
       "exportPdf": "PDF",
       "chartWaste": "Waste by Diameter",
       "chartBars": "Bars by Diameter",
+      "chartWasteLabel": "Waste (m)",
+      "chartBarsLabel": "Bars",
       "cuttingPlan": "Cutting Plan",
       "bar": "Bar",
       "uploadSuccess": "File parsed and rebar imported.",
       "optimizeSuccess": "Optimization completed.",
       "addSuccess": "Item added.",
+      "updateSuccess": "Item updated.",
       "deleteSuccess": "Item removed."
     }
   },
@@ -226,6 +231,7 @@
   "common": {
     "submit": "Submit",
     "save": "Save",
+    "edit": "Edit",
     "cancel": "Cancel",
     "create": "Create",
     "delete": "Delete",

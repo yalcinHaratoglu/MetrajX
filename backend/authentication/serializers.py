@@ -38,10 +38,17 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
+    company_name = serializers.SerializerMethodField()
+
     class Meta:
         model = User
-        fields = ("id", "email", "first_name", "last_name", "role", "is_active")
-        read_only_fields = ("id", "email", "role", "is_active")
+        fields = ("id", "email", "first_name", "last_name", "role", "is_active", "company_name")
+        read_only_fields = ("id", "email", "role", "is_active", "company_name")
+
+    def get_company_name(self, obj):
+        if obj.company and obj.company.name:
+            return obj.company.name
+        return ""
 
 
 class ChangePasswordSerializer(serializers.Serializer):

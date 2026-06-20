@@ -10,6 +10,7 @@ from .serializers import (
     ProjectSerializer,
     RebarRequirementCreateSerializer,
     RebarRequirementSerializer,
+    RebarRequirementUpdateSerializer,
 )
 from .services import OptimizerService
 
@@ -91,14 +92,35 @@ class ProjectRequirementsView(APIView):
 
 
 class RequirementDetailView(APIView):
+    def _get_requirement(self, request, pk):
+        if not request.user.company:
+            return None
+        return RebarRequirement.objects.filter(
+            id=pk, project__company=request.user.company
+        ).first()
+
+    def patch(self, request, pk):
+        if not request.user.company:
+            return Response(
+                {"detail": "Şirket bilgisi gerekli."}, status=status.HTTP_400_BAD_REQUEST
+            )
+        requirement = self._get_requirement(request, pk)
+        if not requirement:
+            return Response({"detail": "Kalem bulunamadı."}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = RebarRequirementUpdateSerializer(
+            requirement, data=request.data, partial=True
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(RebarRequirementSerializer(requirement).data)
+
     def delete(self, request, pk):
         if not request.user.company:
             return Response(
                 {"detail": "Şirket bilgisi gerekli."}, status=status.HTTP_400_BAD_REQUEST
             )
-        requirement = RebarRequirement.objects.filter(
-            id=pk, project__company=request.user.company
-        ).first()
+        requirement = self._get_requirement(request, pk)
         if not requirement:
             return Response({"detail": "Kalem bulunamadı."}, status=status.HTTP_404_NOT_FOUND)
         requirement.delete()
@@ -151,8 +173,24 @@ class ProjectOptimizeView(APIView):
         if not project:
             return Response({"detail": "Proje bulunamadı."}, status=status.HTTP_404_NOT_FOUND)
 
+        kwargs = {}
+        raw_length = request.data.get("bar_length_m")
+        if raw_length not in (None, ""):
+            try:
+                bar_length = float(raw_length)
+            except (TypeError, ValueError):
+                return Response(
+                    {"detail": "Geçersiz çubuk boyu."}, status=status.HTTP_400_BAD_REQUEST
+                )
+            if not 0.5 <= bar_length <= 30:
+                return Response(
+                    {"detail": "Çubuk boyu 0.5 - 30 m aralığında olmalı."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            kwargs["bar_length_m"] = bar_length
+
         try:
-            result = OptimizerService.run_optimization(project)
+            result = OptimizerService.run_optimization(project, **kwargs)
         except ValueError as exc:
             return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
 

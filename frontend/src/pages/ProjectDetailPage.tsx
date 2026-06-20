@@ -13,15 +13,18 @@ import {
 } from "recharts";
 import {
   ArrowLeft,
+  Check,
   Download,
   FileSpreadsheet,
   FileText,
   Layers,
+  Pencil,
   Plus,
   Ruler,
   Scissors,
   Trash2,
   Wand2,
+  X,
 } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import { EmptyState } from "../components/ui/EmptyState";
@@ -31,12 +34,33 @@ import { Modal } from "../components/ui/Modal";
 import { toast } from "../lib/toast";
 import {
   projectService,
+  type CuttingBar,
+  type NewRequirement,
   type OptimizationResult,
   type Project,
   type RebarRequirement,
 } from "../services/projectService";
 
 type SourceTab = "upload" | "import" | "manual";
+
+function groupBars(bars: CuttingBar[]): { bar: CuttingBar; count: number }[] {
+  const groups: { bar: CuttingBar; count: number }[] = [];
+  const index = new Map<string, number>();
+  for (const bar of bars) {
+    const signature = JSON.stringify([
+      bar.cuts.map((cut) => [cut.length, cut.element_ref ?? ""]),
+      bar.waste_m,
+    ]);
+    const existing = index.get(signature);
+    if (existing !== undefined) {
+      groups[existing].count += 1;
+    } else {
+      index.set(signature, groups.length);
+      groups.push({ bar, count: 1 });
+    }
+  }
+  return groups;
+}
 
 function useCssColor(variable: string, fallback: string) {
   return useMemo(() => {
@@ -99,10 +123,10 @@ export function ProjectDetailPage() {
     }
   };
 
-  const handleOptimize = async () => {
+  const handleOptimize = async (barLengthM: number) => {
     setOptimizing(true);
     try {
-      const optimized = await projectService.optimize(projectId);
+      const optimized = await projectService.optimize(projectId, barLengthM);
       setResult(optimized);
       toast.success(t("projects.detail.optimizeSuccess"));
     } catch {
@@ -187,6 +211,11 @@ export function ProjectDetailPage() {
 
       <RequirementsSection
         requirements={requirements}
+        onUpdate={async (reqId, data) => {
+          await projectService.updateRequirement(reqId, data);
+          await loadRequirements();
+          toast.success(t("projects.detail.updateSuccess"));
+        }}
         onDelete={async (reqId) => {
           await projectService.removeRequirement(reqId);
           await loadRequirements();
@@ -344,13 +373,63 @@ function SourceSection({ tab, onTab, busy, onUpload, projectId, onAdded }: Sourc
 
 interface RequirementsSectionProps {
   requirements: RebarRequirement[];
+  onUpdate: (id: number, data: Partial<NewRequirement>) => Promise<void>;
   onDelete: (id: number) => Promise<void>;
-  onOptimize: () => void;
+  onOptimize: (barLengthM: number) => void;
   optimizing: boolean;
 }
 
-function RequirementsSection({ requirements, onDelete, onOptimize, optimizing }: RequirementsSectionProps) {
+type EditDraft = { diameter_mm: string; length_m: string; quantity: string; element_ref: string };
+
+function RequirementsSection({
+  requirements,
+  onUpdate,
+  onDelete,
+  onOptimize,
+  optimizing,
+}: RequirementsSectionProps) {
   const { t } = useTranslation();
+  const [barLength, setBarLength] = useState("12");
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [draft, setDraft] = useState<EditDraft>({
+    diameter_mm: "",
+    length_m: "",
+    quantity: "",
+    element_ref: "",
+  });
+  const [saving, setSaving] = useState(false);
+
+  const startEdit = (req: RebarRequirement) => {
+    setEditingId(req.id);
+    setDraft({
+      diameter_mm: String(req.diameter_mm),
+      length_m: String(req.length_m),
+      quantity: String(req.quantity),
+      element_ref: req.element_ref ?? "",
+    });
+  };
+
+  const cancelEdit = () => setEditingId(null);
+
+  const saveEdit = async (id: number) => {
+    const diameter = Number(draft.diameter_mm);
+    const length = Number(draft.length_m);
+    if (!diameter || !length) return;
+    setSaving(true);
+    try {
+      await onUpdate(id, {
+        diameter_mm: diameter,
+        length_m: length,
+        quantity: Number(draft.quantity) || 1,
+        element_ref: draft.element_ref,
+      });
+      setEditingId(null);
+    } catch {
+      // Hata mesajı global interceptor tarafından gösterilir.
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className="surface-card" style={{ padding: "1.5rem" }}>
@@ -359,10 +438,27 @@ function RequirementsSection({ requirements, onDelete, onOptimize, optimizing }:
           <Layers size={18} />
           {t("projects.detail.requirements")}
         </h2>
-        <Button onClick={onOptimize} disabled={optimizing || requirements.length === 0}>
-          <Wand2 size={16} />
-          {optimizing ? t("projects.detail.optimizing") : t("projects.detail.optimize")}
-        </Button>
+        <div className="optimize-controls">
+          <label className="bar-length-field">
+            <span className="bar-length-label">{t("projects.detail.barLengthInput")}</span>
+            <input
+              type="number"
+              className="input bar-length-input"
+              min={0.5}
+              max={30}
+              step="0.5"
+              value={barLength}
+              onChange={(e) => setBarLength(e.target.value)}
+            />
+          </label>
+          <Button
+            onClick={() => onOptimize(Number(barLength) || 12)}
+            disabled={optimizing || requirements.length === 0}
+          >
+            <Wand2 size={16} />
+            {optimizing ? t("projects.detail.optimizing") : t("projects.detail.optimize")}
+          </Button>
+        </div>
       </div>
 
       {requirements.length === 0 ? (
@@ -380,25 +476,99 @@ function RequirementsSection({ requirements, onDelete, onOptimize, optimizing }:
               </tr>
             </thead>
             <tbody>
-              {requirements.map((req) => (
-                <tr key={req.id}>
-                  <td className="mono">Ø{req.diameter_mm}</td>
-                  <td className="mono">{req.length_m} m</td>
-                  <td className="mono">{req.quantity}</td>
-                  <td>{req.element_ref || "—"}</td>
-                  <td style={{ textAlign: "right" }}>
-                    <button
-                      type="button"
-                      className="btn-icon"
-                      style={{ width: "2rem", height: "2rem" }}
-                      onClick={() => onDelete(req.id)}
-                      aria-label="delete"
-                    >
-                      <Trash2 size={15} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {requirements.map((req) =>
+                editingId === req.id ? (
+                  <tr key={req.id}>
+                    <td>
+                      <input
+                        type="number"
+                        className="input cell-input"
+                        min={4}
+                        value={draft.diameter_mm}
+                        onChange={(e) => setDraft((p) => ({ ...p, diameter_mm: e.target.value }))}
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="number"
+                        className="input cell-input"
+                        step="0.01"
+                        min={0.1}
+                        value={draft.length_m}
+                        onChange={(e) => setDraft((p) => ({ ...p, length_m: e.target.value }))}
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="number"
+                        className="input cell-input"
+                        min={1}
+                        value={draft.quantity}
+                        onChange={(e) => setDraft((p) => ({ ...p, quantity: e.target.value }))}
+                      />
+                    </td>
+                    <td>
+                      <input
+                        className="input cell-input"
+                        value={draft.element_ref}
+                        onChange={(e) => setDraft((p) => ({ ...p, element_ref: e.target.value }))}
+                      />
+                    </td>
+                    <td>
+                      <div className="row-actions">
+                        <button
+                          type="button"
+                          className="btn-icon btn-icon-sm"
+                          onClick={() => saveEdit(req.id)}
+                          disabled={saving}
+                          aria-label={t("common.save")}
+                          title={t("common.save")}
+                        >
+                          <Check size={15} />
+                        </button>
+                        <button
+                          type="button"
+                          className="btn-icon btn-icon-sm"
+                          onClick={cancelEdit}
+                          aria-label={t("common.cancel")}
+                          title={t("common.cancel")}
+                        >
+                          <X size={15} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  <tr key={req.id}>
+                    <td className="mono">Ø{req.diameter_mm}</td>
+                    <td className="mono">{req.length_m} m</td>
+                    <td className="mono">{req.quantity}</td>
+                    <td>{req.element_ref || "—"}</td>
+                    <td>
+                      <div className="row-actions">
+                        <button
+                          type="button"
+                          className="btn-icon btn-icon-sm"
+                          onClick={() => startEdit(req)}
+                          aria-label={t("common.edit")}
+                          title={t("common.edit")}
+                        >
+                          <Pencil size={15} />
+                        </button>
+                        <button
+                          type="button"
+                          className="btn-icon btn-icon-sm"
+                          onClick={() => onDelete(req.id)}
+                          aria-label={t("common.delete")}
+                          title={t("common.delete")}
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ),
+              )}
             </tbody>
           </table>
         </div>
@@ -460,7 +630,7 @@ function ResultsSection({ result }: { result: OptimizationResult | null }) {
               <CartesianGrid strokeDasharray="3 3" stroke="rgb(148 163 184 / 0.25)" />
               <XAxis dataKey="diameter" tick={{ fontSize: 12 }} />
               <YAxis tick={{ fontSize: 12 }} />
-              <Tooltip />
+              <Tooltip formatter={(value) => [value, t("projects.detail.chartWasteLabel")]} />
               <Bar dataKey="waste" radius={[4, 4, 0, 0]} fill={accent} />
             </BarChart>
           </ResponsiveContainer>
@@ -472,7 +642,7 @@ function ResultsSection({ result }: { result: OptimizationResult | null }) {
               <CartesianGrid strokeDasharray="3 3" stroke="rgb(148 163 184 / 0.25)" />
               <XAxis dataKey="diameter" tick={{ fontSize: 12 }} />
               <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
-              <Tooltip />
+              <Tooltip formatter={(value) => [value, t("projects.detail.chartBarsLabel")]} />
               <Bar dataKey="bars" radius={[4, 4, 0, 0]}>
                 {chartData.map((entry) => (
                   <Cell key={entry.diameter} fill={primary} />
@@ -489,32 +659,39 @@ function ResultsSection({ result }: { result: OptimizationResult | null }) {
           <p className="cut-row-label" style={{ marginBottom: "0.5rem" }}>
             Ø{diameter} — {bars.length} {t("projects.detail.bar").toLowerCase()}
           </p>
-          {bars.map((bar) => (
-            <div key={bar.stock_index} className="cut-row">
-              <span className="cut-row-label">
-                #{bar.stock_index}
-              </span>
-              <div className="cut-bar">
-                {bar.cuts.map((cut, index) => (
-                  <span
-                    key={index}
-                    className="cut-segment"
-                    style={{ width: `${(cut.length / result.bar_length_m) * 100}%` }}
-                    title={`${cut.length} m${cut.element_ref ? ` (${cut.element_ref})` : ""}`}
-                  >
-                    {cut.length}
-                  </span>
-                ))}
-                {bar.waste_m > 0 && (
-                  <span
-                    className="cut-segment cut-segment-waste"
-                    style={{ width: `${(bar.waste_m / result.bar_length_m) * 100}%` }}
-                    title={`fire ${bar.waste_m} m`}
-                  />
-                )}
+          <div className="cut-plan-scroll">
+            {groupBars(bars).map((group, gi) => (
+              <div key={gi} className="cut-row">
+                <span className="cut-count" title={t("projects.detail.identicalBars")}>
+                  ×{group.count}
+                </span>
+                <div className="cut-bar">
+                  {group.bar.cuts.map((cut, index) => (
+                    <span
+                      key={index}
+                      className="cut-segment"
+                      style={{ width: `${(cut.length / result.bar_length_m) * 100}%` }}
+                      title={`${cut.length} m${cut.element_ref ? ` — ${cut.element_ref}` : ""}`}
+                    >
+                      <span className="cut-segment-len">{cut.length}</span>
+                      {cut.element_ref && (
+                        <span className="cut-segment-ref">{cut.element_ref}</span>
+                      )}
+                    </span>
+                  ))}
+                  {group.bar.waste_m > 0 && (
+                    <span
+                      className="cut-segment cut-segment-waste"
+                      style={{ width: `${(group.bar.waste_m / result.bar_length_m) * 100}%` }}
+                      title={`fire ${group.bar.waste_m} m`}
+                    >
+                      <span className="cut-segment-len">{group.bar.waste_m}</span>
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       ))}
     </div>
