@@ -7,7 +7,7 @@
     "dashboard": "Dashboard",
     "sites": "Sites",
     "metraj": "Takeoff & Progress",
-    "rebar": "Rebar Optimizer",
+    "rebar": "Rebar Cutting Optimization",
     "applications": "Applications",
     "toggleApplications": "Show or hide sub-applications",
     "projects": "Projects",
@@ -81,6 +81,7 @@
     "stats": {
       "sites": "Sites",
       "requirements": "Rebar Items",
+      "metrajItems": "Takeoff Items",
       "activeSites": "Active Sites",
       "role": "Your Role"
     },
@@ -89,7 +90,11 @@
       "desc": "Takeoff entry for concrete, rebar, plaster, formwork and paint with Excel import and completion tracking."
     },
     "recentSites": "Recent Sites",
-    "viewAll": "View all"
+    "viewAll": "View all",
+    "calendar": {
+      "title": "Operation Calendar",
+      "desc": "View planned and completed takeoff operations."
+    }
   },
   "sites": {
     "title": "Sites",
@@ -99,18 +104,53 @@
     "name": "Site Name",
     "namePlaceholder": "e.g. Block A Residential",
     "code": "Site Code",
-    "codePlaceholder": "e.g. BLOCK-A",
+    "codePlaceholder": "e.g. CM-2026-001",
     "createTitle": "Create New Site",
+    "editTitle": "Edit Site",
+    "updateSuccess": "Site updated.",
     "empty": "No sites yet",
-    "emptyDesc": "Create your first site to start takeoff and rebar operations.",
+    "emptyDesc": "Create your first site to start takeoff and progress tracking.",
     "delete": "Delete Site",
     "deleteTitle": "Delete Site",
     "deleteDesc": "Site \"{{name}}\" and all its data will be permanently deleted.",
+    "deleteSuccess": "Site deleted.",
     "status": {
       "planning": "Planning",
       "active": "Active",
       "paused": "Paused",
       "completed": "Completed"
+    },
+    "projectType": {
+      "residential": "Residential",
+      "commercial": "Commercial",
+      "industrial": "Industrial",
+      "infrastructure": "Infrastructure / Road"
+    },
+    "form": {
+      "sections": {
+        "basic": "Basic Information",
+        "management": "Management & Authorization",
+        "location": "Location",
+        "financial": "Financial",
+        "schedule": "Schedule & Planning"
+      },
+      "projectType": "Project Type",
+      "projectTypePlaceholder": "Select (optional)",
+      "clientOwner": "Client / Owner",
+      "clientOwnerPlaceholder": "e.g. ABC Construction Co.",
+      "managers": "Assigned Site Managers",
+      "noManagers": "No site managers available. Invite them in Settings → Team.",
+      "address": "Address",
+      "addressPlaceholder": "Full street address",
+      "city": "City / Region",
+      "cityPlaceholder": "e.g. Istanbul",
+      "parcelNumber": "Plot / Parcel No",
+      "parcelPlaceholder": "e.g. 1234 / 5",
+      "budget": "Total Project Budget",
+      "currency": "Currency",
+      "status": "Current Status",
+      "startDate": "Planned Start",
+      "endDate": "Planned End"
     },
     "selector": {
       "label": "Site Selector",
@@ -118,8 +158,16 @@
       "empty": "No accessible sites"
     },
     "detail": {
-      "back": "Back to sites"
-    }
+      "back": "Back to sites",
+      "openMetraj": "Takeoff & Progress",
+      "deleteHint": "This cannot be undone; takeoff data will also be removed.",
+      "readOnly": "You can view this site; editing requires site manager access."
+    },
+    "metrajItems": "Takeoff Items",
+    "metrajProgress": "Progress",
+    "timeline": "Timeline",
+    "budget": "Budget",
+    "noManagerAssigned": "No site manager assigned"
   },
   "metraj": {
     "title": "Takeoff & Progress",
@@ -137,6 +185,7 @@
     "search": "Search",
     "searchPlaceholder": "Description, notes or category…",
     "filter": "Filter…",
+    "filterNoResults": "No matching values",
     "manageCategories": "Categories",
     "addCategory": "Add category",
     "newCategoryPlaceholder": "New category name",
@@ -152,12 +201,31 @@
     "deleteDesc": "\"{{name}}\" will be permanently deleted.",
     "documents": {
       "title": "Files",
-      "desc": "Upload Excel, PDF, Word or photos; preview and download.",
+      "desc": "Upload Excel, PDF, Word or photos for each item. Files are shown as-is; no template required.",
       "upload": "Upload File",
       "uploaded": "File uploaded.",
       "deleted": "File deleted.",
-      "empty": "No files yet.",
-      "preview": "Preview"
+      "empty": "No files for this item yet.",
+      "emptyItems": "Add items first, then upload each item's takeoff file here.",
+      "searchPlaceholder": "Item name, category or notes…",
+      "openHint": "This file type cannot be previewed in the browser. Download to open it.",
+      "preview": "Preview",
+      "filterItem": "Item",
+      "selectItemToUpload": "Select an item to upload a file",
+      "emptyUploadHint": "Upload a file to the selected item to get started.",
+      "columns": {
+        "item": "Item",
+        "file": "File",
+        "type": "Type",
+        "size": "Size",
+        "uploaded": "Uploaded"
+      },
+      "types": {
+        "excel": "Excel",
+        "image": "Image",
+        "pdf": "PDF",
+        "other": "File"
+      }
     },
     "add": "Add Item",
     "addTitle": "New Takeoff Item",
@@ -166,19 +234,70 @@
     "emptyDesc": "Add manually or upload the Excel template.",
     "rebarHint": "Rebar optimization and cutting plans are managed on a separate page.",
     "rebarLink": "Go to rebar / cutting page",
-    "tabs": { "all": "All" },
+    "tabs": {
+      "label": "Takeoff view",
+      "metraj": "Takeoff",
+      "progress": "Progress",
+      "all": "All"
+    },
     "stats": {
       "items": "Item Count",
       "progress": "Avg. Progress",
-      "quantity": "Total Quantity",
       "cost": "Estimated Cost"
+    },
+    "itemHint": "Progress and files are managed after adding operations from the item detail page.",
+    "calendar": {
+      "title": "Operation Calendar",
+      "siteDesc": "Planned and completed operations across all items.",
+      "viewModes": "Calendar view",
+      "views": {
+        "day": "Day",
+        "week": "Week",
+        "month": "Month",
+        "year": "Year"
+      },
+      "timeOptional": "Time (optional)",
+      "pickDate": "Select date",
+      "pickTime": "Select time",
+      "hour": "Hour",
+      "minute": "Minute",
+      "today": "Today",
+      "clear": "Clear",
+      "noEventsToday": "No operations today.",
+      "noEventsDay": "No operations on this date.",
+      "add": "Add"
+    },
+    "operations": {
+      "title": "Operations",
+      "desc": "Manage planned and completed operations for this item.",
+      "add": "Add Operation",
+      "edit": "Edit Operation",
+      "created": "Operation added.",
+      "updated": "Operation updated.",
+      "deleted": "Operation deleted.",
+      "deleteTitle": "Delete Operation",
+      "deleteDesc": "\"{{name}}\" will be permanently deleted.",
+      "empty": "No operations yet. Add the first one.",
+      "noResults": "No results found",
+      "noResultsDesc": "Try changing your search or filter criteria.",
+      "searchPlaceholder": "Operation name, date, status or notes…",
+      "count": "Operations",
+      "planned": "Planned",
+      "done": "Done",
+      "dateTaken": "An operation already exists on this date.",
+      "columns": {
+        "date": "Date",
+        "name": "Operation",
+        "status": "Status",
+        "progress": "Contribution %"
+      }
     },
     "columns": {
       "category": "Category",
       "description": "Description",
-      "quantity": "Quantity",
+      "quantity": "Total Takeoff",
       "unit": "Unit",
-      "unitPrice": "Unit Price",
+      "unitPrice": "Cost (₺)",
       "progress": "Progress %",
       "notes": "Notes",
       "files": "Files"
@@ -194,7 +313,7 @@
     }
   },
   "rebar": {
-    "title": "Rebar Optimizer",
+    "title": "Rebar Cutting Optimization",
     "subtitle": "Rebar takeoff, Excel import and cutting optimization",
     "selectSiteTitle": "Select a site",
     "selectSiteDesc": "Choose a single site from the sidebar for the rebar module."
@@ -373,6 +492,13 @@
     "gotIt": "Got it",
     "loading": "Loading...",
     "error": "An error occurred",
-    "networkError": "Could not reach the server. Please check your connection."
+    "uploadTooLarge": "File size must not exceed 10 MB.",
+    "networkError": "Could not reach the server. Please check your connection.",
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "page": "{{page}} / {{total}}",
+      "range": "{{start}}–{{end}} / {{total}}"
+    }
   }
 }

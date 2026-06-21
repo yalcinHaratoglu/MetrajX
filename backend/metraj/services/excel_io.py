@@ -9,9 +9,8 @@ TEMPLATE_HEADERS = [
     "Kategori",
     "Açıklama",
     "Birim",
-    "Miktar",
-    "Birim Fiyat",
-    "İlerleme %",
+    "Toplam Metraj",
+    "Maliyet",
     "Notlar",
 ]
 
@@ -46,10 +45,16 @@ def _parse_int(value, default=0):
         return default
 
 
-def _resolve_category(raw: str) -> MetrajCategory | None:
+def _resolve_category(raw: str, company_id) -> MetrajCategory | None:
     key = (raw or "").strip().lower()
     slug = CATEGORY_ALIASES.get(key, key)
-    return MetrajCategory.objects.filter(slug=slug).first()
+    cat = MetrajCategory.objects.filter(company_id=company_id, slug=slug).first()
+    if cat:
+        return cat
+    name = (raw or "").strip()
+    if name:
+        return MetrajCategory.objects.filter(company_id=company_id, name__iexact=name).first()
+    return None
 
 
 def build_template_workbook() -> io.BytesIO:
@@ -57,9 +62,7 @@ def build_template_workbook() -> io.BytesIO:
     sheet = workbook.active
     sheet.title = "Metraj"
     sheet.append(TEMPLATE_HEADERS)
-    sheet.append(["beton", "Temel betonu", "m3", 120, 850, 45, ""])
-    sheet.append(["demir", "Temel donatısı", "ton", 12.5, 0, 30, ""])
-    sheet.append(["siva", "Dış cephe sıvası", "m2", 450, 120, 10, ""])
+    sheet.append(["Beton", "Temel betonu", "m3", 120, 85000, ""])
     buffer = io.BytesIO()
     workbook.save(buffer)
     buffer.seek(0)
@@ -85,8 +88,8 @@ def import_metraj_from_workbook(site, file_obj) -> list[MetrajItem]:
     created: list[MetrajItem] = []
 
     for row in rows[start:]:
-        cells = list(row) + [None] * (7 - len(row))
-        category = _resolve_category(str(cells[0] or ""))
+        cells = list(row) + [None] * (6 - len(row))
+        category = _resolve_category(str(cells[0] or ""), site.company_id)
         if not category:
             continue
 
@@ -106,8 +109,8 @@ def import_metraj_from_workbook(site, file_obj) -> list[MetrajItem]:
             unit=unit,
             quantity=_parse_decimal(cells[3]),
             unit_price=unit_price,
-            completion_percent=_parse_int(cells[5]),
-            notes=str(cells[6] or "").strip(),
+            completion_percent=0,
+            notes=str(cells[5] or "").strip(),
         )
         created.append(item)
 
@@ -127,7 +130,6 @@ def export_metraj_workbook(site) -> io.BytesIO:
                 item.unit,
                 float(item.quantity),
                 float(item.unit_price) if item.unit_price is not None else "",
-                item.completion_percent,
                 item.notes,
             ]
         )

@@ -1,4 +1,5 @@
 import api from "./api";
+import { assertUploadSize } from "../lib/uploadLimits";
 
 export type ProjectStatus = "draft" | "processing" | "ready" | "error";
 
@@ -107,6 +108,7 @@ export const projectService = {
   },
 
   async upload(id: number, file: File): Promise<{ imported: number; requirements: RebarRequirement[] }> {
+    assertUploadSize(file);
     const form = new FormData();
     form.append("file", file);
     const response = await api.post(`/projects/${id}/upload/`, form, {

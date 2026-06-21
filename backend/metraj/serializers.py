@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import MetrajCategory, MetrajDocument, MetrajItem
+from .models import MetrajCategory, MetrajDocument, MetrajItem, MetrajOperation
 
 
 class MetrajCategorySerializer(serializers.ModelSerializer):
@@ -57,6 +57,59 @@ class MetrajDocumentBriefSerializer(serializers.ModelSerializer):
         return request.build_absolute_uri(f"/api/metraj/documents/{obj.pk}/download/")
 
 
+class MetrajOperationSerializer(serializers.ModelSerializer):
+    documents = MetrajDocumentBriefSerializer(many=True, read_only=True)
+    item_description = serializers.CharField(source="item.description", read_only=True)
+    category_name = serializers.CharField(source="item.category.name", read_only=True)
+
+    class Meta:
+        model = MetrajOperation
+        fields = (
+            "id",
+            "item",
+            "item_description",
+            "category_name",
+            "title",
+            "scheduled_date",
+            "scheduled_time",
+            "status",
+            "progress_percent",
+            "notes",
+            "documents",
+            "created_at",
+            "updated_at",
+        )
+        read_only_fields = ("id", "item", "created_at", "updated_at")
+
+    def validate_progress_percent(self, value):
+        return max(0, min(100, value))
+
+
+class MetrajOperationCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MetrajOperation
+        fields = ("title", "scheduled_date", "scheduled_time", "status", "progress_percent", "notes")
+
+    def validate_progress_percent(self, value):
+        return max(0, min(100, value))
+
+    def validate(self, attrs):
+        item = self.context.get("item")
+        scheduled_date = attrs.get(
+            "scheduled_date",
+            self.instance.scheduled_date if self.instance else None,
+        )
+        if item and scheduled_date:
+            qs = item.operations.filter(scheduled_date=scheduled_date)
+            if self.instance:
+                qs = qs.exclude(pk=self.instance.pk)
+            if qs.exists():
+                raise serializers.ValidationError(
+                    {"scheduled_date": "Bu tarih için zaten bir işlem var."}
+                )
+        return attrs
+
+
 class MetrajItemSerializer(serializers.ModelSerializer):
     category_slug = serializers.CharField(source="category.slug", read_only=True)
     category_name = serializers.CharField(source="category.name", read_only=True)
@@ -66,7 +119,7 @@ class MetrajItemSerializer(serializers.ModelSerializer):
         read_only=True,
         allow_null=True,
     )
-    documents = MetrajDocumentBriefSerializer(many=True, read_only=True)
+    operations_count = serializers.SerializerMethodField()
 
     class Meta:
         model = MetrajItem
@@ -82,12 +135,32 @@ class MetrajItemSerializer(serializers.ModelSerializer):
             "unit_price",
             "total_amount",
             "completion_percent",
+            "operations_count",
             "notes",
-            "documents",
             "created_at",
             "updated_at",
         )
-        read_only_fields = ("id", "site", "created_at", "updated_at", "total_amount")
+        read_only_fields = (
+            "id",
+            "site",
+            "created_at",
+            "updated_at",
+            "total_amount",
+            "completion_percent",
+            "operations_count",
+        )
+
+    def get_operations_count(self, obj):
+        if hasattr(obj, "_prefetched_objects_cache") and "operations" in obj._prefetched_objects_cache:
+            return len(obj.operations.all())
+        return obj.operations.count()
+
+
+class MetrajItemDetailSerializer(MetrajItemSerializer):
+    operations = MetrajOperationSerializer(many=True, read_only=True)
+
+    class Meta(MetrajItemSerializer.Meta):
+        fields = MetrajItemSerializer.Meta.fields + ("operations",)
 
 
 class MetrajItemCreateSerializer(serializers.ModelSerializer):
@@ -99,12 +172,8 @@ class MetrajItemCreateSerializer(serializers.ModelSerializer):
             "unit",
             "quantity",
             "unit_price",
-            "completion_percent",
             "notes",
         )
-
-    def validate_completion_percent(self, value):
-        return max(0, min(100, value))
 
 
 class MetrajDocumentSerializer(serializers.ModelSerializer):
@@ -118,6 +187,7 @@ class MetrajDocumentSerializer(serializers.ModelSerializer):
             "id",
             "site",
             "item",
+            "operation",
             "title",
             "original_filename",
             "mime_type",

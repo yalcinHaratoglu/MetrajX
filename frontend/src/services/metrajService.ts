@@ -1,4 +1,5 @@
 import api from "./api";
+import { assertUploadSize } from "../lib/uploadLimits";
 
 export interface MetrajCategory {
   id: number;
@@ -20,6 +21,40 @@ export interface MetrajItemDocument {
   created_at: string;
 }
 
+export interface MetrajDocument {
+  id: number;
+  site: number;
+  item: number | null;
+  operation: number | null;
+  title: string;
+  original_filename: string;
+  mime_type: string;
+  file_kind: string;
+  file_size: number;
+  download_url: string | null;
+  preview_url: string | null;
+  uploaded_by_name: string;
+  created_at: string;
+}
+
+export type MetrajOperationStatus = "planned" | "done";
+
+export interface MetrajOperation {
+  id: number;
+  item: number;
+  item_description: string;
+  category_name: string;
+  title: string;
+  scheduled_date: string;
+  scheduled_time: string | null;
+  status: MetrajOperationStatus;
+  progress_percent: number;
+  notes: string;
+  documents: MetrajItemDocument[];
+  created_at: string;
+  updated_at: string;
+}
+
 export interface MetrajItem {
   id: number;
   site: number;
@@ -32,8 +67,9 @@ export interface MetrajItem {
   unit_price: string | null;
   total_amount: string | null;
   completion_percent: number;
+  operations_count: number;
   notes: string;
-  documents: MetrajItemDocument[];
+  operations?: MetrajOperation[];
   created_at: string;
   updated_at: string;
 }
@@ -41,29 +77,13 @@ export interface MetrajItem {
 export interface MetrajSummary {
   item_count: number;
   average_progress: number;
-  total_quantity: string;
   estimated_cost: string | null;
   by_category: {
     slug: string;
     name: string;
     item_count: number;
     average_progress: number;
-    total_quantity: string;
   }[];
-}
-
-export interface MetrajDocument {
-  id: number;
-  site: number;
-  title: string;
-  original_filename: string;
-  mime_type: string;
-  file_kind: string;
-  file_size: number;
-  download_url: string;
-  preview_url: string | null;
-  uploaded_by_name: string;
-  created_at: string;
 }
 
 export interface MetrajItemInput {
@@ -73,7 +93,15 @@ export interface MetrajItemInput {
   unit: string;
   quantity: number | string;
   unit_price?: number | string | null;
-  completion_percent: number;
+  notes?: string;
+}
+
+export interface MetrajOperationInput {
+  title: string;
+  scheduled_date: string;
+  scheduled_time?: string | null;
+  status: MetrajOperationStatus;
+  progress_percent: number;
   notes?: string;
 }
 
@@ -104,6 +132,11 @@ export const metrajService = {
     return data;
   },
 
+  async get(id: number) {
+    const { data } = await api.get<MetrajItem>(`/metraj/items/${id}/`);
+    return data;
+  },
+
   async create(payload: MetrajItemInput & { site_id: number }) {
     const { data } = await api.post<MetrajItem>("/metraj/items/", payload);
     return data;
@@ -125,6 +158,38 @@ export const metrajService = {
     return data;
   },
 
+  async calendar(siteId: number, itemId?: number) {
+    const params: Record<string, string | number> = { site_id: siteId };
+    if (itemId) params.item_id = itemId;
+    const { data } = await api.get<MetrajOperation[]>("/metraj/calendar/", { params });
+    return data;
+  },
+
+  async calendarForSites(siteIds: number[]) {
+    if (siteIds.length === 0) return [];
+    const batches = await Promise.all(siteIds.map((id) => this.calendar(id)));
+    return batches.flat();
+  },
+
+  async listOperations(itemId: number) {
+    const { data } = await api.get<MetrajOperation[]>(`/metraj/items/${itemId}/operations/`);
+    return data;
+  },
+
+  async createOperation(itemId: number, payload: MetrajOperationInput) {
+    const { data } = await api.post<MetrajOperation>(`/metraj/items/${itemId}/operations/`, payload);
+    return data;
+  },
+
+  async updateOperation(id: number, payload: Partial<MetrajOperationInput>) {
+    const { data } = await api.patch<MetrajOperation>(`/metraj/operations/${id}/`, payload);
+    return data;
+  },
+
+  async deleteOperation(id: number) {
+    await api.delete(`/metraj/operations/${id}/`);
+  },
+
   async downloadTemplate() {
     const response = await api.get("/metraj/template/", { responseType: "blob" });
     return response.data as Blob;
@@ -139,6 +204,7 @@ export const metrajService = {
   },
 
   async import(siteId: number, file: File) {
+    assertUploadSize(file);
     const form = new FormData();
     form.append("site_id", String(siteId));
     form.append("file", file);
@@ -148,22 +214,32 @@ export const metrajService = {
     return data as { detail: string; count: number };
   },
 
-  async listDocuments(siteId: number) {
-    const { data } = await api.get<MetrajDocument[]>("/metraj/documents/", {
-      params: { site_id: siteId },
+  async uploadDocument(
+    siteId: number,
+    file: File,
+    opts: { operationId?: number; itemId?: number; title?: string },
+  ) {
+    assertUploadSize(file);
+    const form = new FormData();
+    form.append("site_id", String(siteId));
+    form.append("file", file);
+    if (opts.operationId) form.append("operation_id", String(opts.operationId));
+    if (opts.itemId) form.append("item_id", String(opts.itemId));
+    if (opts.title) form.append("title", opts.title);
+    const { data } = await api.post<MetrajDocument>("/metraj/documents/", form, {
+      headers: { "Content-Type": "multipart/form-data" },
     });
     return data;
   },
 
-  async uploadDocument(siteId: number, file: File, itemId: number, title?: string) {
-    const form = new FormData();
-    form.append("site_id", String(siteId));
-    form.append("item_id", String(itemId));
-    form.append("file", file);
-    if (title) form.append("title", title);
-    const { data } = await api.post<MetrajDocument>("/metraj/documents/", form, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
+  async listDocuments(
+    siteId: number,
+    opts?: { itemId?: number; itemOnly?: boolean },
+  ) {
+    const params: Record<string, string | number> = { site_id: siteId };
+    if (opts?.itemId) params.item_id = opts.itemId;
+    if (opts?.itemOnly) params.item_only = "true";
+    const { data } = await api.get<MetrajDocument[]>("/metraj/documents/", { params });
     return data;
   },
 

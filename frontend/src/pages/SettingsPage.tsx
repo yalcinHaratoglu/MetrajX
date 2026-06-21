@@ -12,7 +12,7 @@ export function SettingsPage() {
   const [tab, setTab] = useState<SettingsTab>("profile");
 
   return (
-    <div className="settings-page">
+    <div className="dashboard-page">
       <PageHeader title={t("settings.title")} subtitle={t("settings.subtitle")} />
 
       <div className="settings-layout">

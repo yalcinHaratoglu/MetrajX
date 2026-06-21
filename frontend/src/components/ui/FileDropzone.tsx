@@ -1,5 +1,8 @@
 import { useRef, useState, type DragEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { FileText, UploadCloud } from "lucide-react";
+import { isUploadTooLarge } from "../../lib/uploadLimits";
+import { toast } from "../../lib/toast";
 
 interface FileDropzoneProps {
   accept: string;
@@ -10,14 +13,23 @@ interface FileDropzoneProps {
 }
 
 export function FileDropzone({ accept, onSelect, title, hint, file }: FileDropzoneProps) {
+  const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
+
+  const handleFile = (selected: File) => {
+    if (isUploadTooLarge(selected)) {
+      toast.error(t("common.uploadTooLarge"));
+      return;
+    }
+    onSelect(selected);
+  };
 
   const handleDrop = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     setDragging(false);
     const dropped = event.dataTransfer.files?.[0];
-    if (dropped) onSelect(dropped);
+    if (dropped) handleFile(dropped);
   };
 
   return (
@@ -54,7 +66,7 @@ export function FileDropzone({ accept, onSelect, title, hint, file }: FileDropzo
         hidden
         onChange={(event) => {
           const selected = event.target.files?.[0];
-          if (selected) onSelect(selected);
+          if (selected) handleFile(selected);
           event.target.value = "";
         }}
       />

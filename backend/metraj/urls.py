@@ -3,6 +3,7 @@ from django.urls import path
 from .views import (
     CategoryDetailView,
     CategoryListCreateView,
+    MetrajCalendarView,
     MetrajDocumentDetailView,
     MetrajDocumentDownloadView,
     MetrajDocumentListCreateView,
@@ -10,6 +11,8 @@ from .views import (
     MetrajImportView,
     MetrajItemDetailView,
     MetrajItemListCreateView,
+    MetrajOperationDetailView,
+    MetrajOperationListCreateView,
     MetrajSummaryView,
     MetrajTemplateView,
 )
@@ -19,6 +22,17 @@ urlpatterns = [
     path("metraj/categories/<int:pk>/", CategoryDetailView.as_view(), name="metraj-category-detail"),
     path("metraj/items/", MetrajItemListCreateView.as_view(), name="metraj-items"),
     path("metraj/items/<int:pk>/", MetrajItemDetailView.as_view(), name="metraj-item-detail"),
+    path(
+        "metraj/items/<int:item_id>/operations/",
+        MetrajOperationListCreateView.as_view(),
+        name="metraj-item-operations",
+    ),
+    path(
+        "metraj/operations/<int:pk>/",
+        MetrajOperationDetailView.as_view(),
+        name="metraj-operation-detail",
+    ),
+    path("metraj/calendar/", MetrajCalendarView.as_view(), name="metraj-calendar"),
     path("metraj/summary/", MetrajSummaryView.as_view(), name="metraj-summary"),
     path("metraj/template/", MetrajTemplateView.as_view(), name="metraj-template"),
     path("metraj/import/", MetrajImportView.as_view(), name="metraj-import"),

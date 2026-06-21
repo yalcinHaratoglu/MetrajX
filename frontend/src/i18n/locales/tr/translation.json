@@ -7,7 +7,7 @@
     "dashboard": "Kontrol Paneli",
     "sites": "Şantiyeler",
     "metraj": "Metraj & İlerleme",
-    "rebar": "Demir Optimizasyonu",
+    "rebar": "Donatı Kesim Optimizasyonu",
     "applications": "Uygulamalar",
     "toggleApplications": "Alt uygulamaları göster/gizle",
     "projects": "Projeler",
@@ -81,6 +81,7 @@
     "stats": {
       "sites": "Şantiye",
       "requirements": "Donatı Kalemi",
+      "metrajItems": "Metraj Kalemi",
       "activeSites": "Aktif Şantiye",
       "role": "Rolünüz"
     },
@@ -89,7 +90,11 @@
       "desc": "Beton, demir, sıva, kalıp ve boya kategorilerinde metraj girişi, Excel import ve % iş bitirme takibi aktif."
     },
     "recentSites": "Son Şantiyeler",
-    "viewAll": "Tümünü gör"
+    "viewAll": "Tümünü gör",
+    "calendar": {
+      "title": "İşlem Takvimi",
+      "desc": "Planlanan ve tamamlanan metraj işlemlerini görüntüleyin."
+    }
   },
   "sites": {
     "title": "Şantiyeler",
@@ -99,18 +104,53 @@
     "name": "Şantiye Adı",
     "namePlaceholder": "ör. A Blok Konut",
     "code": "Şantiye Kodu",
-    "codePlaceholder": "ör. A-BLOK",
+    "codePlaceholder": "ör. CM-2026-001",
     "createTitle": "Yeni Şantiye Oluştur",
+    "editTitle": "Şantiyeyi Düzenle",
+    "updateSuccess": "Şantiye güncellendi.",
     "empty": "Henüz şantiye yok",
-    "emptyDesc": "İlk şantiyenizi oluşturarak metraj ve demir işlemlerine başlayın.",
+    "emptyDesc": "İlk şantiyenizi oluşturarak metraj ve ilerleme takibine başlayın.",
     "delete": "Şantiyeyi Sil",
     "deleteTitle": "Şantiyeyi Sil",
     "deleteDesc": "\"{{name}}\" şantiyesi ve tüm verileri kalıcı olarak silinecek.",
+    "deleteSuccess": "Şantiye silindi.",
     "status": {
-      "planning": "Planlama",
-      "active": "Aktif",
-      "paused": "Duraklatıldı",
+      "planning": "Planlama Aşamasında",
+      "active": "Aktif Devam Ediyor",
+      "paused": "Durduruldu",
       "completed": "Tamamlandı"
+    },
+    "projectType": {
+      "residential": "Konut",
+      "commercial": "Ticari",
+      "industrial": "Endüstriyel",
+      "infrastructure": "Altyapı / Yol"
+    },
+    "form": {
+      "sections": {
+        "basic": "Temel Tanımlama",
+        "management": "Yönetim ve Yetkilendirme",
+        "location": "Konum Bilgileri",
+        "financial": "Finansal",
+        "schedule": "Zaman ve Planlama"
+      },
+      "projectType": "Proje Tipi",
+      "projectTypePlaceholder": "Seçin (isteğe bağlı)",
+      "clientOwner": "İşveren / Mal Sahibi",
+      "clientOwnerPlaceholder": "ör. X Yapı Kooperatifi",
+      "managers": "Atanan Şantiye Şefleri",
+      "noManagers": "Atanabilir şantiye şefi yok. Ayarlar → Ekip bölümünden davet edin.",
+      "address": "Adres",
+      "addressPlaceholder": "Açık adres",
+      "city": "Şehir / Bölge",
+      "cityPlaceholder": "ör. İstanbul",
+      "parcelNumber": "Ada / Parsel No",
+      "parcelPlaceholder": "ör. 1234 / 5",
+      "budget": "Toplam Proje Bütçesi",
+      "currency": "Para Birimi",
+      "status": "Mevcut Durum",
+      "startDate": "Planlanan Başlangıç",
+      "endDate": "Planlanan Bitiş"
     },
     "selector": {
       "label": "Şantiye Seçici",
@@ -118,8 +158,16 @@
       "empty": "Erişilebilir şantiye yok"
     },
     "detail": {
-      "back": "Şantiyelere dön"
-    }
+      "back": "Şantiyelere dön",
+      "openMetraj": "Metraj & İlerleme",
+      "deleteHint": "Bu işlem geri alınamaz; metraj verileri de silinir.",
+      "readOnly": "Bu şantiyeyi görüntüleme yetkiniz var; düzenleme için şantiye yöneticisi olmanız gerekir."
+    },
+    "metrajItems": "Metraj Kalemi",
+    "metrajProgress": "İlerleme",
+    "timeline": "Süre",
+    "budget": "Bütçe",
+    "noManagerAssigned": "Şantiye şefi atanmadı"
   },
   "metraj": {
     "title": "Metraj & İlerleme",
@@ -137,6 +185,7 @@
     "search": "Ara",
     "searchPlaceholder": "Açıklama, not veya kategori…",
     "filter": "Filtre…",
+    "filterNoResults": "Eşleşen değer yok",
     "manageCategories": "Kategoriler",
     "addCategory": "Kategori ekle",
     "newCategoryPlaceholder": "Yeni kategori adı",
@@ -152,33 +201,103 @@
     "deleteDesc": "\"{{name}}\" kalıcı olarak silinecek.",
     "documents": {
       "title": "Dosyalar",
-      "desc": "Excel, PDF, Word veya fotoğraf yükleyin; önizleyip indirebilirsiniz.",
+      "desc": "Her kaleme Excel, PDF, Word veya fotoğraf yükleyin. Dosya olduğu gibi görüntülenir; şablon gerekmez.",
       "upload": "Dosya Yükle",
       "uploaded": "Dosya yüklendi.",
       "deleted": "Dosya silindi.",
-      "empty": "Henüz dosya yok.",
-      "preview": "Önizleme"
+      "empty": "Bu kalem için henüz dosya yok.",
+      "emptyItems": "Önce kalem ekleyin; ardından her kalemin metraj dosyasını buradan yükleyebilirsiniz.",
+      "searchPlaceholder": "Kalem adı, kategori veya not…",
+      "openHint": "Bu dosya türü tarayıcıda önizlenemez. İndirerek açabilirsiniz.",
+      "preview": "Önizleme",
+      "filterItem": "Kalem",
+      "selectItemToUpload": "Dosya yüklemek için bir kalem seçin",
+      "emptyUploadHint": "Seçili kaleme dosya yükleyerek başlayın.",
+      "columns": {
+        "item": "Kalem",
+        "file": "Dosya",
+        "type": "Tür",
+        "size": "Boyut",
+        "uploaded": "Yüklenme"
+      },
+      "types": {
+        "excel": "Excel",
+        "image": "Görsel",
+        "pdf": "PDF",
+        "other": "Dosya"
+      }
     },
     "add": "Kalem Ekle",
     "addTitle": "Yeni Metraj Kalemi",
     "createSuccess": "Metraj kalemi eklendi.",
     "empty": "Henüz metraj kalemi yok",
     "emptyDesc": "Manuel ekleyin veya Excel şablonunu yükleyin.",
-    "rebarHint": "Demir optimizasyonu Uygulamalar sayfasında: sol menüden «Uygulamalar».",
-    "rebarLink": "Demir Optimizasyonu modülüne git",
-    "tabs": { "all": "Tümü" },
+    "rebarHint": "Donatı kesim optimizasyonu Uygulamalar sayfasında: sol menüden «Uygulamalar».",
+    "rebarLink": "Donatı Kesim Optimizasyonu modülüne git",
+    "tabs": {
+      "label": "Metraj görünümü",
+      "metraj": "Metraj",
+      "progress": "İlerleme",
+      "all": "Tümü"
+    },
     "stats": {
       "items": "Kalem Sayısı",
       "progress": "Ort. İlerleme",
-      "quantity": "Toplam Miktar",
       "cost": "Tahmini Maliyet"
+    },
+    "itemHint": "İlerleme ve dosyalar kaleme tıklayarak işlem ekledikten sonra yönetilir.",
+    "calendar": {
+      "title": "İşlem Takvimi",
+      "siteDesc": "Tüm kalemlerin planlanan ve tamamlanan işlemleri.",
+      "viewModes": "Takvim görünümü",
+      "views": {
+        "day": "Gün",
+        "week": "Hafta",
+        "month": "Ay",
+        "year": "Yıl"
+      },
+      "timeOptional": "Saat (isteğe bağlı)",
+      "pickDate": "Tarih seçin",
+      "pickTime": "Saat seçin",
+      "hour": "Saat",
+      "minute": "Dakika",
+      "today": "Bugün",
+      "clear": "Temizle",
+      "noEventsToday": "Bugün için işlem yok.",
+      "noEventsDay": "Bu tarih için işlem yok.",
+      "add": "Ekle"
+    },
+    "operations": {
+      "title": "İşlemler",
+      "desc": "Bu kaleme ait planlanan ve tamamlanan işlemleri yönetin.",
+      "add": "İşlem Ekle",
+      "edit": "İşlemi Düzenle",
+      "created": "İşlem eklendi.",
+      "updated": "İşlem güncellendi.",
+      "deleted": "İşlem silindi.",
+      "deleteTitle": "İşlemi Sil",
+      "deleteDesc": "\"{{name}}\" kalıcı olarak silinecek.",
+      "empty": "Henüz işlem yok. İlk işlemi ekleyin.",
+      "noResults": "Sonuç bulunamadı",
+      "noResultsDesc": "Arama veya filtre kriterlerinizi değiştirmeyi deneyin.",
+      "searchPlaceholder": "İşlem adı, tarih, durum veya not…",
+      "count": "İşlem sayısı",
+      "planned": "Yapılacak",
+      "done": "Yapıldı",
+      "dateTaken": "Bu tarihte zaten bir işlem var.",
+      "columns": {
+        "date": "Tarih",
+        "name": "İşlem Adı",
+        "status": "Durum",
+        "progress": "Katkı %"
+      }
     },
     "columns": {
       "category": "Kategori",
       "description": "Açıklama",
-      "quantity": "Miktar",
+      "quantity": "Toplam Metraj",
       "unit": "Birim",
-      "unitPrice": "Birim Fiyat (₺)",
+      "unitPrice": "Maliyet (₺)",
       "progress": "İlerleme %",
       "notes": "Not",
       "files": "Dosyalar"
@@ -194,10 +313,10 @@
     }
   },
   "rebar": {
-    "title": "Demir Optimizasyonu",
+    "title": "Donatı Kesim Optimizasyonu",
     "subtitle": "Donatı metrajı, Excel import ve kesim optimizasyonu",
     "selectSiteTitle": "Şantiye seçin",
-    "selectSiteDesc": "Demir modülü için sol menüden tek bir şantiye seçin."
+    "selectSiteDesc": "Donatı modülü için sol menüden tek bir şantiye seçin."
   },
   "projects": {
     "title": "Projeler",
@@ -373,6 +492,13 @@
     "gotIt": "Anladım",
     "loading": "Yükleniyor...",
     "error": "Bir hata oluştu",
-    "networkError": "Sunucuya ulaşılamadı. Bağlantınızı kontrol edin."
+    "uploadTooLarge": "Dosya boyutu en fazla 10 MB olabilir.",
+    "networkError": "Sunucuya ulaşılamadı. Bağlantınızı kontrol edin.",
+    "pagination": {
+      "previous": "Önceki",
+      "next": "Sonraki",
+      "page": "{{page}} / {{total}}",
+      "range": "{{start}}–{{end}} / {{total}}"
+    }
   }
 }

@@ -10,18 +10,28 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from authentication.models import CustomUser
+from core_backend.upload_limits import is_upload_too_large, upload_too_large_response
 from sites.services import sites_for_user
 
-from .models import MetrajCategory, MetrajDocument, MetrajItem
+from .models import MetrajCategory, MetrajDocument, MetrajItem, MetrajOperation
 from .serializers import (
     MetrajCategoryCreateSerializer,
     MetrajCategorySerializer,
     MetrajCategoryUpdateSerializer,
     MetrajDocumentSerializer,
     MetrajItemCreateSerializer,
+    MetrajItemDetailSerializer,
     MetrajItemSerializer,
+    MetrajOperationCreateSerializer,
+    MetrajOperationSerializer,
 )
 from .services.excel_io import build_template_workbook, export_metraj_workbook, import_metraj_from_workbook
+from .services.progress import recalculate_item_completion
+
+
+def _get_item_or_403(request, item_id):
+    accessible = sites_for_user(request.user)
+    return MetrajItem.objects.filter(id=item_id, site__in=accessible).select_related("site", "category").first()
 
 
 def _get_site_or_403(request, site_id):
@@ -30,10 +40,8 @@ def _get_site_or_403(request, site_id):
 
 def _categories_for_user(user):
     if not user.company_id:
-        return MetrajCategory.objects.filter(company__isnull=True)
-    return MetrajCategory.objects.filter(
-        Q(company__isnull=True) | Q(company_id=user.company_id)
-    )
+        return MetrajCategory.objects.none()
+    return MetrajCategory.objects.filter(company_id=user.company_id)
 
 
 def _detect_file_kind(filename: str, mime: str) -> str:
@@ -96,11 +104,6 @@ class CategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def update(self, request, *args, **kwargs):
         category = self.get_object()
-        if not category.is_custom:
-            return Response(
-                {"detail": "Varsayılan kategoriler düzenlenemez."},
-                status=status.HTTP_403_FORBIDDEN,
-            )
         if category.company_id != request.user.company_id:
             return Response(
                 {"detail": "Bu kategoriyi düzenleme yetkiniz yok."},
@@ -110,11 +113,6 @@ class CategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def destroy(self, request, *args, **kwargs):
         category = self.get_object()
-        if not category.is_custom:
-            return Response(
-                {"detail": "Varsayılan kategoriler silinemez."},
-                status=status.HTTP_403_FORBIDDEN,
-            )
         if category.company_id != request.user.company_id:
             return Response(
                 {"detail": "Bu kategoriyi silme yetkiniz yok."},
@@ -139,7 +137,7 @@ class MetrajItemListCreateView(generics.ListCreateAPIView):
         site = self.get_site()
         if not site:
             return MetrajItem.objects.none()
-        qs = MetrajItem.objects.filter(site=site).select_related("category").prefetch_related("documents")
+        qs = MetrajItem.objects.filter(site=site).select_related("category").prefetch_related("operations")
         category = self.request.query_params.get("category")
         if category and category != "all":
             qs = qs.filter(category__slug=category)
@@ -192,16 +190,25 @@ class MetrajItemListCreateView(generics.ListCreateAPIView):
 
 
 class MetrajItemDetailView(generics.RetrieveUpdateDestroyAPIView):
-    serializer_class = MetrajItemSerializer
-
     def get_queryset(self):
         accessible = sites_for_user(self.request.user)
-        return MetrajItem.objects.filter(site__in=accessible).select_related("category", "site")
+        return (
+            MetrajItem.objects.filter(site__in=accessible)
+            .select_related("category", "site")
+            .prefetch_related("operations__documents")
+        )
 
     def get_serializer_class(self):
         if self.request.method in ("PUT", "PATCH"):
             return MetrajItemCreateSerializer
+        if self.request.method == "GET":
+            return MetrajItemDetailSerializer
         return MetrajItemSerializer
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context["request"] = self.request
+        return context
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
@@ -217,7 +224,7 @@ class MetrajSummaryView(APIView):
     def get(self, request):
         from decimal import Decimal
 
-        from django.db.models import Avg, Count, Sum
+        from django.db.models import Avg, Count
 
         site_id = request.query_params.get("site_id")
         if not site_id:
@@ -236,14 +243,13 @@ class MetrajSummaryView(APIView):
         agg = items.aggregate(
             item_count=Count("id"),
             average_progress=Avg("completion_percent"),
-            total_quantity=Sum("quantity"),
         )
 
         estimated = Decimal("0")
         has_cost = False
-        for qty, price in items.values_list("quantity", "unit_price"):
+        for price in items.values_list("unit_price", flat=True):
             if price is not None:
-                estimated += qty * price
+                estimated += price
                 has_cost = True
 
         by_category = []
@@ -255,7 +261,6 @@ class MetrajSummaryView(APIView):
             cat_agg = cat_items.aggregate(
                 count=Count("id"),
                 avg_progress=Avg("completion_percent"),
-                qty=Sum("quantity"),
             )
             by_category.append(
                 {
@@ -263,7 +268,6 @@ class MetrajSummaryView(APIView):
                     "name": cat.name,
                     "item_count": cat_agg["count"],
                     "average_progress": round(cat_agg["avg_progress"] or 0, 1),
-                    "total_quantity": cat_agg["qty"] or 0,
                 }
             )
 
@@ -271,7 +275,6 @@ class MetrajSummaryView(APIView):
             {
                 "item_count": agg["item_count"] or 0,
                 "average_progress": round(agg["average_progress"] or 0, 1),
-                "total_quantity": agg["total_quantity"] or 0,
                 "estimated_cost": estimated if has_cost else None,
                 "by_category": by_category,
             }
@@ -308,6 +311,8 @@ class MetrajImportView(APIView):
                 {"detail": "Şantiye bulunamadı veya erişim yok."},
                 status=status.HTTP_404_NOT_FOUND,
             )
+        if is_upload_too_large(upload):
+            return upload_too_large_response()
         created = import_metraj_from_workbook(site, upload)
         return Response(
             {"detail": f"{len(created)} metraj kalemi içe aktarıldı.", "count": len(created)}
@@ -355,6 +360,8 @@ class MetrajDocumentListCreateView(generics.ListCreateAPIView):
         qs = MetrajDocument.objects.filter(site=site).select_related("uploaded_by", "item")
         if item_id:
             qs = qs.filter(item_id=item_id)
+        if self.request.query_params.get("item_only", "").lower() in ("1", "true", "yes"):
+            qs = qs.filter(operation__isnull=True)
         return qs
 
     def list(self, request, *args, **kwargs):
@@ -368,6 +375,7 @@ class MetrajDocumentListCreateView(generics.ListCreateAPIView):
     def create(self, request, *args, **kwargs):
         site_id = request.data.get("site_id")
         item_id = request.data.get("item_id")
+        operation_id = request.data.get("operation_id")
         upload = request.FILES.get("file")
         if not site_id or not upload:
             return Response(
@@ -380,8 +388,19 @@ class MetrajDocumentListCreateView(generics.ListCreateAPIView):
                 {"detail": "Şantiye bulunamadı veya erişim yok."},
                 status=status.HTTP_404_NOT_FOUND,
             )
+        if is_upload_too_large(upload):
+            return upload_too_large_response()
         item = None
-        if item_id:
+        operation = None
+        if operation_id:
+            operation = MetrajOperation.objects.filter(id=operation_id, item__site=site).select_related("item").first()
+            if not operation:
+                return Response(
+                    {"detail": "İşlem bulunamadı."},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+            item = operation.item
+        elif item_id:
             item = MetrajItem.objects.filter(id=item_id, site=site).first()
             if not item:
                 return Response(
@@ -392,6 +411,7 @@ class MetrajDocumentListCreateView(generics.ListCreateAPIView):
         doc = MetrajDocument.objects.create(
             site=site,
             item=item,
+            operation=operation,
             uploaded_by=request.user,
             file=upload,
             original_filename=upload.name,
@@ -401,6 +421,114 @@ class MetrajDocumentListCreateView(generics.ListCreateAPIView):
             title=(request.data.get("title") or upload.name)[:255],
         )
         return Response(MetrajDocumentSerializer(doc, context={"request": request}).data, status=201)
+
+
+class MetrajOperationListCreateView(generics.ListCreateAPIView):
+    def get_item(self):
+        return _get_item_or_403(self.request, self.kwargs["item_id"])
+
+    def get_queryset(self):
+        item = self.get_item()
+        if not item:
+            return MetrajOperation.objects.none()
+        return item.operations.prefetch_related("documents")
+
+    def get_serializer_class(self):
+        if self.request.method == "POST":
+            return MetrajOperationCreateSerializer
+        return MetrajOperationSerializer
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context["request"] = self.request
+        return context
+
+    def list(self, request, *args, **kwargs):
+        if not self.get_item():
+            return Response(
+                {"detail": "Metraj kalemi bulunamadı veya erişim yok."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        return super().list(request, *args, **kwargs)
+
+    def create(self, request, *args, **kwargs):
+        item = self.get_item()
+        if not item:
+            return Response(
+                {"detail": "Metraj kalemi bulunamadı veya erişim yok."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        serializer = self.get_serializer(
+            data=request.data,
+            context={**self.get_serializer_context(), "item": item},
+        )
+        serializer.is_valid(raise_exception=True)
+        operation = serializer.save(item=item)
+        recalculate_item_completion(item)
+        operation.refresh_from_db()
+        return Response(
+            MetrajOperationSerializer(operation, context={"request": request}).data,
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class MetrajOperationDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = MetrajOperationSerializer
+
+    def get_queryset(self):
+        accessible = sites_for_user(self.request.user)
+        return MetrajOperation.objects.filter(item__site__in=accessible).prefetch_related("documents")
+
+    def get_serializer_class(self):
+        if self.request.method in ("PUT", "PATCH"):
+            return MetrajOperationCreateSerializer
+        return MetrajOperationSerializer
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context["request"] = self.request
+        return context
+
+    def get_serializer(self, *args, **kwargs):
+        kwargs.setdefault("context", self.get_serializer_context())
+        if self.request.method in ("PUT", "PATCH") and "data" in kwargs:
+            try:
+                operation = self.get_object()
+                kwargs["context"]["item"] = operation.item
+            except Exception:
+                pass
+        return super().get_serializer(*args, **kwargs)
+
+    def perform_update(self, serializer):
+        operation = serializer.save()
+        recalculate_item_completion(operation.item)
+
+    def perform_destroy(self, instance):
+        item = instance.item
+        instance.delete()
+        recalculate_item_completion(item)
+
+
+class MetrajCalendarView(APIView):
+    def get(self, request):
+        site_id = request.query_params.get("site_id")
+        item_id = request.query_params.get("item_id")
+        if not site_id:
+            return Response(
+                {"detail": "site_id parametresi gerekli."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        site = _get_site_or_403(request, site_id)
+        if not site:
+            return Response(
+                {"detail": "Şantiye bulunamadı veya erişim yok."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        qs = MetrajOperation.objects.filter(item__site=site).select_related("item", "item__category")
+        if item_id:
+            qs = qs.filter(item_id=item_id)
+        data = MetrajOperationSerializer(qs, many=True, context={"request": request}).data
+        return Response(data)
 
 
 class MetrajDocumentDetailView(generics.RetrieveDestroyAPIView):

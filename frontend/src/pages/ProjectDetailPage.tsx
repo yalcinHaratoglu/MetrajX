@@ -32,6 +32,7 @@ import { FileDropzone } from "../components/ui/FileDropzone";
 import { Input } from "../components/ui/Input";
 import { Modal } from "../components/ui/Modal";
 import { toast } from "../lib/toast";
+import { uploadErrorMessage } from "../lib/uploadLimits";
 import {
   projectService,
   type CuttingBar,
@@ -122,8 +123,8 @@ export function ProjectDetailPage({ embeddedSiteId }: { embeddedSiteId?: number 
       const response = await projectService.upload(projectId, file);
       setRequirements(response.requirements);
       toast.success(t("projects.detail.uploadSuccessReplaced", { count: response.imported }));
-    } catch {
-      // Hata mesajı global interceptor tarafından gösterilir.
+    } catch (err) {
+      toast.error(uploadErrorMessage(err, t));
     } finally {
       setBusy(false);
     }
@@ -177,7 +178,7 @@ export function ProjectDetailPage({ embeddedSiteId }: { embeddedSiteId?: number 
   }
 
   return (
-    <div className={embeddedSiteId ? "page-stack" : "dashboard-page"}>
+    <div className={"dashboard-page"}>
       <PageHeader
         variant={embeddedSiteId ? "page" : "detail"}
         before={
@@ -478,35 +479,35 @@ function RequirementsSection({
         }
         actions={
           <div className="optimize-controls">
-          {requirements.length > 0 && (
-            <button
-              type="button"
-              className="btn-danger btn-sm"
-              onClick={() => setClearOpen(true)}
+            {requirements.length > 0 && (
+              <button
+                type="button"
+                className="btn-danger btn-sm"
+                onClick={() => setClearOpen(true)}
+              >
+                <Trash2 size={15} />
+                {t("projects.detail.clearAll")}
+              </button>
+            )}
+            <label className="bar-length-field">
+              <span className="bar-length-label">{t("projects.detail.barLengthInput")}</span>
+              <input
+                type="number"
+                className="input bar-length-input"
+                min={0.5}
+                max={30}
+                step="0.5"
+                value={barLength}
+                onChange={(e) => setBarLength(e.target.value)}
+              />
+            </label>
+            <Button
+              onClick={() => onOptimize(Number(barLength) || 12)}
+              disabled={optimizing || requirements.length === 0}
             >
-              <Trash2 size={15} />
-              {t("projects.detail.clearAll")}
-            </button>
-          )}
-          <label className="bar-length-field">
-            <span className="bar-length-label">{t("projects.detail.barLengthInput")}</span>
-            <input
-              type="number"
-              className="input bar-length-input"
-              min={0.5}
-              max={30}
-              step="0.5"
-              value={barLength}
-              onChange={(e) => setBarLength(e.target.value)}
-            />
-          </label>
-          <Button
-            onClick={() => onOptimize(Number(barLength) || 12)}
-            disabled={optimizing || requirements.length === 0}
-          >
-            <Wand2 size={16} />
-            {optimizing ? t("projects.detail.optimizing") : t("projects.detail.optimize")}
-          </Button>
+              <Wand2 size={16} />
+              {optimizing ? t("projects.detail.optimizing") : t("projects.detail.optimize")}
+            </Button>
           </div>
         }
       />

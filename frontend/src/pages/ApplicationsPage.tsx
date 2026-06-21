@@ -10,7 +10,7 @@ export function ApplicationsPage() {
   const navigate = useNavigate();
 
   return (
-    <div className="page-stack">
+    <div className="dashboard-page">
       <PageHeader title={t("applications.title")} subtitle={t("applications.subtitle")} />
 
       {APPLICATIONS.length === 0 ? (

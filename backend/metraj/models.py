@@ -69,12 +69,54 @@ class MetrajItem(models.Model):
 
     @property
     def total_amount(self):
-        if self.unit_price is None:
-            return None
-        return self.quantity * self.unit_price
+        return self.unit_price
+
+
+class MetrajOperation(models.Model):
+    class Status(models.TextChoices):
+        PLANNED = "planned", "Yapılacak"
+        DONE = "done", "Yapıldı"
+
+    item = models.ForeignKey(
+        MetrajItem,
+        on_delete=models.CASCADE,
+        related_name="operations",
+    )
+    title = models.CharField(max_length=255)
+    scheduled_date = models.DateField()
+    scheduled_time = models.TimeField(null=True, blank=True)
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.PLANNED,
+    )
+    progress_percent = models.PositiveSmallIntegerField(
+        default=0,
+        help_text="Tamamlandığında kaleme katkı sağlayan yüzde",
+    )
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["scheduled_date", "scheduled_time", "id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["item", "scheduled_date"],
+                name="metraj_operation_unique_item_day",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.item.description} — {self.title}"
 
 
 def metraj_upload_path(instance, filename):
+    if instance.operation_id:
+        return (
+            f"metraj/site_{instance.site_id}/item_{instance.item_id}"
+            f"/op_{instance.operation_id}/{filename}"
+        )
     if instance.item_id:
         return f"metraj/site_{instance.site_id}/item_{instance.item_id}/{filename}"
     return f"metraj/site_{instance.site_id}/{filename}"
@@ -95,6 +137,13 @@ class MetrajDocument(models.Model):
     )
     item = models.ForeignKey(
         MetrajItem,
+        on_delete=models.CASCADE,
+        related_name="documents",
+        null=True,
+        blank=True,
+    )
+    operation = models.ForeignKey(
+        "MetrajOperation",
         on_delete=models.CASCADE,
         related_name="documents",
         null=True,

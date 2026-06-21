@@ -6,6 +6,8 @@ from rest_framework.views import APIView
 
 from sites.services import sites_for_user
 
+from core_backend.upload_limits import is_upload_too_large, upload_too_large_response
+
 from .models import Floor, Project, RebarRequirement
 from .serializers import (
     ProjectCreateSerializer,
@@ -163,6 +165,8 @@ class ProjectUploadView(APIView):
             return Response(
                 {"detail": "Dosya gönderilmedi."}, status=status.HTTP_400_BAD_REQUEST
             )
+        if is_upload_too_large(uploaded):
+            return upload_too_large_response()
 
         try:
             rows = OptimizerService.import_from_file(project, uploaded, uploaded.name)

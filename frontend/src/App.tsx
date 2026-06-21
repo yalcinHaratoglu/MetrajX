@@ -10,11 +10,13 @@ import { ActivatePage } from "./pages/ActivatePage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { LoginPage } from "./pages/LoginPage";
 import { ApplicationsPage } from "./pages/ApplicationsPage";
+import { MetrajItemDetailPage } from "./pages/MetrajItemDetailPage";
 import { MetrajPage } from "./pages/MetrajPage";
 import { RebarPage } from "./pages/RebarPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { SettingsPage } from "./pages/SettingsPage";
+import { SiteDetailPage } from "./pages/SiteDetailPage";
 import { SitesPage } from "./pages/SitesPage";
 import "./i18n";
 
@@ -35,10 +37,11 @@ function App() {
                 <Route element={<DashboardLayout />}>
                   <Route path="/dashboard" element={<DashboardPage />} />
                   <Route path="/sites" element={<SitesPage />} />
+                  <Route path="/sites/:id" element={<SiteDetailPage />} />
                   <Route path="/metraj" element={<MetrajPage />} />
+                  <Route path="/metraj/items/:id" element={<MetrajItemDetailPage />} />
                   <Route path="/applications" element={<ApplicationsPage />} />
                   <Route path="/rebar" element={<RebarPage />} />
-                  <Route path="/sites/:id" element={<Navigate to="/metraj" replace />} />
                   <Route path="/projects" element={<Navigate to="/sites" replace />} />
                   <Route path="/projects/:id" element={<Navigate to="/sites" replace />} />
                   <Route path="/settings" element={<SettingsPage />} />

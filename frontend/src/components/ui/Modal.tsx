@@ -7,9 +7,11 @@ interface ModalProps {
   title: string;
   children: ReactNode;
   footer?: ReactNode;
+  className?: string;
+  bodyClassName?: string;
 }
 
-export function Modal({ open, onClose, title, children, footer }: ModalProps) {
+export function Modal({ open, onClose, title, children, footer, className = "", bodyClassName = "" }: ModalProps) {
   useEffect(() => {
     if (!open) return;
     const handleEscape = (event: KeyboardEvent) => {
@@ -30,14 +32,14 @@ export function Modal({ open, onClose, title, children, footer }: ModalProps) {
         if (event.target === event.currentTarget) onClose();
       }}
     >
-      <div className="modal">
+      <div className={`modal ${className}`.trim()}>
         <div className="modal-header">
           <h2 className="modal-title">{title}</h2>
           <button type="button" className="modal-close" onClick={onClose} aria-label="close">
             <X size={18} />
           </button>
         </div>
-        <div className="modal-body">{children}</div>
+        <div className={`modal-body ${bodyClassName}`.trim()}>{children}</div>
         {footer && <div className="modal-footer">{footer}</div>}
       </div>
     </div>
