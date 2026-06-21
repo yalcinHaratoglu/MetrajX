@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ArrowRight, Boxes, Building2, Layers, Scissors, TrendingDown } from "lucide-react";
+import { PageHeader } from "../components/layout/PageHeader";
 import { useAuth } from "../hooks/useAuth";
 import { useFilteredSites } from "../hooks/useSite";
 import { siteService, type Site } from "../services/siteService";
@@ -69,12 +70,15 @@ export function DashboardPage() {
       </div>
 
       <div>
-        <div className="page-toolbar">
-          <h2 className="detail-section-title">{t("dashboard.recentSites")}</h2>
-          <Link to="/sites" className="link-primary text-sm">
-            {t("dashboard.viewAll")}
-          </Link>
-        </div>
+        <PageHeader
+          variant="section"
+          title={t("dashboard.recentSites")}
+          actions={
+            <Link to="/sites" className="link-primary text-sm">
+              {t("dashboard.viewAll")}
+            </Link>
+          }
+        />
 
         {filteredSites.length === 0 ? (
           <div className="info-banner">

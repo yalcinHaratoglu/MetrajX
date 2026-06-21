@@ -40,7 +40,7 @@ class IsCompanyOwner(BasePermission):
 
 
 class CanManageTeam(BasePermission):
-    """Kullanıcı daveti yalnızca müteahhit (owner) yapabilir."""
+    """Kullanıcı daveti yalnızca yönetici (owner) yapabilir."""
 
     def has_permission(self, request, view):
         return (

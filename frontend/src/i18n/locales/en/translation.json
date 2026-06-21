@@ -6,6 +6,10 @@
   "nav": {
     "dashboard": "Dashboard",
     "sites": "Sites",
+    "metraj": "Takeoff & Progress",
+    "rebar": "Rebar Optimizer",
+    "applications": "Applications",
+    "toggleApplications": "Show or hide sub-applications",
     "projects": "Projects",
     "settings": "Settings",
     "openMenu": "Open menu",
@@ -81,8 +85,8 @@
       "role": "Your Role"
     },
     "banner": {
-      "title": "Phase 1 — Multi-Site Management",
-      "desc": "RBAC, site selector and user management are active. Create sites and assign roles and sites to your team."
+      "title": "Phase 2 — Takeoff & Progress",
+      "desc": "Takeoff entry for concrete, rebar, plaster, formwork and paint with Excel import and completion tracking."
     },
     "recentSites": "Recent Sites",
     "viewAll": "View all"
@@ -116,6 +120,84 @@
     "detail": {
       "back": "Back to sites"
     }
+  },
+  "metraj": {
+    "title": "Takeoff & Progress",
+    "subtitle": "Takeoff items and completion rate for the selected site",
+    "selectSiteTitle": "Select a site",
+    "selectSiteDesc": "Choose a single site from the sidebar to view takeoff.",
+    "template": "Download Template",
+    "import": "Upload Excel",
+    "export": "Export Excel",
+    "excel": {
+      "importData": "Import from Excel",
+      "exportData": "Download current data",
+      "blankTemplate": "Download blank template"
+    },
+    "search": "Search",
+    "searchPlaceholder": "Description, notes or category…",
+    "filter": "Filter…",
+    "manageCategories": "Categories",
+    "addCategory": "Add category",
+    "newCategoryPlaceholder": "New category name",
+    "categoryAdded": "Category added.",
+    "categoryUpdated": "Category updated.",
+    "categoryDeleted": "Category deleted.",
+    "editCategory": "Edit category",
+    "systemCategory": "System",
+    "editTitle": "Edit Takeoff Item",
+    "updateSuccess": "Item updated.",
+    "deleteSuccess": "Item deleted.",
+    "deleteTitle": "Delete Item",
+    "deleteDesc": "\"{{name}}\" will be permanently deleted.",
+    "documents": {
+      "title": "Files",
+      "desc": "Upload Excel, PDF, Word or photos; preview and download.",
+      "upload": "Upload File",
+      "uploaded": "File uploaded.",
+      "deleted": "File deleted.",
+      "empty": "No files yet.",
+      "preview": "Preview"
+    },
+    "add": "Add Item",
+    "addTitle": "New Takeoff Item",
+    "createSuccess": "Takeoff item added.",
+    "empty": "No takeoff items yet",
+    "emptyDesc": "Add manually or upload the Excel template.",
+    "rebarHint": "Rebar optimization and cutting plans are managed on a separate page.",
+    "rebarLink": "Go to rebar / cutting page",
+    "tabs": { "all": "All" },
+    "stats": {
+      "items": "Item Count",
+      "progress": "Avg. Progress",
+      "quantity": "Total Quantity",
+      "cost": "Estimated Cost"
+    },
+    "columns": {
+      "category": "Category",
+      "description": "Description",
+      "quantity": "Quantity",
+      "unit": "Unit",
+      "unitPrice": "Unit Price",
+      "progress": "Progress %",
+      "notes": "Notes",
+      "files": "Files"
+    }
+  },
+  "applications": {
+    "title": "Applications",
+    "subtitle": "Site modules and utility apps",
+    "empty": "No applications yet",
+    "emptyDesc": "New modules will be added soon.",
+    "rebar": {
+      "desc": "Rebar takeoff, Excel import and cutting optimization"
+    }
+  },
+  "rebar": {
+    "title": "Rebar Optimizer",
+    "subtitle": "Rebar takeoff, Excel import and cutting optimization",
+    "selectSiteTitle": "Select a site",
+    "selectSiteDesc": "Choose a single site from the sidebar for the rebar module."
   },
   "projects": {
     "title": "Projects",
@@ -238,16 +320,16 @@
       "invite": "Send Invite",
       "inviteSuccess": "Invite sent successfully.",
       "roles": {
-        "owner": "Contractor",
+        "owner": "Manager",
         "site_manager": "Site Manager",
         "accountant": "Accountant",
-        "admin": "Admin",
+        "admin": "Authorized",
         "member": "Member"
       },
       "sites": "Assigned Sites",
       "assignSites": "Assign Sites",
       "noSites": "No sites to assign. Create a site first.",
-      "ownerOnly": "User management is only available to the contractor."
+      "ownerOnly": "User management is only available to the manager."
     },
     "appearance": {
       "title": "Appearance",
@@ -286,6 +368,8 @@
     "cancel": "Cancel",
     "create": "Create",
     "delete": "Delete",
+    "download": "Download",
+    "actions": "Actions",
     "gotIt": "Got it",
     "loading": "Loading...",
     "error": "An error occurred",

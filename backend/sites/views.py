@@ -63,7 +63,7 @@ class SiteDetailView(generics.RetrieveUpdateDestroyAPIView):
     def destroy(self, request, *args, **kwargs):
         if request.user.role != CustomUser.Role.OWNER:
             return Response(
-                {"detail": "Şantiye silme yetkiniz yalnızca müteahhite aittir."},
+                {"detail": "Şantiye silme yetkiniz yalnızca yöneticiye aittir."},
                 status=status.HTTP_403_FORBIDDEN,
             )
         return super().destroy(request, *args, **kwargs)

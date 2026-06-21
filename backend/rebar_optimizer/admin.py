@@ -1,21 +1,22 @@
 from django.contrib import admin
 
-from core_backend.admin_filters import CompanyFilter, ProjectCompanyFilter
+from core_backend.admin_scope import CompanyScopedAdminMixin
 
 from .models import CuttingPlan, Floor, OptimizationRun, Project, RebarElement, RebarRequirement
 
 
 @admin.register(Project)
-class ProjectAdmin(admin.ModelAdmin):
+class ProjectAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
+    company_filter_field = "company_id"
     list_display = ("name", "company", "site", "status", "created_at")
-    list_filter = (CompanyFilter, "status")
+    list_filter = ("status",)
     search_fields = ("name",)
 
 
 @admin.register(Floor)
-class FloorAdmin(admin.ModelAdmin):
+class FloorAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
+    company_filter_field = "project__company_id"
     list_display = ("name", "project", "project_company", "order")
-    list_filter = (ProjectCompanyFilter,)
 
     @admin.display(description="Şirket")
     def project_company(self, obj):
@@ -26,9 +27,9 @@ class FloorAdmin(admin.ModelAdmin):
 
 
 @admin.register(RebarRequirement)
-class RebarRequirementAdmin(admin.ModelAdmin):
+class RebarRequirementAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
+    company_filter_field = "project__company_id"
     list_display = ("id", "project", "diameter_mm", "length_m", "quantity")
-    list_filter = (ProjectCompanyFilter,)
 
     def get_queryset(self, request):
         return super().get_queryset(request).select_related("project__company")

@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { FolderKanban, Plus, Trash2 } from "lucide-react";
 import { Button } from "../components/ui/Button";
+import { PageHeader } from "../components/layout/PageHeader";
 import { EmptyState } from "../components/ui/EmptyState";
 import { Input } from "../components/ui/Input";
 import { Modal } from "../components/ui/Modal";
@@ -60,18 +61,16 @@ export function ProjectsPage() {
 
   return (
     <div className="dashboard-page">
-      <div className="page-toolbar">
-        <div>
-          <h1 className="section-title">{t("projects.title")}</h1>
-          <p className="section-subtitle">{t("projects.subtitle")}</p>
-        </div>
-        <div className="page-toolbar-actions">
+      <PageHeader
+        title={t("projects.title")}
+        subtitle={t("projects.subtitle")}
+        actions={
           <Button onClick={() => setModalOpen(true)}>
             <Plus size={16} />
             {t("projects.new")}
           </Button>
-        </div>
-      </div>
+        }
+      />
 
       {loading ? (
         <div className="empty-state">

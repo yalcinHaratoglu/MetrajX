@@ -5,6 +5,7 @@ import {
   SettingsPanel,
   type SettingsTab,
 } from "../components/settings/SettingsLayout";
+import { PageHeader } from "../components/layout/PageHeader";
 
 export function SettingsPage() {
   const { t } = useTranslation();
@@ -12,10 +13,7 @@ export function SettingsPage() {
 
   return (
     <div className="settings-page">
-      <div className="settings-page-header">
-        <h1 className="section-title">{t("settings.title")}</h1>
-        <p className="section-subtitle">{t("settings.subtitle")}</p>
-      </div>
+      <PageHeader title={t("settings.title")} subtitle={t("settings.subtitle")} />
 
       <div className="settings-layout">
         <SettingsNav active={tab} onChange={setTab} />

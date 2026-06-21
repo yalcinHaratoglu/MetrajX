@@ -1,13 +1,15 @@
 from django.contrib import admin
+
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 
-from core_backend.admin_filters import RelatedUserCompanyFilter, UserCompanyFilter
+from core_backend.admin_scope import CompanyScopedAdminMixin
 
 from .models import ActivationToken, Company, CustomUser, Feedback
 
 
 @admin.register(Company)
-class CompanyAdmin(admin.ModelAdmin):
+class CompanyAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
+    company_filter_field = "id"
     list_display = ("name", "tax_number", "user_count", "created_at")
     search_fields = ("name", "tax_number")
 
@@ -17,7 +19,8 @@ class CompanyAdmin(admin.ModelAdmin):
 
 
 @admin.register(CustomUser)
-class CustomUserAdmin(DjangoUserAdmin):
+class CustomUserAdmin(CompanyScopedAdminMixin, DjangoUserAdmin):
+    company_filter_field = "company_id"
     ordering = ("email",)
     list_display = (
         "email",
@@ -29,7 +32,7 @@ class CustomUserAdmin(DjangoUserAdmin):
         "is_staff",
         "date_joined",
     )
-    list_filter = ("is_active", "is_staff", "role", UserCompanyFilter)
+    list_filter = ("is_active", "is_staff", "role")
     list_editable = ("is_active",)
     search_fields = ("email", "first_name", "last_name")
     readonly_fields = ("date_joined", "last_login")
@@ -71,9 +74,10 @@ class CustomUserAdmin(DjangoUserAdmin):
 
 
 @admin.register(ActivationToken)
-class ActivationTokenAdmin(admin.ModelAdmin):
+class ActivationTokenAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
+    company_filter_field = "user__company_id"
     list_display = ("user", "user_company", "purpose", "token", "is_used", "created_at")
-    list_filter = ("is_used", "purpose", RelatedUserCompanyFilter)
+    list_filter = ("is_used", "purpose")
     search_fields = ("user__email", "token")
     readonly_fields = ("token", "created_at")
 
@@ -83,9 +87,9 @@ class ActivationTokenAdmin(admin.ModelAdmin):
 
 
 @admin.register(Feedback)
-class FeedbackAdmin(admin.ModelAdmin):
+class FeedbackAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
+    company_filter_field = "user__company_id"
     list_display = ("subject", "user", "user_company", "created_at")
-    list_filter = (RelatedUserCompanyFilter,)
     search_fields = ("subject", "user__email")
 
     @admin.display(description="Şirket")

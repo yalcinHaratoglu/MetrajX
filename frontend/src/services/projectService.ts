@@ -123,10 +123,10 @@ export const projectService = {
 
   async getResult(id: number): Promise<OptimizationResult | null> {
     try {
-      const response = await api.get<OptimizationResult>(`/projects/${id}/result/`, {
+      const response = await api.get<OptimizationResult | null>(`/projects/${id}/result/`, {
         suppressErrorToast: true,
       });
-      return response.data;
+      return response.data ?? null;
     } catch {
       return null;
     }

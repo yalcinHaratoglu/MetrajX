@@ -9,8 +9,10 @@ import { AcceptInvitePage } from "./pages/AcceptInvitePage";
 import { ActivatePage } from "./pages/ActivatePage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { LoginPage } from "./pages/LoginPage";
+import { ApplicationsPage } from "./pages/ApplicationsPage";
+import { MetrajPage } from "./pages/MetrajPage";
+import { RebarPage } from "./pages/RebarPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
-import { ProjectDetailPage } from "./pages/ProjectDetailPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { SitesPage } from "./pages/SitesPage";
@@ -33,7 +35,10 @@ function App() {
                 <Route element={<DashboardLayout />}>
                   <Route path="/dashboard" element={<DashboardPage />} />
                   <Route path="/sites" element={<SitesPage />} />
-                  <Route path="/sites/:id" element={<ProjectDetailPage />} />
+                  <Route path="/metraj" element={<MetrajPage />} />
+                  <Route path="/applications" element={<ApplicationsPage />} />
+                  <Route path="/rebar" element={<RebarPage />} />
+                  <Route path="/sites/:id" element={<Navigate to="/metraj" replace />} />
                   <Route path="/projects" element={<Navigate to="/sites" replace />} />
                   <Route path="/projects/:id" element={<Navigate to="/sites" replace />} />
                   <Route path="/settings" element={<SettingsPage />} />

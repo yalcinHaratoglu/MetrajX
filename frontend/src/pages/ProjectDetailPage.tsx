@@ -26,6 +26,7 @@ import {
   X,
 } from "lucide-react";
 import { Button } from "../components/ui/Button";
+import { PageHeader } from "../components/layout/PageHeader";
 import { EmptyState } from "../components/ui/EmptyState";
 import { FileDropzone } from "../components/ui/FileDropzone";
 import { Input } from "../components/ui/Input";
@@ -70,11 +71,11 @@ function useCssColor(variable: string, fallback: string) {
   }, [variable, fallback]);
 }
 
-export function ProjectDetailPage() {
+export function ProjectDetailPage({ embeddedSiteId }: { embeddedSiteId?: number } = {}) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const siteId = Number(id);
+  const siteId = embeddedSiteId ?? Number(id);
 
   const [site, setSite] = useState<Site | null>(null);
   const [project, setProject] = useState<Project | null>(null);
@@ -158,8 +159,8 @@ export function ProjectDetailPage() {
           icon={<Scissors size={26} />}
           title={t("common.error")}
           action={
-            <Link to="/sites" className="link-primary text-sm">
-              {t("sites.detail.back")}
+            <Link to={embeddedSiteId ? "/applications" : "/sites"} className="link-primary text-sm">
+              {embeddedSiteId ? t("applications.title") : t("sites.detail.back")}
             </Link>
           }
         />
@@ -176,38 +177,55 @@ export function ProjectDetailPage() {
   }
 
   return (
-    <div className="dashboard-page">
-      <div className="detail-header">
-        <div>
-          <Link to="/sites" className="link-primary text-sm">
-            <ArrowLeft size={14} style={{ display: "inline", marginRight: 4 }} />
-            {t("sites.detail.back")}
-          </Link>
-          <h1 className="detail-title">
-            {site.name}
-            <span className={`badge badge-${project.status}`}>
-              {t(`projects.status.${project.status}`)}
-            </span>
-          </h1>
-        </div>
-        <div className="page-toolbar-actions">
-          {result && (
-            <Button variant="ghost" onClick={() => projectService.exportExcel(projectId, project.name)}>
-              <FileSpreadsheet size={16} />
-              {t("projects.detail.exportExcel")}
-            </Button>
-          )}
-          <button
-            type="button"
-            className="btn-icon"
-            aria-label={t("sites.delete")}
-            title={t("sites.delete")}
-            onClick={() => setDeleteOpen(true)}
-          >
-            <Trash2 size={18} />
-          </button>
-        </div>
-      </div>
+    <div className={embeddedSiteId ? "page-stack" : "dashboard-page"}>
+      <PageHeader
+        variant={embeddedSiteId ? "page" : "detail"}
+        before={
+          embeddedSiteId ? undefined : (
+            <Link to="/sites" className="link-primary text-sm">
+              <ArrowLeft size={14} style={{ display: "inline", marginRight: 4 }} />
+              {t("sites.detail.back")}
+            </Link>
+          )
+        }
+        title={
+          embeddedSiteId ? (
+            <>
+              {t("rebar.title")}
+              <span className={`badge badge-${project.status}`}>
+                {t(`projects.status.${project.status}`)}
+              </span>
+            </>
+          ) : (
+            <>
+              {site.name}
+              <span className={`badge badge-${project.status}`}>
+                {t(`projects.status.${project.status}`)}
+              </span>
+            </>
+          )
+        }
+        subtitle={embeddedSiteId ? site.name : t("rebar.subtitle")}
+        actions={
+          <>
+            {result && (
+              <Button variant="ghost" onClick={() => projectService.exportExcel(projectId, project.name)}>
+                <FileSpreadsheet size={16} />
+                {t("projects.detail.exportExcel")}
+              </Button>
+            )}
+            <button
+              type="button"
+              className="btn-icon"
+              aria-label={t("sites.delete")}
+              title={t("sites.delete")}
+              onClick={() => setDeleteOpen(true)}
+            >
+              <Trash2 size={18} />
+            </button>
+          </>
+        }
+      />
 
       <SourceSection
         tab={tab}
@@ -302,9 +320,7 @@ function SourceSection({ tab, onTab, busy, onUpload, projectId, onAdded }: Sourc
 
   return (
     <div className="surface-card" style={{ padding: "1.5rem" }}>
-      <div className="page-toolbar">
-        <h2 className="detail-section-title">{t("projects.detail.source")}</h2>
-      </div>
+      <PageHeader variant="section" title={t("projects.detail.source")} />
       <div className="tabs">
         <button type="button" className={tab === "import" ? "tab tab-active" : "tab"} onClick={() => onTab("import")}>
           <FileSpreadsheet size={15} />
@@ -452,12 +468,16 @@ function RequirementsSection({
 
   return (
     <div className="surface-card" style={{ padding: "1.5rem" }}>
-      <div className="page-toolbar">
-        <h2 className="detail-section-title">
-          <Layers size={18} />
-          {t("projects.detail.requirements")}
-        </h2>
-        <div className="optimize-controls">
+      <PageHeader
+        variant="section"
+        title={
+          <>
+            <Layers size={18} />
+            {t("projects.detail.requirements")}
+          </>
+        }
+        actions={
+          <div className="optimize-controls">
           {requirements.length > 0 && (
             <button
               type="button"
@@ -487,8 +507,9 @@ function RequirementsSection({
             <Wand2 size={16} />
             {optimizing ? t("projects.detail.optimizing") : t("projects.detail.optimize")}
           </Button>
-        </div>
-      </div>
+          </div>
+        }
+      />
 
       {requirements.length === 0 ? (
         <EmptyState icon={<Ruler size={26} />} title={t("projects.detail.requirementsEmpty")} />
@@ -642,10 +663,15 @@ function ResultsSection({ result }: { result: OptimizationResult | null }) {
   if (!result) {
     return (
       <div className="surface-card" style={{ padding: "1.5rem" }}>
-        <h2 className="detail-section-title">
-          <Scissors size={18} />
-          {t("projects.detail.results")}
-        </h2>
+        <PageHeader
+          variant="section"
+          title={
+            <>
+              <Scissors size={18} />
+              {t("projects.detail.results")}
+            </>
+          }
+        />
         <EmptyState icon={<Scissors size={26} />} title={t("projects.detail.resultsEmpty")} />
       </div>
     );
@@ -658,10 +684,15 @@ function ResultsSection({ result }: { result: OptimizationResult | null }) {
 
   return (
     <div className="surface-card" style={{ padding: "1.5rem" }}>
-      <h2 className="detail-section-title">
-        <Scissors size={18} />
-        {t("projects.detail.results")}
-      </h2>
+      <PageHeader
+        variant="section"
+        title={
+          <>
+            <Scissors size={18} />
+            {t("projects.detail.results")}
+          </>
+        }
+      />
 
       <div className="result-summary">
         <Metric label={t("projects.detail.wastePercent")} value={`%${result.waste_percent}`} />

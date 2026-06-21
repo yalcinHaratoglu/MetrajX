@@ -44,7 +44,7 @@ class CustomUserManager(BaseUserManager):
 
 class CustomUser(AbstractUser):
     class Role(models.TextChoices):
-        OWNER = "owner", "Müteahhit"
+        OWNER = "owner", "Yönetici"
         SITE_MANAGER = "site_manager", "Şantiye Şefi"
         ACCOUNTANT = "accountant", "Muhasebe"
         # Geriye dönük uyumluluk

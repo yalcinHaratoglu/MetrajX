@@ -1,10 +1,11 @@
 import { NavLink } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Boxes, Building2, LayoutDashboard, LogOut, Moon, Settings, Sun, X } from "lucide-react";
+import { Boxes, Building2, LayoutDashboard, LogOut, Moon, Ruler, Settings, Sun, X } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { useTheme } from "../../hooks/useTheme";
 import { LanguageSelect } from "../ui/LanguageSelect";
 import { SiteSelector } from "./SiteSelector";
+import { SidebarApplicationsNav } from "./SidebarApplicationsNav";
 
 interface SidebarProps {
   mobileOpen?: boolean;
@@ -63,6 +64,11 @@ export function Sidebar({ mobileOpen = false, onNavigate, onClose }: SidebarProp
           <Building2 size={18} />
           {t("nav.sites")}
         </NavLink>
+        <NavLink to="/metraj" className={linkClass} onClick={onNavigate}>
+          <Ruler size={18} />
+          {t("nav.metraj")}
+        </NavLink>
+        <SidebarApplicationsNav onNavigate={onNavigate} />
         <NavLink to="/settings" className={linkClass} onClick={onNavigate}>
           <Settings size={18} />
           {t("nav.settings")}

@@ -227,11 +227,6 @@ class ProjectResultView(APIView):
             return Response({"detail": "Proje bulunamadı."}, status=status.HTTP_404_NOT_FOUND)
 
         result = OptimizerService.build_result(project)
-        if not result:
-            return Response(
-                {"detail": "Henüz optimizasyon çalıştırılmadı."},
-                status=status.HTTP_404_NOT_FOUND,
-            )
         return Response(result)
 
 

@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Building2, Plus, Trash2 } from "lucide-react";
 import { Button } from "../components/ui/Button";
+import { PageHeader } from "../components/layout/PageHeader";
 import { EmptyState } from "../components/ui/EmptyState";
 import { Input } from "../components/ui/Input";
 import { Modal } from "../components/ui/Modal";
@@ -14,7 +15,7 @@ export function SitesPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { refreshSites } = useSite();
+  const { refreshSites, setSelectedSiteId } = useSite();
   const [sites, setSites] = useState<Site[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -47,7 +48,8 @@ export function SitesPage() {
       });
       await refreshSites();
       if (site?.id != null) {
-        navigate(`/sites/${site.id}`);
+        setSelectedSiteId(site.id);
+        navigate("/metraj");
         return;
       }
       const refreshed = await siteService.list();
@@ -75,20 +77,18 @@ export function SitesPage() {
 
   return (
     <div className="dashboard-page">
-      <div className="page-toolbar">
-        <div>
-          <h1 className="section-title">{t("sites.title")}</h1>
-          <p className="section-subtitle">{t("sites.subtitle")}</p>
-        </div>
-        {canCreate && (
-          <div className="page-toolbar-actions">
+      <PageHeader
+        title={t("sites.title")}
+        subtitle={t("sites.subtitle")}
+        actions={
+          canCreate ? (
             <Button onClick={() => setModalOpen(true)}>
               <Plus size={16} />
               {t("sites.new")}
             </Button>
-          </div>
-        )}
-      </div>
+          ) : undefined
+        }
+      />
 
       {loading ? (
         <div className="empty-state">
@@ -113,7 +113,15 @@ export function SitesPage() {
       ) : (
         <div className="project-grid">
           {filteredSites.map((site) => (
-            <Link key={site.id} to={`/sites/${site.id}`} className="project-card">
+            <button
+              key={site.id}
+              type="button"
+              className="project-card project-card-button"
+              onClick={() => {
+                setSelectedSiteId(site.id);
+                navigate("/metraj");
+              }}
+            >
               <div className="project-card-header">
                 <span className="project-card-title">{site.name}</span>
                 <span className={`badge badge-${site.status === "active" ? "ready" : "draft"}`}>
@@ -145,7 +153,7 @@ export function SitesPage() {
                   </button>
                 )}
               </div>
-            </Link>
+            </button>
           ))}
         </div>
       )}

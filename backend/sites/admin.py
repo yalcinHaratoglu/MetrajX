@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from core_backend.admin_filters import CompanyFilter, SiteCompanyFilter
+from core_backend.admin_scope import CompanyScopedAdminMixin
 
 from .models import Site, SiteMembership
 
@@ -11,17 +11,18 @@ class SiteMembershipInline(admin.TabularInline):
 
 
 @admin.register(Site)
-class SiteAdmin(admin.ModelAdmin):
+class SiteAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
+    company_filter_field = "company_id"
     list_display = ("name", "code", "company", "status", "created_at")
-    list_filter = (CompanyFilter, "status")
+    list_filter = ("status",)
     search_fields = ("name", "code")
     inlines = [SiteMembershipInline]
 
 
 @admin.register(SiteMembership)
-class SiteMembershipAdmin(admin.ModelAdmin):
+class SiteMembershipAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
+    company_filter_field = "site__company_id"
     list_display = ("user", "site", "site_company", "created_at")
-    list_filter = (SiteCompanyFilter,)
     search_fields = ("user__email", "site__name")
 
     @admin.display(description="Şirket")

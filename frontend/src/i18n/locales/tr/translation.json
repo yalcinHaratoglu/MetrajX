@@ -6,6 +6,10 @@
   "nav": {
     "dashboard": "Kontrol Paneli",
     "sites": "Şantiyeler",
+    "metraj": "Metraj & İlerleme",
+    "rebar": "Demir Optimizasyonu",
+    "applications": "Uygulamalar",
+    "toggleApplications": "Alt uygulamaları göster/gizle",
     "projects": "Projeler",
     "settings": "Ayarlar",
     "openMenu": "Menüyü aç",
@@ -81,8 +85,8 @@
       "role": "Rolünüz"
     },
     "banner": {
-      "title": "Faz 1 — Çok Şantiyeli Yönetim",
-      "desc": "RBAC, şantiye seçici ve kullanıcı yönetimi aktif. Şantiye oluşturup ekibinize rol ve şantiye atayabilirsiniz."
+      "title": "Faz 2 — Genel Metraj & İlerleme",
+      "desc": "Beton, demir, sıva, kalıp ve boya kategorilerinde metraj girişi, Excel import ve % iş bitirme takibi aktif."
     },
     "recentSites": "Son Şantiyeler",
     "viewAll": "Tümünü gör"
@@ -116,6 +120,84 @@
     "detail": {
       "back": "Şantiyelere dön"
     }
+  },
+  "metraj": {
+    "title": "Metraj & İlerleme",
+    "subtitle": "Seçili şantiye için metraj kalemleri ve iş bitirme oranı",
+    "selectSiteTitle": "Şantiye seçin",
+    "selectSiteDesc": "Metraj görüntülemek için sol menüden tek bir şantiye seçin.",
+    "template": "Şablon İndir",
+    "import": "Excel Yükle",
+    "export": "Excel İndir",
+    "excel": {
+      "importData": "Excel'den içe aktar",
+      "exportData": "Mevcut veriyi indir",
+      "blankTemplate": "Boş şablon indir"
+    },
+    "search": "Ara",
+    "searchPlaceholder": "Açıklama, not veya kategori…",
+    "filter": "Filtre…",
+    "manageCategories": "Kategoriler",
+    "addCategory": "Kategori ekle",
+    "newCategoryPlaceholder": "Yeni kategori adı",
+    "categoryAdded": "Kategori eklendi.",
+    "categoryUpdated": "Kategori güncellendi.",
+    "categoryDeleted": "Kategori silindi.",
+    "editCategory": "Kategoriyi düzenle",
+    "systemCategory": "Sistem",
+    "editTitle": "Metraj Kalemini Düzenle",
+    "updateSuccess": "Kalem güncellendi.",
+    "deleteSuccess": "Kalem silindi.",
+    "deleteTitle": "Kalemi Sil",
+    "deleteDesc": "\"{{name}}\" kalıcı olarak silinecek.",
+    "documents": {
+      "title": "Dosyalar",
+      "desc": "Excel, PDF, Word veya fotoğraf yükleyin; önizleyip indirebilirsiniz.",
+      "upload": "Dosya Yükle",
+      "uploaded": "Dosya yüklendi.",
+      "deleted": "Dosya silindi.",
+      "empty": "Henüz dosya yok.",
+      "preview": "Önizleme"
+    },
+    "add": "Kalem Ekle",
+    "addTitle": "Yeni Metraj Kalemi",
+    "createSuccess": "Metraj kalemi eklendi.",
+    "empty": "Henüz metraj kalemi yok",
+    "emptyDesc": "Manuel ekleyin veya Excel şablonunu yükleyin.",
+    "rebarHint": "Demir optimizasyonu Uygulamalar sayfasında: sol menüden «Uygulamalar».",
+    "rebarLink": "Demir Optimizasyonu modülüne git",
+    "tabs": { "all": "Tümü" },
+    "stats": {
+      "items": "Kalem Sayısı",
+      "progress": "Ort. İlerleme",
+      "quantity": "Toplam Miktar",
+      "cost": "Tahmini Maliyet"
+    },
+    "columns": {
+      "category": "Kategori",
+      "description": "Açıklama",
+      "quantity": "Miktar",
+      "unit": "Birim",
+      "unitPrice": "Birim Fiyat (₺)",
+      "progress": "İlerleme %",
+      "notes": "Not",
+      "files": "Dosyalar"
+    }
+  },
+  "applications": {
+    "title": "Uygulamalar",
+    "subtitle": "Şantiye modülleri ve yardımcı uygulamalar",
+    "empty": "Henüz uygulama yok",
+    "emptyDesc": "Yakında yeni modüller eklenecek.",
+    "rebar": {
+      "desc": "Donatı metrajı, Excel import ve kesim optimizasyonu"
+    }
+  },
+  "rebar": {
+    "title": "Demir Optimizasyonu",
+    "subtitle": "Donatı metrajı, Excel import ve kesim optimizasyonu",
+    "selectSiteTitle": "Şantiye seçin",
+    "selectSiteDesc": "Demir modülü için sol menüden tek bir şantiye seçin."
   },
   "projects": {
     "title": "Projeler",
@@ -238,16 +320,16 @@
       "invite": "Davet Gönder",
       "inviteSuccess": "Davet başarıyla gönderildi.",
       "roles": {
-        "owner": "Müteahhit",
+        "owner": "Yönetici",
         "site_manager": "Şantiye Şefi",
         "accountant": "Muhasebe",
-        "admin": "Yönetici",
+        "admin": "Yetkili",
         "member": "Üye"
       },
       "sites": "Atanan Şantiyeler",
       "assignSites": "Şantiye Ata",
       "noSites": "Atanacak şantiye yok. Önce şantiye oluşturun.",
-      "ownerOnly": "Kullanıcı yönetimi yalnızca müteahhit tarafından yapılabilir."
+      "ownerOnly": "Kullanıcı yönetimi yalnızca yönetici tarafından yapılabilir."
     },
     "appearance": {
       "title": "Görünüm",
@@ -286,6 +368,8 @@
     "cancel": "İptal",
     "create": "Oluştur",
     "delete": "Sil",
+    "download": "İndir",
+    "actions": "İşlem",
     "gotIt": "Anladım",
     "loading": "Yükleniyor...",
     "error": "Bir hata oluştu",
