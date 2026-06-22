@@ -215,15 +215,17 @@ export function ProjectDetailPage({ embeddedSiteId }: { embeddedSiteId?: number 
                 {t("projects.detail.exportExcel")}
               </Button>
             )}
-            <button
-              type="button"
-              className="btn-icon"
-              aria-label={t("sites.delete")}
-              title={t("sites.delete")}
-              onClick={() => setDeleteOpen(true)}
-            >
-              <Trash2 size={18} />
-            </button>
+            {!embeddedSiteId && (
+              <button
+                type="button"
+                className="btn-icon"
+                aria-label={t("sites.delete")}
+                title={t("sites.delete")}
+                onClick={() => setDeleteOpen(true)}
+              >
+                <Trash2 size={18} />
+              </button>
+            )}
           </>
         }
       />

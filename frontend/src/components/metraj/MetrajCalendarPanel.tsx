@@ -10,6 +10,7 @@ interface MetrajCalendarPanelProps {
   description?: string;
   /** Harici veri; verilmezse siteIds ile yüklenir. */
   operations?: MetrajOperation[];
+  events?: import("../../services/calendarService").CalendarEvent[];
   siteIds?: number[];
   loading?: boolean;
   emptyMessage?: string;
@@ -30,6 +31,7 @@ export function MetrajCalendarPanel({
   title,
   description,
   operations,
+  events,
   siteIds,
   loading = false,
   emptyMessage,
@@ -95,6 +97,7 @@ export function MetrajCalendarPanel({
   ) : (
     <MetrajCalendar
       operations={resolvedOps}
+      events={events}
       readonly={readonly}
       oneOpPerDay={oneOpPerDay}
       showItemDescription={showItemDescription}

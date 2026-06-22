@@ -13,6 +13,11 @@ import { ApplicationsPage } from "./pages/ApplicationsPage";
 import { MetrajItemDetailPage } from "./pages/MetrajItemDetailPage";
 import { MetrajPage } from "./pages/MetrajPage";
 import { RebarPage } from "./pages/RebarPage";
+import { PuantajPage } from "./pages/PuantajPage";
+import { FinansPage } from "./pages/FinansPage";
+import { TakvimPage } from "./pages/TakvimPage";
+import { GunlukRaporPage } from "./pages/GunlukRaporPage";
+import { DemirbasPage } from "./pages/DemirbasPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { SettingsPage } from "./pages/SettingsPage";
@@ -40,8 +45,14 @@ function App() {
                   <Route path="/sites/:id" element={<SiteDetailPage />} />
                   <Route path="/metraj" element={<MetrajPage />} />
                   <Route path="/metraj/items/:id" element={<MetrajItemDetailPage />} />
+                  <Route path="/puantaj" element={<PuantajPage />} />
+                  <Route path="/finans" element={<FinansPage />} />
+                  <Route path="/takvim" element={<TakvimPage />} />
+                  <Route path="/gunluk-rapor" element={<GunlukRaporPage />} />
+                  <Route path="/demirbas" element={<DemirbasPage />} />
                   <Route path="/applications" element={<ApplicationsPage />} />
-                  <Route path="/rebar" element={<RebarPage />} />
+                  <Route path="/apps/rebar" element={<RebarPage />} />
+                  <Route path="/rebar" element={<Navigate to="/apps/rebar" replace />} />
                   <Route path="/projects" element={<Navigate to="/sites" replace />} />
                   <Route path="/projects/:id" element={<Navigate to="/sites" replace />} />
                   <Route path="/settings" element={<SettingsPage />} />

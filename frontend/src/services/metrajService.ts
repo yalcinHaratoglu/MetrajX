@@ -49,8 +49,21 @@ export interface MetrajOperation {
   scheduled_time: string | null;
   status: MetrajOperationStatus;
   progress_percent: number;
+  quantity_done: string;
   notes: string;
   documents: MetrajItemDocument[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PozTemplate {
+  id: number;
+  category: number;
+  category_name: string;
+  description: string;
+  default_unit: string;
+  default_unit_price: string | null;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -61,10 +74,14 @@ export interface MetrajItem {
   category: number;
   category_slug: string;
   category_name: string;
+  poz_template: number | null;
+  subcontractor: number | null;
+  subcontractor_name: string | null;
   description: string;
   unit: string;
   quantity: string;
   unit_price: string | null;
+  contract_amount: string | null;
   total_amount: string | null;
   completion_percent: number;
   operations_count: number;
@@ -89,6 +106,8 @@ export interface MetrajSummary {
 export interface MetrajItemInput {
   site_id?: number;
   category: number;
+  poz_template?: number | null;
+  subcontractor?: number | null;
   description: string;
   unit: string;
   quantity: number | string;
@@ -101,7 +120,8 @@ export interface MetrajOperationInput {
   scheduled_date: string;
   scheduled_time?: string | null;
   status: MetrajOperationStatus;
-  progress_percent: number;
+  progress_percent?: number;
+  quantity_done?: string | number;
   notes?: string;
 }
 
@@ -123,6 +143,23 @@ export const metrajService = {
 
   async deleteCategory(id: number) {
     await api.delete(`/metraj/categories/${id}/`);
+  },
+
+  async listPozTemplates(activeOnly = true) {
+    const { data } = await api.get<PozTemplate[]>("/metraj/poz-templates/", {
+      params: activeOnly ? { active_only: "1" } : undefined,
+    });
+    return data;
+  },
+
+  async createPozTemplate(payload: {
+    category: number;
+    description: string;
+    default_unit?: string;
+    default_unit_price?: string | null;
+  }) {
+    const { data } = await api.post<PozTemplate>("/metraj/poz-templates/", payload);
+    return data;
   },
 
   async list(siteId: number, search?: string) {

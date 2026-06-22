@@ -28,6 +28,38 @@ class MetrajCategory(models.Model):
         return self.name
 
 
+class PozTemplate(models.Model):
+    """Şirket bazlı yeniden kullanılabilir poz / kalem şablonu."""
+
+    company = models.ForeignKey(
+        "authentication.Company",
+        on_delete=models.CASCADE,
+        related_name="poz_templates",
+    )
+    category = models.ForeignKey(
+        MetrajCategory,
+        on_delete=models.PROTECT,
+        related_name="poz_templates",
+    )
+    description = models.CharField(max_length=255)
+    default_unit = models.CharField(max_length=20, default="m2")
+    default_unit_price = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        null=True,
+        blank=True,
+    )
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["category__sort_order", "description", "id"]
+
+    def __str__(self):
+        return self.description
+
+
 class MetrajItem(models.Model):
     class Unit(models.TextChoices):
         M3 = "m3", "m³"
@@ -47,6 +79,13 @@ class MetrajItem(models.Model):
         on_delete=models.PROTECT,
         related_name="items",
     )
+    poz_template = models.ForeignKey(
+        PozTemplate,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="metraj_items",
+    )
     description = models.CharField(max_length=255)
     unit = models.CharField(max_length=20, choices=Unit.choices, default=Unit.M2)
     quantity = models.DecimalField(max_digits=14, decimal_places=3, default=0)
@@ -55,6 +94,15 @@ class MetrajItem(models.Model):
         decimal_places=2,
         null=True,
         blank=True,
+        help_text="Taşeron sözleşme birim fiyatı (bu kalem için)",
+    )
+    subcontractor = models.ForeignKey(
+        "puantaj.Subcontractor",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="metraj_items",
+        help_text="Bu kalemi yürüten taşeron",
     )
     completion_percent = models.PositiveSmallIntegerField(default=0)
     notes = models.TextField(blank=True)
@@ -68,8 +116,18 @@ class MetrajItem(models.Model):
         return f"{self.site.name} — {self.description}"
 
     @property
+    def contract_amount(self):
+        """Tamamlanma öncesi toplam sözleşme tutarı: quantity × unit_price."""
+        if self.unit_price is None:
+            return None
+        return self.quantity * self.unit_price
+
+    @property
     def total_amount(self):
-        return self.unit_price
+        """Hakediş: quantity × (completion_percent / 100) × unit_price."""
+        if self.unit_price is None:
+            return None
+        return self.quantity * self.completion_percent / 100 * self.unit_price
 
 
 class MetrajOperation(models.Model):
@@ -92,7 +150,13 @@ class MetrajOperation(models.Model):
     )
     progress_percent = models.PositiveSmallIntegerField(
         default=0,
-        help_text="Tamamlandığında kaleme katkı sağlayan yüzde",
+        help_text="Tamamlandığında kaleme katkı sağlayan yüzde (legacy)",
+    )
+    quantity_done = models.DecimalField(
+        max_digits=14,
+        decimal_places=3,
+        default=0,
+        help_text="Tamamlanan miktar (kalem biriminde)",
     )
     notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -100,12 +164,6 @@ class MetrajOperation(models.Model):
 
     class Meta:
         ordering = ["scheduled_date", "scheduled_time", "id"]
-        constraints = [
-            models.UniqueConstraint(
-                fields=["item", "scheduled_date"],
-                name="metraj_operation_unique_item_day",
-            ),
-        ]
 
     def __str__(self):
         return f"{self.item.description} — {self.title}"

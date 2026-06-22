@@ -7,8 +7,15 @@
     "dashboard": "Dashboard",
     "sites": "Sites",
     "metraj": "Takeoff & Progress",
+    "puantaj": "Timesheets & Subcontractors",
+    "finans": "Finance & Ledger",
+    "calendar": "Site Calendar",
+    "dailyLog": "Daily Log",
+    "assets": "Assets",
     "rebar": "Rebar Cutting Optimization",
     "applications": "Applications",
+    "siteTools": "Site Tools",
+    "toggleSiteTools": "Show or hide site tools",
     "toggleApplications": "Show or hide sub-applications",
     "projects": "Projects",
     "settings": "Settings",
@@ -295,9 +302,12 @@
     "columns": {
       "category": "Category",
       "description": "Description",
+      "subcontractor": "Subcontractor",
       "quantity": "Total Takeoff",
       "unit": "Unit",
-      "unitPrice": "Cost (₺)",
+      "unitPrice": "Unit Price (₺)",
+      "earned": "Earned (₺)",
+      "pozTemplate": "BOQ Template",
       "progress": "Progress %",
       "notes": "Notes",
       "files": "Files"
@@ -308,8 +318,261 @@
     "subtitle": "Site modules and utility apps",
     "empty": "No applications yet",
     "emptyDesc": "New modules will be added soon.",
+    "selectSiteTitle": "Select a site",
+    "selectSiteDesc": "The app store is site-scoped. Choose a site from the sidebar.",
+    "subtitleForSite": "{{site}} — installed apps",
+    "install": "Install",
+    "installed": "Application installed.",
+    "uninstall": "Remove",
+    "uninstalled": "Application removed.",
+    "installedBadge": "Installed",
+    "open": "Open",
+    "comingSoon": "Coming soon",
+    "notInstalledTitle": "App not installed",
+    "notInstalledDesc": "Install this module for your site from the Applications page.",
+    "goToStore": "Go to Applications",
     "rebar": {
       "desc": "Rebar takeoff, Excel import and cutting optimization"
+    },
+    "upcoming": {
+      "safety": "Safety Checklist",
+      "safetyDesc": "Coming soon — field safety inspection forms",
+      "quality": "Quality Inspection",
+      "qualityDesc": "Coming soon — QC and inspection module"
+    }
+  },
+  "finans": {
+    "title": "Finance & Ledger",
+    "subtitle": "Site ledger entries and settlement records",
+    "selectSiteTitle": "Select a site",
+    "selectSiteDesc": "Finance works on the selected site.",
+    "empty": "No ledger entries yet",
+    "emptyDesc": "Approved settlement periods are synced here automatically.",
+    "stats": {
+      "credit": "Total Credit",
+      "debit": "Total Debit",
+      "balance": "Balance",
+      "entries": "Entry count",
+      "budgetRemaining": "Budget Remaining"
+    },
+    "columns": {
+      "date": "Date",
+      "description": "Description",
+      "account": "Account",
+      "direction": "Direction",
+      "amount": "Amount"
+    },
+    "direction": {
+      "credit": "Credit",
+      "debit": "Debit"
+    },
+    "info": "Approved settlement periods sync automatically. Payments are debits; settlements are credits.",
+    "tabs": {
+      "ledger": "Ledger",
+      "stock": "Stock",
+      "payment": "Payment"
+    },
+    "recordPayment": "Record Payment",
+    "paymentRecorded": "Payment recorded.",
+    "addStock": "Add Stock Item",
+    "stockCreated": "Stock item added.",
+    "stockEmpty": "No stock items",
+    "stockEmptyDesc": "Define material stock items here.",
+    "paymentHint": "Use the button above to record subcontractor payments.",
+    "lowStock": "Low",
+    "stockColumns": {
+      "name": "Material",
+      "quantity": "Quantity",
+      "unit": "Unit"
+    }
+  },
+  "calendar": {
+    "title": "Site Calendar",
+    "subtitle": "Takeoff operations and site events",
+    "info": "Takeoff operations appear automatically; add concrete pours, deliveries, etc.",
+    "selectSiteTitle": "Select a site",
+    "selectSiteDesc": "Calendar is site-scoped.",
+    "addEvent": "Add Event",
+    "created": "Calendar event added.",
+    "metrajOps": "Takeoff Operations",
+    "metrajOpsDesc": "Planned work from takeoff items",
+    "siteEvents": "Site Events",
+    "noEvents": "No standalone events yet",
+    "columns": {
+      "date": "Date",
+      "title": "Title",
+      "type": "Type",
+      "time": "Time"
+    },
+    "types": {
+      "concrete": "Concrete Pour",
+      "delivery": "Material Delivery",
+      "deadline": "Deadline",
+      "meeting": "Meeting",
+      "other": "Other"
+    }
+  },
+  "dailyLog": {
+    "title": "Daily Log",
+    "subtitle": "Field daily reports",
+    "info": "One report per site per day: weather, workers, summary.",
+    "selectSiteTitle": "Select a site",
+    "selectSiteDesc": "Daily logs are site-scoped.",
+    "add": "Add Report",
+    "created": "Daily log saved.",
+    "empty": "No reports yet",
+    "emptyDesc": "Add your first field daily report.",
+    "columns": {
+      "date": "Date",
+      "weather": "Weather",
+      "workers": "Workers",
+      "summary": "Summary"
+    }
+  },
+  "assets": {
+    "title": "Assets",
+    "subtitle": "Equipment and assignment tracking",
+    "info": "Track cranes, compressors, tools — status and assignment.",
+    "selectSiteTitle": "Select a site",
+    "selectSiteDesc": "Asset records are site-scoped.",
+    "add": "Add Asset",
+    "created": "Asset saved.",
+    "empty": "No assets yet",
+    "emptyDesc": "Track site equipment here.",
+    "columns": {
+      "name": "Name",
+      "type": "Type",
+      "serial": "Serial",
+      "status": "Status",
+      "assigned": "Assigned to"
+    },
+    "status": {
+      "available": "Available",
+      "assigned": "Assigned",
+      "maintenance": "Maintenance",
+      "retired": "Retired"
+    }
+  },
+  "puantaj": {
+    "title": "Timesheets & Subcontractors",
+    "flowHint": "Daily timesheets are per worker. Settlement amounts come from takeoff progress (m², m³, etc.) — not from timesheets.",
+    "tabs": {
+      "timesheets": "Daily Timesheets",
+      "workers": "Workers",
+      "subcontractors": "Subcontractors",
+      "settlement": "Settlement",
+      "hakedis": "Settlement Periods"
+    },
+    "stats": {
+      "entries": "Entries",
+      "workerDays": "Worker-days",
+      "contractTotal": "Contract Total",
+      "total": "Total Earned"
+    },
+    "trades": {
+      "rebar": "Rebar",
+      "plaster": "Plaster",
+      "formwork": "Formwork",
+      "paint": "Paint",
+      "electric": "Electrical",
+      "plumbing": "Plumbing",
+      "general": "General"
+    },
+    "units": {
+      "worker_day": "worker-day",
+      "m2": "m²",
+      "m3": "m³",
+      "lump": "lump sum"
+    },
+    "subcontractor": {
+      "add": "Add Subcontractor",
+      "edit": "Edit Subcontractor",
+      "name": "Company name",
+      "category": "Category (Trade)",
+      "contractUnit": "Contract unit",
+      "unitPrice": "Unit price",
+      "phone": "Phone",
+      "active": "Active",
+      "inactive": "Inactive",
+      "timesheetCount": "Timesheet entries",
+      "earnedTotal": "Earned",
+      "contractTotal": "Contract amount",
+      "metrajItems": "Takeoff items",
+      "priceHint": "Trade comes from Takeoff categories. Unit prices are set per work item.",
+      "created": "Subcontractor added.",
+      "updated": "Subcontractor updated.",
+      "deleted": "Subcontractor removed.",
+      "empty": "No subcontractors yet",
+      "emptyDesc": "Add a subcontractor to start logging daily timesheets."
+    },
+    "timesheet": {
+      "add": "Add Timesheet",
+      "edit": "Edit Timesheet",
+      "created": "Timesheet saved.",
+      "updated": "Timesheet updated.",
+      "deleted": "Timesheet deleted.",
+      "duplicate": "An entry already exists for this subcontractor on the selected date.",
+      "noItem": "No item",
+      "empty": "No timesheets this month",
+      "emptyDesc": "Log daily worker counts to build settlement.",
+      "columns": {
+        "date": "Date",
+        "subcontractor": "Subcontractor",
+        "workers": "Workers",
+        "status": "Status",
+        "quantity": "Quantity",
+        "item": "Work item"
+      },
+      "status": {
+        "pending": "Pending",
+        "approved": "Approved",
+        "disputed": "Disputed"
+      },
+      "approve": "Approve",
+      "approved": "Timesheet approved."
+    },
+    "hakedisPeriod": {
+      "new": "New Period",
+      "wizardTitle": "Settlement Period",
+      "create": "Create & Calculate",
+      "recalculate": "Recalculate",
+      "submit": "Submit for Approval",
+      "approve": "Approve & Lock",
+      "created": "Settlement period created.",
+      "submitted": "Submitted for approval.",
+      "approved": "Period approved and locked.",
+      "empty": "No settlement periods yet",
+      "emptyDesc": "Create a period document to lock the official amount.",
+      "estimate": "Estimated Earned",
+      "estimateHint": "Live from takeoff progress — official amount comes from approved periods.",
+      "period": "Period",
+      "statusLabel": "Status",
+      "start": "Start",
+      "end": "End",
+      "gross": "Gross",
+      "retainage": "Retainage",
+      "advance": "Advance Deduction",
+      "net": "Net Payable",
+      "delta": "Progress Delta",
+      "status": {
+        "draft": "Draft",
+        "pending_approval": "Pending Approval",
+        "approved": "Approved",
+        "paid": "Paid"
+      }
+    },
+    "settlement": {
+      "empty": "No settlement data",
+      "emptyDesc": "Assign subcontractors and unit prices on takeoff items.",
+      "columns": {
+        "subcontractor": "Subcontractor",
+        "category": "Category",
+        "items": "Items",
+        "contractTotal": "Contract",
+        "progress": "Avg. progress",
+        "total": "Earned",
+        "workerDays": "Month worker-days"
+      }
     }
   },
   "rebar": {

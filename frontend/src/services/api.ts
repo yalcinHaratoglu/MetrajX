@@ -1,5 +1,6 @@
 import axios from "axios";
 import { getApiErrorMessage } from "../lib/apiError";
+import { clearAuthSession, redirectToLogin } from "../lib/authSession";
 import { toast } from "../lib/toast";
 
 const baseURL = import.meta.env.VITE_API_URL ?? "http://localhost:8000/api";
@@ -41,12 +42,18 @@ api.interceptors.response.use(
             refresh,
           });
           localStorage.setItem("access_token", data.access);
+          if (data.refresh) {
+            localStorage.setItem("refresh_token", data.refresh);
+          }
           originalRequest.headers.Authorization = `Bearer ${data.access}`;
           return api(originalRequest);
         } catch {
-          localStorage.removeItem("access_token");
-          localStorage.removeItem("refresh_token");
+          clearAuthSession();
+          redirectToLogin();
         }
+      } else {
+        clearAuthSession();
+        redirectToLogin();
       }
     }
 

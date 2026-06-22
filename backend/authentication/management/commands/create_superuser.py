@@ -60,6 +60,12 @@ class Command(BaseCommand):
             },
         )
 
+        from marketplace.services import ensure_default_apps_for_site
+        from metraj.services.defaults import ensure_default_categories_for_company
+
+        ensure_default_apps_for_site(site, user)
+        ensure_default_categories_for_company(company)
+
         if company_created:
             self.stdout.write(self.style.SUCCESS(f"Demo şirket oluşturuldu: {company.name}"))
         if site_created:

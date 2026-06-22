@@ -13,7 +13,7 @@ from authentication.models import CustomUser
 from core_backend.upload_limits import is_upload_too_large, upload_too_large_response
 from sites.services import sites_for_user
 
-from .models import MetrajCategory, MetrajDocument, MetrajItem, MetrajOperation
+from .models import MetrajCategory, MetrajDocument, MetrajItem, MetrajOperation, PozTemplate
 from .serializers import (
     MetrajCategoryCreateSerializer,
     MetrajCategorySerializer,
@@ -24,6 +24,8 @@ from .serializers import (
     MetrajItemSerializer,
     MetrajOperationCreateSerializer,
     MetrajOperationSerializer,
+    PozTemplateCreateSerializer,
+    PozTemplateSerializer,
 )
 from .services.excel_io import build_template_workbook, export_metraj_workbook, import_metraj_from_workbook
 from .services.progress import recalculate_item_completion
@@ -137,7 +139,7 @@ class MetrajItemListCreateView(generics.ListCreateAPIView):
         site = self.get_site()
         if not site:
             return MetrajItem.objects.none()
-        qs = MetrajItem.objects.filter(site=site).select_related("category").prefetch_related("operations")
+        qs = MetrajItem.objects.filter(site=site).select_related("category", "subcontractor").prefetch_related("operations")
         category = self.request.query_params.get("category")
         if category and category != "all":
             qs = qs.filter(category__slug=category)
@@ -186,7 +188,10 @@ class MetrajItemListCreateView(generics.ListCreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         item = serializer.save(site=site)
-        return Response(MetrajItemSerializer(item).data, status=status.HTTP_201_CREATED)
+        return Response(
+            MetrajItemSerializer(item, context=self.get_serializer_context()).data,
+            status=status.HTTP_201_CREATED,
+        )
 
 
 class MetrajItemDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -194,7 +199,7 @@ class MetrajItemDetailView(generics.RetrieveUpdateDestroyAPIView):
         accessible = sites_for_user(self.request.user)
         return (
             MetrajItem.objects.filter(site__in=accessible)
-            .select_related("category", "site")
+            .select_related("category", "site", "subcontractor")
             .prefetch_related("operations__documents")
         )
 
@@ -213,11 +218,18 @@ class MetrajItemDetailView(generics.RetrieveUpdateDestroyAPIView):
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
         instance = self.get_object()
-        serializer = MetrajItemCreateSerializer(instance, data=request.data, partial=partial)
+        serializer = MetrajItemCreateSerializer(
+            instance,
+            data=request.data,
+            partial=partial,
+            context={"site_id": instance.site_id},
+        )
         serializer.is_valid(raise_exception=True)
         serializer.save()
         instance.refresh_from_db()
-        return Response(MetrajItemSerializer(instance).data)
+        return Response(
+            MetrajItemSerializer(instance, context=self.get_serializer_context()).data
+        )
 
 
 class MetrajSummaryView(APIView):
@@ -247,9 +259,10 @@ class MetrajSummaryView(APIView):
 
         estimated = Decimal("0")
         has_cost = False
-        for price in items.values_list("unit_price", flat=True):
-            if price is not None:
-                estimated += price
+        for item in items.select_related("category"):
+            earned = item.total_amount
+            if earned is not None:
+                estimated += earned
                 has_cost = True
 
         by_category = []
@@ -549,3 +562,40 @@ class MetrajDocumentDownloadView(APIView):
         response["Content-Type"] = doc.mime_type or "application/octet-stream"
         response["Content-Disposition"] = f'inline; filename="{doc.original_filename}"'
         return response
+
+
+def _poz_templates_for_user(user):
+    if not user.company_id:
+        return PozTemplate.objects.none()
+    return PozTemplate.objects.filter(company_id=user.company_id).select_related("category")
+
+
+class PozTemplateListCreateView(generics.ListCreateAPIView):
+    def get_queryset(self):
+        qs = _poz_templates_for_user(self.request.user)
+        if self.request.query_params.get("active_only") == "1":
+            qs = qs.filter(is_active=True)
+        return qs
+
+    def get_serializer_class(self):
+        if self.request.method == "POST":
+            return PozTemplateCreateSerializer
+        return PozTemplateSerializer
+
+    def create(self, request, *args, **kwargs):
+        if not request.user.company:
+            return Response({"detail": "Şirket bilgisi gerekli."}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = PozTemplateCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        poz = PozTemplate.objects.create(
+            company=request.user.company,
+            **serializer.validated_data,
+        )
+        return Response(PozTemplateSerializer(poz).data, status=status.HTTP_201_CREATED)
+
+
+class PozTemplateDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = PozTemplateSerializer
+
+    def get_queryset(self):
+        return _poz_templates_for_user(self.request.user)

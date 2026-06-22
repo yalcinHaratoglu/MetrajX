@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ChevronRight, LayoutGrid } from "lucide-react";
-import { APPLICATIONS, isApplicationsPath } from "../../config/applications";
+import { appFromInstallation, isApplicationsPath } from "../../config/applications";
+import { useMarketplaceApps } from "../../hooks/useMarketplaceApps";
 
 interface SidebarApplicationsNavProps {
   onNavigate?: () => void;
@@ -11,7 +12,13 @@ interface SidebarApplicationsNavProps {
 export function SidebarApplicationsNav({ onNavigate }: SidebarApplicationsNavProps) {
   const { t } = useTranslation();
   const { pathname } = useLocation();
-  const appsActive = isApplicationsPath(pathname);
+  const { installations } = useMarketplaceApps();
+  const installedApps = useMemo(
+    () => installations.map(appFromInstallation),
+    [installations],
+  );
+  const installedPaths = useMemo(() => installedApps.map((a) => a.path), [installedApps]);
+  const appsActive = isApplicationsPath(pathname, installedPaths);
   const [expanded, setExpanded] = useState(false);
   const showSub = expanded || appsActive;
 
@@ -38,12 +45,12 @@ export function SidebarApplicationsNav({ onNavigate }: SidebarApplicationsNavPro
           <ChevronRight size={16} className={showSub ? "is-open" : ""} />
         </button>
       </div>
-      {showSub && (
+      {showSub && installedApps.length > 0 && (
         <div className="sidebar-nav-sub">
-          {APPLICATIONS.map((app) => {
+          {installedApps.map((app) => {
             const Icon = app.icon;
             return (
-              <NavLink key={app.id} to={app.path} className={subLinkClass} onClick={onNavigate}>
+              <NavLink key={app.slug} to={app.path} className={subLinkClass} onClick={onNavigate}>
                 <Icon size={16} />
                 {t(app.titleKey)}
               </NavLink>

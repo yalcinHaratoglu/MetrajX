@@ -44,6 +44,7 @@ export function LoginPage() {
               label={t("auth.email")}
               type="email"
               name="email"
+              autoComplete="username"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -51,6 +52,7 @@ export function LoginPage() {
             <PasswordInput
               label={t("auth.password")}
               name="password"
+              autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required

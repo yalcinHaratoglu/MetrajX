@@ -88,7 +88,7 @@ class MetrajAPITestCase(TestCase):
         item.refresh_from_db()
         self.assertEqual(item.completion_percent, 40)
 
-    def test_operation_unique_per_day(self):
+    def test_multiple_operations_same_day(self):
         from datetime import date
 
         item = MetrajItem.objects.create(
@@ -116,7 +116,8 @@ class MetrajAPITestCase(TestCase):
             {**payload, "title": "Demir"},
             format="json",
         )
-        self.assertEqual(second.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(second.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(item.operations.filter(scheduled_date=date.today()).count(), 2)
 
     def test_document_upload_rejects_large_file(self):
         from django.core.files.uploadedfile import SimpleUploadedFile

@@ -8,7 +8,7 @@ from authentication.models import CustomUser
 
 from .models import Site
 from .serializers import SiteCreateSerializer, SiteSerializer
-from .services import sites_for_user
+from .services import delete_site, sites_for_user
 
 
 def _sites_queryset(user):
@@ -33,9 +33,12 @@ class SiteListCreateView(generics.ListCreateAPIView):
         return SiteSerializer
 
     def perform_create(self, serializer):
+        from marketplace.services import ensure_default_apps_for_site
+        from metraj.services.defaults import ensure_default_categories_for_company
         from rebar_optimizer.models import Project
 
         user = self.request.user
+        ensure_default_categories_for_company(user.company)
         site = serializer.save(company=user.company, created_by=user)
         Project.objects.get_or_create(
             site=site,
@@ -45,6 +48,7 @@ class SiteListCreateView(generics.ListCreateAPIView):
                 "name": site.name,
             },
         )
+        ensure_default_apps_for_site(site, user)
 
     def create(self, request, *args, **kwargs):
         if not request.user.company:
@@ -90,6 +94,9 @@ class SiteDetailView(generics.RetrieveUpdateDestroyAPIView):
         serializer.save()
         site = _sites_queryset(request.user).get(pk=instance.pk)
         return Response(SiteSerializer(site).data)
+
+    def perform_destroy(self, instance):
+        delete_site(instance)
 
     def destroy(self, request, *args, **kwargs):
         if request.user.role != CustomUser.Role.OWNER:

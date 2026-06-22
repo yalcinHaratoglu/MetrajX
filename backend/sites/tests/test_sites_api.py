@@ -99,6 +99,39 @@ class SitesAPITestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(Site.objects.filter(pk=self.site_b.id).exists())
 
+    def test_delete_site_with_hakedis_data(self):
+        from metraj.models import MetrajCategory, MetrajItem
+        from puantaj.models import HakedisPeriod, HakedisPeriodLine, Subcontractor
+
+        category = MetrajCategory.objects.create(slug="test-cat", name="Test")
+        sub = Subcontractor.objects.create(
+            site=self.site_b, name="Taşeron X", category=category
+        )
+        item = MetrajItem.objects.create(
+            site=self.site_b,
+            category=category,
+            description="Kalem 1",
+        )
+        period = HakedisPeriod.objects.create(
+            site=self.site_b,
+            period_start="2026-06-01",
+            period_end="2026-06-30",
+        )
+        HakedisPeriodLine.objects.create(
+            period=period,
+            metraj_item=item,
+            subcontractor=sub,
+            quantity=10,
+            current_cumulative_percent=50,
+            delta_percent=50,
+            line_gross=1000,
+        )
+
+        self.client.force_authenticate(user=self.owner)
+        response = self.client.delete(f"/api/sites/{self.site_b.id}/")
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(Site.objects.filter(pk=self.site_b.id).exists())
+
     def test_my_sites_endpoint(self):
         self.client.force_authenticate(user=self.site_manager)
         response = self.client.get("/api/sites/mine/")

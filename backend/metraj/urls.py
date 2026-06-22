@@ -15,11 +15,15 @@ from .views import (
     MetrajOperationListCreateView,
     MetrajSummaryView,
     MetrajTemplateView,
+    PozTemplateDetailView,
+    PozTemplateListCreateView,
 )
 
 urlpatterns = [
     path("metraj/categories/", CategoryListCreateView.as_view(), name="metraj-categories"),
     path("metraj/categories/<int:pk>/", CategoryDetailView.as_view(), name="metraj-category-detail"),
+    path("metraj/poz-templates/", PozTemplateListCreateView.as_view(), name="metraj-poz-templates"),
+    path("metraj/poz-templates/<int:pk>/", PozTemplateDetailView.as_view(), name="metraj-poz-template-detail"),
     path("metraj/items/", MetrajItemListCreateView.as_view(), name="metraj-items"),
     path("metraj/items/<int:pk>/", MetrajItemDetailView.as_view(), name="metraj-item-detail"),
     path(

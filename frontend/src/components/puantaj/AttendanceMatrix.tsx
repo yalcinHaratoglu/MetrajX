@@ -1,0 +1,206 @@
+import { useCallback, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { Download, Search } from "lucide-react";
+import { Button } from "../ui/Button";
+import { Input } from "../ui/Input";
+import { Select } from "../ui/Select";
+import { TablePagination } from "../ui/TablePagination";
+import { useSiteData } from "../../hooks/useSiteData";
+import { useTablePagination } from "../../hooks/useTablePagination";
+import {
+  puantajService,
+  type AttendanceMatrixData,
+  type Subcontractor,
+} from "../../services/puantajService";
+import { toast } from "../../lib/toast";
+
+const PAGE_SIZE = 15;
+
+const emptyMatrix: AttendanceMatrixData = {
+  date_from: "",
+  date_to: "",
+  dates: [],
+  workers: [],
+};
+
+type Props = {
+  siteId: number;
+  dateFrom: string;
+  dateTo: string;
+  subcontractors: Subcontractor[];
+  canManage: boolean;
+  onChanged?: () => void;
+};
+
+export function AttendanceMatrix({
+  siteId,
+  dateFrom,
+  dateTo,
+  subcontractors,
+  canManage,
+  onChanged,
+}: Props) {
+  const { t } = useTranslation();
+  const today = new Date().toISOString().slice(0, 10);
+  const [subcontractorId, setSubcontractorId] = useState("");
+  const [search, setSearch] = useState("");
+  const [busyCell, setBusyCell] = useState<string | null>(null);
+
+  const fetchKey = `${siteId}|${dateFrom}|${dateTo}|${subcontractorId}|${search}`;
+
+  const fetcher = useCallback(async (): Promise<AttendanceMatrixData> => {
+    return puantajService.getAttendanceMatrix({
+      site_id: siteId,
+      date_from: dateFrom,
+      date_to: dateTo,
+      subcontractor_id: subcontractorId ? Number(subcontractorId) : undefined,
+      search: search.trim() || undefined,
+    });
+  }, [siteId, dateFrom, dateTo, subcontractorId, search]);
+
+  const { data, loading, reload, setData } = useSiteData(fetchKey, fetcher, emptyMatrix);
+  const rows = data.workers;
+  const dates = data.dates;
+
+  const { page, setPage, paginatedRows, showPagination } = useTablePagination(rows, PAGE_SIZE);
+
+  const subOptions = useMemo(
+    () => [
+      { value: "", label: t("puantaj.attendance.allSubcontractors") },
+      ...subcontractors
+        .filter((s) => s.is_active)
+        .map((s) => ({ value: String(s.id), label: s.name })),
+    ],
+    [subcontractors, t],
+  );
+
+  const toggleDay = async (workerId: number, date: string, present: boolean) => {
+    if (!canManage || date > today) return;
+    const cellKey = `${workerId}-${date}`;
+    setBusyCell(cellKey);
+    try {
+      await puantajService.toggleAttendance({
+        site_id: siteId,
+        worker_id: workerId,
+        date,
+        present,
+      });
+      setData((prev) => ({
+        ...prev,
+        workers: prev.workers.map((row) => {
+          if (row.id !== workerId) return row;
+          const nextDays = { ...row.days, [date]: present };
+          return {
+            ...row,
+            days: nextDays,
+            total_days: Object.values(nextDays).filter(Boolean).length,
+          };
+        }),
+      }));
+      onChanged?.();
+    } catch {
+      toast.error(t("common.error"));
+    } finally {
+      setBusyCell(null);
+    }
+  };
+
+  const exportCsv = () => {
+    void puantajService.exportAttendanceCsv({
+      site_id: siteId,
+      date_from: dateFrom,
+      date_to: dateTo,
+      subcontractor_id: subcontractorId ? Number(subcontractorId) : undefined,
+      search: search.trim() || undefined,
+    });
+  };
+
+  return (
+    <div className="attendance-matrix-panel">
+      <div className="attendance-matrix-filters">
+        <Select
+          label={t("puantaj.attendance.subcontractor")}
+          value={subcontractorId}
+          onChange={(v) => {
+            setSubcontractorId(v);
+            setPage(1);
+          }}
+          options={subOptions}
+        />
+        <Input
+          label={t("puantaj.attendance.search")}
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
+          placeholder={t("puantaj.attendance.searchPlaceholder")}
+        />
+        <div className="attendance-matrix-export">
+          <Button type="button" variant="ghost" onClick={exportCsv}>
+            <Download size={16} />
+            {t("puantaj.attendance.export")}
+          </Button>
+          <Button type="button" variant="ghost" onClick={() => void reload()}>
+            <Search size={16} />
+            {t("common.refresh")}
+          </Button>
+        </div>
+      </div>
+
+      {loading ? (
+        <p className="text-muted">{t("common.loading")}</p>
+      ) : rows.length === 0 ? (
+        <p className="text-muted">{t("puantaj.attendance.empty")}</p>
+      ) : (
+        <>
+          <div className="attendance-matrix-scroll surface-card">
+            <table className="data-table attendance-matrix-table">
+              <thead>
+                <tr>
+                  <th className="attendance-sticky-col">{t("puantaj.attendance.worker")}</th>
+                  <th className="attendance-sticky-col-2">{t("puantaj.attendance.subcontractor")}</th>
+                  {dates.map((d) => (
+                    <th key={d} className="attendance-day-col">
+                      {new Date(d).getDate()}
+                    </th>
+                  ))}
+                  <th>{t("puantaj.attendance.totalDays")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paginatedRows.map((row) => (
+                  <tr key={row.id}>
+                    <td className="attendance-sticky-col">{row.full_name}</td>
+                    <td className="attendance-sticky-col-2">{row.subcontractor_name}</td>
+                    {dates.map((d) => {
+                      const present = Boolean(row.days[d]);
+                      const future = d > today;
+                      const cellKey = `${row.id}-${d}`;
+                      return (
+                        <td key={d} className="attendance-day-col">
+                          <button
+                            type="button"
+                            className={`attendance-cell${present ? " is-present" : ""}${future ? " is-disabled" : ""}`}
+                            disabled={!canManage || future || busyCell === cellKey}
+                            onClick={() => void toggleDay(row.id, d, !present)}
+                          >
+                            {present ? "✓" : ""}
+                          </button>
+                        </td>
+                      );
+                    })}
+                    <td className="attendance-total-col">{row.total_days}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {showPagination && (
+            <TablePagination page={page} pageSize={PAGE_SIZE} totalItems={rows.length} onPageChange={setPage} />
+          )}
+        </>
+      )}
+    </div>
+  );
+}

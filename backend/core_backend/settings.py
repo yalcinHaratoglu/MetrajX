@@ -30,7 +30,12 @@ INSTALLED_APPS = [
     "authentication",
     "sites",
     "metraj",
+    "puantaj",
     "rebar_optimizer",
+    "marketplace",
+    "finans",
+    "site_calendar",
+    "daily_log",
 ]
 
 MIDDLEWARE = [
@@ -115,11 +120,14 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ACCESS_TOKEN_LIFETIME": timedelta(
+        minutes=int(os.getenv("JWT_ACCESS_MINUTES", "30"))
+    ),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=int(os.getenv("JWT_REFRESH_DAYS", "7"))),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
     "AUTH_HEADER_TYPES": ("Bearer",),
+    "UPDATE_LAST_LOGIN": True,
 }
 
 CORS_ALLOWED_ORIGINS = [

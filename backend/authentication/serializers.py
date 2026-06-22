@@ -28,6 +28,9 @@ class RegisterSerializer(serializers.ModelSerializer):
         company = None
         if company_name:
             company = Company.objects.create(name=company_name)
+            from metraj.services.defaults import ensure_default_categories_for_company
+
+            ensure_default_categories_for_company(company)
 
         user = User.objects.create_user(
             **validated_data,

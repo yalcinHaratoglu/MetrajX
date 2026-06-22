@@ -12,7 +12,12 @@ urlpatterns = [
     path("api/auth/", include("authentication.urls")),
     path("api/", include("sites.urls")),
     path("api/", include("metraj.urls")),
+    path("api/", include("puantaj.urls")),
     path("api/", include("rebar_optimizer.urls")),
+    path("api/", include("marketplace.urls")),
+    path("api/", include("finans.urls")),
+    path("api/", include("site_calendar.urls")),
+    path("api/", include("daily_log.urls")),
 ]
 
 if settings.DEBUG:

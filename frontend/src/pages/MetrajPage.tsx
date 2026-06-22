@@ -32,11 +32,13 @@ import {
   type MetrajItem,
   type MetrajSummary,
 } from "../services/metrajService";
+import { puantajService, type Subcontractor } from "../services/puantajService";
 import { toast } from "../lib/toast";
 import { uploadErrorMessage } from "../lib/uploadLimits";
 
 type ItemForm = {
   category: number;
+  subcontractor: string;
   description: string;
   unit: string;
   quantity: string;
@@ -51,6 +53,7 @@ type CategoryForm = {
 
 const emptyForm = (): ItemForm => ({
   category: 0,
+  subcontractor: "",
   description: "",
   unit: "m2",
   quantity: "",
@@ -72,6 +75,7 @@ export function MetrajPage() {
   const excelMenuRef = useRef<HTMLDivElement>(null);
 
   const [categories, setCategories] = useState<MetrajCategory[]>([]);
+  const [subcontractors, setSubcontractors] = useState<Subcontractor[]>([]);
   const [items, setItems] = useState<MetrajItem[]>([]);
   const [summary, setSummary] = useState<MetrajSummary | null>(null);
   const [loading, setLoading] = useState(false);
@@ -94,20 +98,37 @@ export function MetrajPage() {
     if (!selectedSiteId) return;
     setLoading(true);
     try {
-      const [cats, sum, list] = await Promise.all([
+      const [cats, sum, list, subs] = await Promise.all([
         metrajService.categories(),
         metrajService.summary(selectedSiteId),
         metrajService.list(selectedSiteId, search),
+        puantajService.listSubcontractors(selectedSiteId),
       ]);
       setCategories(cats);
       setSummary(sum);
       setItems(list);
+      setSubcontractors(subs);
     } catch {
       toast.error(t("common.error"));
     } finally {
       setLoading(false);
     }
   }, [selectedSiteId, search, t]);
+
+  const patchItem = useCallback(
+    async (id: number, payload: { subcontractor?: number | null; unit_price?: string | null }) => {
+      if (!selectedSiteId) return;
+      try {
+        const updated = await metrajService.update(id, payload);
+        setItems((prev) => prev.map((item) => (item.id === id ? updated : item)));
+        const sum = await metrajService.summary(selectedSiteId);
+        setSummary(sum);
+      } catch {
+        toast.error(t("common.error"));
+      }
+    },
+    [selectedSiteId, t],
+  );
 
   useEffect(() => {
     const load = async () => {
@@ -146,6 +167,32 @@ export function MetrajPage() {
         ),
       },
       {
+        key: "subcontractor",
+        header: t("metraj.columns.subcontractor"),
+        headerClassName: "metraj-col-inline",
+        cellClassName: "metraj-col-inline",
+        getFilterValue: (r) => r.subcontractor_name ?? "—",
+        render: (r) => (
+          <select
+            className="table-inline-select"
+            value={r.subcontractor ?? ""}
+            aria-label={t("metraj.columns.subcontractor")}
+            onClick={(e) => e.stopPropagation()}
+            onChange={(e) => {
+              const val = e.target.value;
+              void patchItem(r.id, { subcontractor: val ? Number(val) : null });
+            }}
+          >
+            <option value="">—</option>
+            {subcontractors.map((sub) => (
+              <option key={sub.id} value={sub.id}>
+                {sub.name}
+              </option>
+            ))}
+          </select>
+        ),
+      },
+      {
         key: "quantity",
         header: t("metraj.columns.quantity"),
         getFilterValue: (r) => `${Number(r.quantity).toLocaleString("tr-TR")} ${r.unit}`,
@@ -158,10 +205,36 @@ export function MetrajPage() {
       {
         key: "cost",
         header: t("metraj.columns.unitPrice"),
+        headerClassName: "metraj-col-inline",
+        cellClassName: "metraj-col-inline",
         getFilterValue: (r) =>
           r.unit_price ? `${Number(r.unit_price).toLocaleString("tr-TR")} ₺` : "—",
+        render: (r) => (
+          <input
+            type="number"
+            step="0.01"
+            className="table-inline-input"
+            defaultValue={r.unit_price ?? ""}
+            key={`${r.id}-${r.unit_price ?? ""}`}
+            aria-label={t("metraj.columns.unitPrice")}
+            onClick={(e) => e.stopPropagation()}
+            onBlur={(e) => {
+              const next = e.target.value.trim();
+              const prev = r.unit_price ?? "";
+              if (next !== prev) {
+                void patchItem(r.id, { unit_price: next || null });
+              }
+            }}
+          />
+        ),
+      },
+      {
+        key: "earned",
+        header: t("metraj.columns.earned"),
+        getFilterValue: (r) =>
+          r.total_amount ? `${Number(r.total_amount).toLocaleString("tr-TR")} ₺` : "—",
         render: (r) =>
-          r.unit_price ? `${Number(r.unit_price).toLocaleString("tr-TR")} ₺` : "—",
+          r.total_amount ? `${Number(r.total_amount).toLocaleString("tr-TR")} ₺` : "—",
       },
       {
         key: "operations",
@@ -176,7 +249,7 @@ export function MetrajPage() {
         render: (r) => <ProgressBar value={r.completion_percent} />,
       },
     ],
-    [t],
+    [t, subcontractors, patchItem],
   );
 
   const filterCols = useMemo(
@@ -210,6 +283,7 @@ export function MetrajPage() {
     setEditingItem(item);
     setForm({
       category: item.category,
+      subcontractor: item.subcontractor ? String(item.subcontractor) : "",
       description: item.description,
       unit: item.unit,
       quantity: String(item.quantity),
@@ -224,6 +298,7 @@ export function MetrajPage() {
     if (!selectedSiteId) return;
     const payload = {
       category: form.category,
+      subcontractor: form.subcontractor ? Number(form.subcontractor) : null,
       description: form.description,
       unit: form.unit,
       quantity: form.quantity,
@@ -517,6 +592,15 @@ export function MetrajPage() {
             const cat = categories.find((c) => String(c.id) === val);
             setForm((p) => ({ ...p, category: Number(val), unit: cat?.default_unit ?? p.unit }));
           }} options={categories.map((c) => ({ value: String(c.id), label: c.name }))} />
+          <Select
+            label={t("metraj.columns.subcontractor")}
+            value={form.subcontractor}
+            onChange={(val) => setForm((p) => ({ ...p, subcontractor: val }))}
+            options={[
+              { value: "", label: "—" },
+              ...subcontractors.map((s) => ({ value: String(s.id), label: s.name })),
+            ]}
+          />
           <Input label={t("metraj.columns.description")} value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} required />
           <div className="grid gap-4 sm:grid-cols-2">
             <Input label={t("metraj.columns.quantity")} type="number" step="0.001" value={form.quantity} onChange={(e) => setForm((p) => ({ ...p, quantity: e.target.value }))} required />

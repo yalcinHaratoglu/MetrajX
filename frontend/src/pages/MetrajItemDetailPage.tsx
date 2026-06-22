@@ -45,7 +45,7 @@ type OperationForm = {
   scheduled_date: string;
   scheduled_time: string;
   status: "planned" | "done";
-  progress_percent: string;
+  quantity_done: string;
   notes: string;
 };
 
@@ -54,7 +54,7 @@ const emptyOpForm = (): OperationForm => ({
   scheduled_date: todayDateKey(),
   scheduled_time: "",
   status: "planned",
-  progress_percent: "10",
+  quantity_done: "0",
   notes: "",
 });
 
@@ -131,19 +131,7 @@ export function MetrajItemDetailPage() {
     [locale],
   );
 
-  const isDateTaken = useCallback(
-    (dateKey: string, excludeId?: number) =>
-      operations.some(
-        (op) => normalizeDateKey(op.scheduled_date) === dateKey && op.id !== excludeId,
-      ),
-    [operations],
-  );
-
   const openCreate = (scheduledDate?: string) => {
-    if (scheduledDate && isDateTaken(scheduledDate)) {
-      toast.error(t("metraj.operations.dateTaken"));
-      return;
-    }
     setEditingOp(null);
     setForm({
       ...emptyOpForm(),
@@ -159,7 +147,7 @@ export function MetrajItemDetailPage() {
       scheduled_date: normalizeDateKey(op.scheduled_date),
       scheduled_time: op.scheduled_time?.slice(0, 5) ?? "",
       status: op.status,
-      progress_percent: String(op.progress_percent),
+      quantity_done: String(op.quantity_done ?? 0),
       notes: op.notes,
     });
     setModalOpen(true);
@@ -174,16 +162,12 @@ export function MetrajItemDetailPage() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!item) return;
-    if (isDateTaken(form.scheduled_date, editingOp?.id)) {
-      toast.error(t("metraj.operations.dateTaken"));
-      return;
-    }
     const payload: MetrajOperationInput = {
       title: form.title.trim(),
       scheduled_date: form.scheduled_date,
       scheduled_time: form.scheduled_time.trim() || null,
       status: form.status,
-      progress_percent: Number(form.progress_percent),
+      quantity_done: form.quantity_done,
       notes: form.notes,
     };
     try {
@@ -256,7 +240,7 @@ export function MetrajItemDetailPage() {
         op.notes.toLowerCase().includes(q) ||
         date.toLowerCase().includes(q) ||
         statusLabel(op.status).toLowerCase().includes(q) ||
-        String(op.progress_percent).includes(q)
+        String(op.quantity_done).includes(q)
       );
     });
   }, [operations, search, formatDate, statusLabel]);
@@ -292,8 +276,8 @@ export function MetrajItemDetailPage() {
       {
         key: "progress",
         header: t("metraj.operations.columns.progress"),
-        getFilterValue: (op) => `${op.progress_percent}%`,
-        render: (op) => `${op.progress_percent}%`,
+        getFilterValue: (op) => `${op.quantity_done} ${item?.unit ?? ""}`,
+        render: (op) => `${op.quantity_done} / ${item?.quantity ?? "—"} ${item?.unit ?? ""}`,
       },
       {
         key: "files",
@@ -356,7 +340,7 @@ export function MetrajItemDetailPage() {
         ),
       },
     ],
-    [t, formatDate, statusLabel, handlePreview, refresh, toggleStatus],
+    [t, formatDate, statusLabel, handlePreview, refresh, toggleStatus, item?.quantity, item?.unit],
   );
 
   const filterCols = useMemo(
@@ -488,7 +472,6 @@ export function MetrajItemDetailPage() {
           description={t("dashboard.calendar.desc")}
           operations={operations}
           readonly={false}
-          oneOpPerDay
           showItemDescription={false}
           onSelectOperation={openEdit}
           onAddForDate={openCreate}
@@ -552,12 +535,12 @@ export function MetrajItemDetailPage() {
             ]}
           />
           <Input
-            label={t("metraj.operations.columns.progress")}
+            label={`${t("metraj.operations.quantityDone")} (${item.unit})`}
             type="number"
             min={0}
-            max={100}
-            value={form.progress_percent}
-            onChange={(e) => setForm((p) => ({ ...p, progress_percent: e.target.value }))}
+            step="0.001"
+            value={form.quantity_done}
+            onChange={(e) => setForm((p) => ({ ...p, quantity_done: e.target.value }))}
             required
           />
           <Input

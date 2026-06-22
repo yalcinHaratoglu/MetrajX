@@ -7,8 +7,15 @@
     "dashboard": "Kontrol Paneli",
     "sites": "Şantiyeler",
     "metraj": "Metraj & İlerleme",
+    "puantaj": "Puantaj & Taşeron",
+    "finans": "Finans & Cari",
+    "calendar": "Şantiye Takvimi",
+    "dailyLog": "Günlük Rapor",
+    "assets": "Demirbaş",
     "rebar": "Donatı Kesim Optimizasyonu",
     "applications": "Uygulamalar",
+    "siteTools": "Saha Araçları",
+    "toggleSiteTools": "Saha araçlarını göster/gizle",
     "toggleApplications": "Alt uygulamaları göster/gizle",
     "projects": "Projeler",
     "settings": "Ayarlar",
@@ -246,6 +253,7 @@
       "cost": "Tahmini Maliyet"
     },
     "itemHint": "İlerleme ve dosyalar kaleme tıklayarak işlem ekledikten sonra yönetilir.",
+    "pozTemplateHint": "Poz şablonu, sık kullandığınız iş kalemlerinin hazır tarifidir (ör. «Dış cephe sıvası»). Seçerseniz kategori, açıklama ve birim fiyat otomatik dolar. Boş bırakıp elle de girebilirsiniz.",
     "calendar": {
       "title": "İşlem Takvimi",
       "siteDesc": "Tüm kalemlerin planlanan ve tamamlanan işlemleri.",
@@ -290,14 +298,18 @@
         "name": "İşlem Adı",
         "status": "Durum",
         "progress": "Katkı %"
-      }
+      },
+      "quantityDone": "Tamamlanan miktar"
     },
     "columns": {
       "category": "Kategori",
       "description": "Açıklama",
+      "subcontractor": "Taşeron",
       "quantity": "Toplam Metraj",
       "unit": "Birim",
-      "unitPrice": "Maliyet (₺)",
+      "unitPrice": "Birim Fiyat (₺)",
+      "earned": "Hakediş (₺)",
+      "pozTemplate": "Poz Şablonu",
       "progress": "İlerleme %",
       "notes": "Not",
       "files": "Dosyalar"
@@ -308,8 +320,311 @@
     "subtitle": "Şantiye modülleri ve yardımcı uygulamalar",
     "empty": "Henüz uygulama yok",
     "emptyDesc": "Yakında yeni modüller eklenecek.",
+    "selectSiteTitle": "Şantiye seçin",
+    "selectSiteDesc": "Uygulama mağazası şantiye bazlı çalışır. Sol menüden bir şantiye seçin.",
+    "subtitleForSite": "{{site}} — kurulu uygulamalar",
+    "install": "Kur",
+    "installed": "Uygulama kuruldu.",
+    "uninstall": "Kaldır",
+    "uninstalled": "Uygulama kaldırıldı.",
+    "installedBadge": "Kurulu",
+    "open": "Aç",
+    "comingSoon": "Yakında",
+    "notInstalledTitle": "Uygulama kurulu değil",
+    "notInstalledDesc": "Bu modülü kullanmak için Uygulamalar sayfasından şantiyenize kurun.",
+    "goToStore": "Uygulamalara git",
     "rebar": {
       "desc": "Donatı metrajı, Excel import ve kesim optimizasyonu"
+    },
+    "upcoming": {
+      "safety": "İSG Kontrol Listesi",
+      "safetyDesc": "Yakında — saha güvenlik kontrol formları",
+      "quality": "Kalite Denetimi",
+      "qualityDesc": "Yakında — kalite kontrol ve denetim modülü"
+    }
+  },
+  "finans": {
+    "title": "Finans & Cari",
+    "subtitle": "Şantiye cari hareketleri ve hakediş kayıtları",
+    "selectSiteTitle": "Şantiye seçin",
+    "selectSiteDesc": "Finans modülü seçili şantiye üzerinden çalışır.",
+    "empty": "Henüz cari kayıt yok",
+    "emptyDesc": "Onaylı hakediş dönemleri otomatik olarak buraya yansır.",
+    "stats": {
+      "credit": "Toplam Alacak",
+      "debit": "Toplam Borç",
+      "balance": "Bakiye",
+      "entries": "Kayıt sayısı",
+      "budgetRemaining": "Kalan Bütçe"
+    },
+    "columns": {
+      "date": "Tarih",
+      "description": "Açıklama",
+      "account": "Hesap",
+      "direction": "Yön",
+      "amount": "Tutar"
+    },
+    "direction": {
+      "credit": "Alacak",
+      "debit": "Borç"
+    },
+    "info": "Onaylı hakediş dönemleri otomatik cari kayda dönüşür. Ödemeler borç, hakediş alacak olarak izlenir.",
+    "tabs": {
+      "ledger": "Cari Hareketler",
+      "stock": "Depo Stok",
+      "payment": "Ödeme"
+    },
+    "recordPayment": "Ödeme Kaydet",
+    "paymentRecorded": "Ödeme kaydedildi.",
+    "addStock": "Stok Kalemi Ekle",
+    "stockCreated": "Stok kalemi eklendi.",
+    "stockEmpty": "Stok kaydı yok",
+    "stockEmptyDesc": "Malzeme stok kalemlerini buradan tanımlayın.",
+    "paymentHint": "Taşeron ödemesi kaydetmek için sağ üstteki butonu kullanın.",
+    "lowStock": "Düşük",
+    "stockColumns": {
+      "name": "Malzeme",
+      "quantity": "Miktar",
+      "unit": "Birim"
+    }
+  },
+  "calendar": {
+    "title": "Şantiye Takvimi",
+    "subtitle": "Metraj operasyonları ve şantiye olayları",
+    "info": "Metraj operasyonları otomatik gelir; beton dökümü, teslimat vb. olayları ayrıca ekleyebilirsiniz.",
+    "selectSiteTitle": "Şantiye seçin",
+    "selectSiteDesc": "Takvim seçili şantiye üzerinden çalışır.",
+    "addEvent": "Olay Ekle",
+    "editEvent": "Olayı Düzenle",
+    "created": "Takvim olayı eklendi.",
+    "updated": "Olay güncellendi.",
+    "metrajOps": "Metraj Operasyonları",
+    "metrajOpsDesc": "Metraj kalemlerinden gelen planlı işler",
+    "siteEvents": "Şantiye Olayları",
+    "siteEventsDesc": "Beton dökümü, malzeme teslimatı, toplantı gibi bağımsız etkinlikler",
+    "noEventsTitle": "Henüz şantiye olayı yok",
+    "noEvents": "İlk olayı ekleyerek teslimat, beton veya toplantı tarihlerini takip edin.",
+    "columns": {
+      "date": "Tarih",
+      "title": "Başlık",
+      "type": "Tür",
+      "time": "Saat"
+    },
+    "types": {
+      "concrete": "Beton Dökümü",
+      "delivery": "Malzeme Teslimatı",
+      "deadline": "Son Tarih",
+      "meeting": "Toplantı",
+      "other": "Diğer"
+    }
+  },
+  "dailyLog": {
+    "title": "Günlük Rapor",
+    "subtitle": "Saha günlük kayıtları",
+    "info": "Her şantiye için günde bir rapor. Hava durumu, işçi sayısı ve özet not.",
+    "selectSiteTitle": "Şantiye seçin",
+    "selectSiteDesc": "Günlük rapor şantiye bazlıdır.",
+    "add": "Rapor Ekle",
+    "created": "Günlük rapor kaydedildi.",
+    "empty": "Henüz rapor yok",
+    "emptyDesc": "İlk günlük saha raporunu ekleyin.",
+    "photos": "Fotoğraflar",
+    "photosHint": "Saha fotoğrafları ekleyerek günün özetini destekleyin.",
+    "addPhoto": "Fotoğraf Ekle",
+    "summaryPlaceholder": "Bugün ne yapıldı? Hangi imalatlar ilerledi, hangi sorunlar yaşandı?",
+    "weatherPlaceholder": "ör. Güneşli, 28°C",
+    "photoAlt": "Günlük rapor fotoğrafı",
+    "columns": {
+      "date": "Tarih",
+      "weather": "Hava",
+      "workers": "İşçi",
+      "summary": "Özet"
+    }
+  },
+  "assets": {
+    "title": "Demirbaş",
+    "subtitle": "Ekipman ve zimmet takibi",
+    "info": "Vinç, kompresör, el aletleri gibi demirbaşların durumu ve zimmeti.",
+    "selectSiteTitle": "Şantiye seçin",
+    "selectSiteDesc": "Demirbaş kayıtları şantiye bazlıdır.",
+    "add": "Demirbaş Ekle",
+    "created": "Demirbaş kaydedildi.",
+    "empty": "Demirbaş kaydı yok",
+    "emptyDesc": "Şantiye ekipmanlarını buradan takip edin.",
+    "columns": {
+      "name": "Ad",
+      "type": "Tür",
+      "serial": "Seri No",
+      "status": "Durum",
+      "assigned": "Zimmet"
+    },
+    "status": {
+      "available": "Müsait",
+      "assigned": "Zimmetli",
+      "maintenance": "Bakımda",
+      "retired": "Emekli"
+    }
+  },
+  "puantaj": {
+    "title": "Puantaj & Taşeron",
+    "flowHint": "Günlük puantaj işçi bazlıdır. Hakediş tutarları metraj ilerlemesinden (m², m³ vb.) hesaplanır; puantaj ile karıştırılmaz.",
+    "attendance": {
+      "subcontractor": "Taşeron",
+      "allSubcontractors": "Tüm taşeronlar",
+      "search": "İşçi ara",
+      "searchPlaceholder": "Ad veya kimlik no",
+      "worker": "İşçi",
+      "totalDays": "Toplam gün",
+      "export": "Excel İndir",
+      "empty": "Bu aralıkta işçi bulunamadı.",
+      "present": "Geldi",
+      "absent": "Gelmedi"
+    },
+    "tabs": {
+      "timesheets": "Günlük Puantaj",
+      "workers": "İşçiler",
+      "subcontractors": "Taşeronlar",
+      "settlement": "Hakediş",
+      "hakedis": "Hakediş Dönemleri"
+    },
+    "stats": {
+      "entries": "Kayıt",
+      "workerDays": "İşçi-gün",
+      "contractTotal": "Sözleşme Toplamı",
+      "total": "Toplam Hakediş"
+    },
+    "trades": {
+      "rebar": "Demirci",
+      "plaster": "Sıvacı",
+      "formwork": "Kalıpçı",
+      "paint": "Boyacı",
+      "electric": "Elektrik",
+      "plumbing": "Tesisat",
+      "general": "Genel"
+    },
+    "units": {
+      "worker_day": "işçi-gün",
+      "m2": "m²",
+      "m3": "m³",
+      "lump": "götürü"
+    },
+    "subcontractor": {
+      "add": "Taşeron Ekle",
+      "edit": "Taşeronu Düzenle",
+      "name": "Firma adı",
+      "category": "Kategori (Branş)",
+      "contractUnit": "Sözleşme birimi",
+      "unitPrice": "Birim fiyat (₺)",
+      "phone": "Telefon",
+      "active": "Aktif",
+      "inactive": "Pasif",
+      "timesheetCount": "Puantaj kaydı",
+      "earnedTotal": "Hakediş",
+      "contractTotal": "Sözleşme tutarı",
+      "metrajItems": "Metraj kalemi",
+      "priceHint": "Branş, Metraj modülündeki kategorilerden seçilir. Birim fiyatlar iş kalemi bazında girilir.",
+      "created": "Taşeron eklendi.",
+      "updated": "Taşeron güncellendi.",
+      "deleted": "Taşeron silindi.",
+      "empty": "Henüz taşeron yok",
+      "emptyDesc": "Taşeron cari kartı ekleyerek puantaj girişine başlayın.",
+      "noCategories": "Önce metraj kategorileri gerekli. Sayfayı yenileyin veya ayarlardan kategori ekleyin."
+    },
+    "worker": {
+      "add": "İşçi Ekle",
+      "edit": "İşçiyi Düzenle",
+      "created": "İşçi eklendi.",
+      "updated": "İşçi güncellendi.",
+      "empty": "Henüz işçi kaydı yok",
+      "emptyDesc": "Taşeron altına işçi ekleyerek günlük puantaj tutmaya başlayın.",
+      "needSubcontractor": "Önce taşeron ekleyin.",
+      "columns": {
+        "name": "Ad Soyad",
+        "firstName": "Ad",
+        "lastName": "Soyad",
+        "subcontractor": "Taşeron",
+        "nationalId": "TC Kimlik",
+        "insurance": "Sigorta"
+      },
+      "insurance": {
+        "insured": "Sigortalı",
+        "uninsured": "Sigortasız",
+        "pending": "Beklemede"
+      }
+    },
+    "timesheet": {
+      "add": "Puantaj Ekle",
+      "edit": "Puantajı Düzenle",
+      "created": "Puantaj kaydedildi.",
+      "updated": "Puantaj güncellendi.",
+      "deleted": "Puantaj silindi.",
+      "duplicate": "Bu işçi için seçilen günde zaten kayıt var.",
+      "needSubcontractor": "Taşeron seçin.",
+      "needWorker": "Önce işçi ekleyin, sonra puantaj girin.",
+      "noWorkersForSub": "Bu taşerona bağlı işçi yok",
+      "noItem": "Kalem yok",
+      "empty": "Bu ay puantaj yok",
+      "emptyDesc": "Her işçi için günlük devam kaydı girin.",
+      "columns": {
+        "date": "Tarih",
+        "worker": "İşçi",
+        "subcontractor": "Taşeron",
+        "workers": "İşçi sayısı",
+        "status": "Durum",
+        "quantity": "Miktar",
+        "item": "İş kalemi"
+      },
+      "status": {
+        "pending": "Bekliyor",
+        "approved": "Onaylandı",
+        "disputed": "İtirazlı"
+      },
+      "approve": "Onayla",
+      "approved": "Puantaj onaylandı."
+    },
+    "hakedisPeriod": {
+      "new": "Yeni Dönem",
+      "wizardTitle": "Hakediş Dönemi",
+      "create": "Oluştur ve Hesapla",
+      "recalculate": "Yeniden Hesapla",
+      "submit": "Onaya Gönder",
+      "approve": "Onayla ve Kilitle",
+      "created": "Hakediş dönemi oluşturuldu.",
+      "submitted": "Onay için gönderildi.",
+      "approved": "Dönem onaylandı ve kilitlendi.",
+      "empty": "Henüz hakediş dönemi yok",
+      "emptyDesc": "Dönemsel hakediş belgesi oluşturarak resmi tutarı kilitleyin.",
+      "estimate": "Tahmini Hakediş",
+      "estimateHint": "Canlı metraj ilerlemesine göre — resmi tutar onaylı dönemlerden gelir.",
+      "period": "Dönem",
+      "statusLabel": "Durum",
+      "start": "Başlangıç",
+      "end": "Bitiş",
+      "gross": "Brüt",
+      "retainage": "Teminat Kesintisi",
+      "advance": "Avans Mahsubu",
+      "net": "Net Ödenecek",
+      "payableAmount": "Ödenecek Tutar",
+      "delta": "İlerleme Farkı",
+      "status": {
+        "draft": "Taslak",
+        "pending_approval": "Onay Bekliyor",
+        "approved": "Onaylandı",
+        "paid": "Ödendi"
+      }
+    },
+    "settlement": {
+      "empty": "Hakediş verisi yok",
+      "emptyDesc": "Metraj kalemlerine taşeron atayıp birim fiyat girin.",
+      "columns": {
+        "subcontractor": "Taşeron",
+        "category": "Kategori",
+        "items": "Kalem",
+        "contractTotal": "Sözleşme",
+        "progress": "Ort. ilerleme",
+        "total": "Hakediş",
+        "workerDays": "Ay işçi-gün"
+      }
     }
   },
   "rebar": {
@@ -483,6 +798,8 @@
   "common": {
     "submit": "Gönder",
     "save": "Kaydet",
+    "saved": "Kaydedildi.",
+    "refresh": "Yenile",
     "edit": "Düzenle",
     "cancel": "İptal",
     "create": "Oluştur",

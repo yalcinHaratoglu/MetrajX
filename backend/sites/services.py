@@ -60,3 +60,13 @@ def assign_user_to_sites(user: CustomUser, site_ids: list[int]) -> None:
     ]
     if to_create:
         SiteMembership.objects.bulk_create(to_create)
+
+
+@transaction.atomic
+def delete_site(site: Site) -> None:
+    """Şantiye ve bağlı verileri güvenli sırayla siler."""
+    from puantaj.models import HakedisPeriodLine
+
+    # HakedisPeriodLine, MetrajItem ve Subcontractor üzerinde PROTECT kullanır.
+    HakedisPeriodLine.objects.filter(period__site=site).delete()
+    site.delete()

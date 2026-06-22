@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import type { MetrajOperation } from "../../services/metrajService";
+import type { CalendarEvent } from "../../services/calendarService";
 import {
   addDays,
   addMonths,
@@ -16,6 +17,7 @@ import {
 
 interface MetrajCalendarProps {
   operations: MetrajOperation[];
+  events?: CalendarEvent[];
   readonly?: boolean;
   oneOpPerDay?: boolean;
   showItemDescription?: boolean;
@@ -63,6 +65,7 @@ function OperationMeta({
 
 export function MetrajCalendar({
   operations,
+  events = [],
   readonly = false,
   oneOpPerDay = false,
   showItemDescription = true,
@@ -95,6 +98,17 @@ export function MetrajCalendar({
     }
     return map;
   }, [operations]);
+
+  const eventsByDate = useMemo(() => {
+    const map = new Map<string, CalendarEvent[]>();
+    for (const ev of events) {
+      const key = normalizeDateKey(ev.event_date);
+      const list = map.get(key) ?? [];
+      list.push(ev);
+      map.set(key, list);
+    }
+    return map;
+  }, [events]);
 
   const monthKeysWithOps = useMemo(() => {
     const set = new Set<string>();
@@ -153,6 +167,7 @@ export function MetrajCalendar({
   const renderDayCell = (day: Date, compact = false) => {
     const key = toDateKey(day);
     const dayOps = opsByDate.get(key) ?? [];
+    const dayEvents = eventsByDate.get(key) ?? [];
     const hasPlanned = dayOps.some((o) => o.status === "planned");
     const hasDone = dayOps.some((o) => o.status === "done");
     const isSelected = selectedDate === key;
@@ -169,10 +184,13 @@ export function MetrajCalendar({
         }}
       >
         <span>{day.getDate()}</span>
-        {dayOps.length > 0 && (
+        {(dayOps.length > 0 || dayEvents.length > 0) && (
           <span className="metraj-calendar-dots">
             {hasPlanned && <span className="metraj-calendar-dot metraj-calendar-dot-planned" />}
             {hasDone && <span className="metraj-calendar-dot metraj-calendar-dot-done" />}
+            {dayEvents.map((ev) => (
+              <span key={ev.id} className={`metraj-calendar-dot metraj-calendar-dot-event metraj-calendar-dot-event-${ev.event_type}`} />
+            ))}
           </span>
         )}
       </button>
@@ -181,6 +199,7 @@ export function MetrajCalendar({
 
   const renderDayList = (dateKey: string) => {
     const selectedOps = opsByDate.get(dateKey) ?? [];
+    const selectedEvents = eventsByDate.get(dateKey) ?? [];
     const isToday = dateKey === toDateKey(new Date());
 
     return (
@@ -192,7 +211,7 @@ export function MetrajCalendar({
             year: "numeric",
           })}
         </p>
-        {selectedOps.length === 0 ? (
+        {selectedOps.length === 0 && selectedEvents.length === 0 ? (
           <div className="metraj-calendar-empty-row">
             <p className="text-sm text-muted">
               {t(isToday ? "metraj.calendar.noEventsToday" : "metraj.calendar.noEventsDay")}
@@ -212,25 +231,51 @@ export function MetrajCalendar({
             )}
           </div>
         ) : (
-          <ul className="metraj-calendar-events">
-            {selectedOps.map((op) => (
-              <li key={op.id}>
-                {readonly && !onSelectOperation ? (
-                  <div className={`metraj-calendar-event metraj-calendar-event-${op.status}`}>
-                    <OperationMeta op={op} locale={locale} showItem={showItemDescription} />
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    className={`metraj-calendar-event metraj-calendar-event-${op.status}${readonly ? " metraj-calendar-event-link" : ""}`}
-                    onClick={() => onSelectOperation?.(op)}
-                  >
-                    <OperationMeta op={op} locale={locale} showItem={showItemDescription} />
-                  </button>
-                )}
-              </li>
-            ))}
-          </ul>
+          <>
+            <ul className="metraj-calendar-events">
+              {selectedOps.map((op) => (
+                <li key={op.id}>
+                  {readonly && !onSelectOperation ? (
+                    <div className={`metraj-calendar-event metraj-calendar-event-${op.status}`}>
+                      <OperationMeta op={op} locale={locale} showItem={showItemDescription} />
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      className={`metraj-calendar-event metraj-calendar-event-${op.status}${readonly ? " metraj-calendar-event-link" : ""}`}
+                      onClick={() => onSelectOperation?.(op)}
+                    >
+                      <OperationMeta op={op} locale={locale} showItem={showItemDescription} />
+                    </button>
+                  )}
+                </li>
+              ))}
+            </ul>
+            {selectedEvents.length > 0 && (
+              <ul className="metraj-calendar-events metraj-calendar-site-events">
+                {selectedEvents.map((ev) => (
+                  <li key={ev.id}>
+                    <div className={`metraj-calendar-event metraj-calendar-event-site metraj-calendar-event-${ev.event_type}`}>
+                      <span className="font-medium">{ev.title}</span>
+                      <span className="text-xs text-muted">{t(`calendar.types.${ev.event_type}`)}</span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {canAddOnDate(dateKey) && (
+              <div className="metraj-calendar-add-row">
+                <button
+                  type="button"
+                  className="btn-ghost btn-sm metraj-calendar-add-btn"
+                  onClick={() => onAddForDate?.(dateKey)}
+                >
+                  <Plus size={14} />
+                  {t("metraj.calendar.add")}
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     );
