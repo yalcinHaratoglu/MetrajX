@@ -4,7 +4,11 @@ import { useAuth } from "../../hooks/useAuth";
 import { useSite } from "../../hooks/useSite";
 import { Select } from "../ui/Select";
 
-export function SiteSelector() {
+type SiteSelectorProps = {
+  variant?: "sidebar" | "header";
+};
+
+export function SiteSelector({ variant = "sidebar" }: SiteSelectorProps) {
   const { t } = useTranslation();
   const { user } = useAuth();
   const { sites, selectedSiteId, setSelectedSiteId, isLoading } = useSite();
@@ -12,13 +16,16 @@ export function SiteSelector() {
   const canViewAll =
     user?.role === "owner" || user?.role === "accountant" || user?.role === "admin";
 
+  const wrapperClass =
+    variant === "header" ? "header-site-selector-inner" : "sidebar-site-selector";
+
   if (isLoading && sites.length === 0) {
     return null;
   }
 
   if (sites.length === 0) {
     return (
-      <div className="sidebar-site-selector">
+      <div className={wrapperClass}>
         <p className="sidebar-site-empty">{t("sites.selector.empty")}</p>
       </div>
     );
@@ -36,9 +43,10 @@ export function SiteSelector() {
   ];
 
   return (
-    <div className="sidebar-site-selector">
+    <div className={wrapperClass}>
       <Select
-        label={t("sites.selector.label")}
+        label={variant === "header" ? undefined : t("sites.selector.label")}
+        ariaLabel={t("sites.selector.label")}
         value={selectedSiteId === null ? "all" : String(selectedSiteId)}
         onChange={(value) => setSelectedSiteId(value === "all" ? null : Number(value))}
         options={options}

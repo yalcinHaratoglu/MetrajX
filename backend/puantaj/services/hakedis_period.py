@@ -61,8 +61,8 @@ def _active_contract(subcontractor_id: int) -> SubcontractorContract | None:
     )
 
 
-def recalculate_period_totals(period: HakedisPeriod) -> HakedisPeriod:
-    if period.is_locked:
+def recalculate_period_totals(period: HakedisPeriod, *, allow_locked: bool = False) -> HakedisPeriod:
+    if period.is_locked and not allow_locked:
         raise ValueError("Kilitli dönem yeniden hesaplanamaz.")
     total_gross = sum(
         (ln.line_gross for ln in period.lines.all()),
@@ -233,6 +233,48 @@ def approve_period(period: HakedisPeriod, user) -> HakedisPeriod:
 
     sync_hakedis_period_to_ledger(period, user)
 
+    return period
+
+
+def _revert_approval_side_effects(period: HakedisPeriod) -> None:
+    for deduction in period.subcontractor_deductions.all():
+        if deduction.advance_deduction > 0:
+            from .advance import restore_advance_balance
+
+            restore_advance_balance(
+                deduction.subcontractor_id,
+                period.site_id,
+                deduction.advance_deduction,
+            )
+
+    from finans.services.ledger_sync import clear_hakedis_period_from_ledger
+
+    clear_hakedis_period_from_ledger(period)
+
+
+@transaction.atomic
+def delete_hakedis_period(period: HakedisPeriod) -> None:
+    if period.status == HakedisPeriod.Status.PAID:
+        raise ValueError("Ödenmiş dönem silinemez.")
+    if period.is_locked:
+        _revert_approval_side_effects(period)
+    period.delete()
+
+
+@transaction.atomic
+def update_locked_period(period: HakedisPeriod, user, **fields) -> HakedisPeriod:
+    if period.status == HakedisPeriod.Status.PAID:
+        raise ValueError("Ödenmiş dönem düzenlenemez.")
+    if not period.is_locked:
+        raise ValueError("Yalnızca onaylı dönemler bu yolla güncellenir.")
+
+    for key, value in fields.items():
+        setattr(period, key, value)
+    period.save()
+
+    from finans.services.ledger_sync import resync_hakedis_period_to_ledger
+
+    resync_hakedis_period_to_ledger(period, user)
     return period
 
 

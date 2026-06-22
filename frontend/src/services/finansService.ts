@@ -68,9 +68,9 @@ export const finansService = {
     return data;
   },
 
-  async listLedger(siteId: number) {
+  async listLedger(siteId: number, vendorId?: number) {
     const { data } = await api.get<LedgerEntry[]>("/finans/ledger/", {
-      params: { site_id: siteId },
+      params: { site_id: siteId, ...(vendorId ? { vendor_id: vendorId } : {}) },
     });
     return data;
   },

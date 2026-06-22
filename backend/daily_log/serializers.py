@@ -4,19 +4,23 @@ from .models import Asset, DailyLog, DailyLogPhoto
 
 
 class DailyLogPhotoSerializer(serializers.ModelSerializer):
+    file_url = serializers.SerializerMethodField()
     image_url = serializers.SerializerMethodField()
 
     class Meta:
         model = DailyLogPhoto
-        fields = ("id", "caption", "image_url", "uploaded_at")
-        read_only_fields = ("id", "image_url", "uploaded_at")
+        fields = ("id", "caption", "original_name", "file_url", "image_url", "uploaded_at")
+        read_only_fields = ("id", "original_name", "file_url", "image_url", "uploaded_at")
+
+    def get_file_url(self, obj):
+        request = self.context.get("request")
+        if not obj.file:
+            return None
+        url = obj.file.url
+        return request.build_absolute_uri(url) if request else url
 
     def get_image_url(self, obj):
-        request = self.context.get("request")
-        if not obj.image:
-            return None
-        url = obj.image.url
-        return request.build_absolute_uri(url) if request else url
+        return self.get_file_url(obj)
 
 
 class DailyLogSerializer(serializers.ModelSerializer):

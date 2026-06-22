@@ -1,23 +1,20 @@
 import { NavLink } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Boxes, Building2, HardHat, LayoutDashboard, LogOut, Moon, Ruler, Settings, Sun, X } from "lucide-react";
+import { Boxes, Building2, HardHat, LayoutDashboard, LogOut, Ruler, X } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
-import { useTheme } from "../../hooks/useTheme";
-import { LanguageSelect } from "../ui/LanguageSelect";
-import { SiteSelector } from "./SiteSelector";
 import { SidebarApplicationsNav } from "./SidebarApplicationsNav";
 import { SidebarSiteToolsNav } from "./SidebarSiteToolsNav";
 
 interface SidebarProps {
+  collapsed?: boolean;
   mobileOpen?: boolean;
   onNavigate?: () => void;
   onClose?: () => void;
 }
 
-export function Sidebar({ mobileOpen = false, onNavigate, onClose }: SidebarProps) {
+export function Sidebar({ collapsed = false, mobileOpen = false, onNavigate, onClose }: SidebarProps) {
   const { t } = useTranslation();
   const { user, logout } = useAuth();
-  const { theme, toggleTheme } = useTheme();
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     isActive ? "sidebar-link-active" : "sidebar-link";
@@ -29,7 +26,9 @@ export function Sidebar({ mobileOpen = false, onNavigate, onClose }: SidebarProp
     "";
 
   return (
-    <aside className={`sidebar ${mobileOpen ? "sidebar-mobile-open" : ""}`}>
+    <aside
+      className={`sidebar${collapsed ? " is-collapsed" : ""}${mobileOpen ? " sidebar-mobile-open" : ""}`}
+    >
       <div className="sidebar-mobile-header">
         <span className="sidebar-brand">{t("app.name")}</span>
         <button type="button" className="sidebar-close-btn" onClick={onClose} aria-label={t("nav.closeMenu")}>
@@ -54,8 +53,6 @@ export function Sidebar({ mobileOpen = false, onNavigate, onClose }: SidebarProp
         </div>
       )}
 
-      <SiteSelector />
-
       <nav className="sidebar-nav">
         <NavLink to="/dashboard" className={linkClass} onClick={onNavigate}>
           <LayoutDashboard size={18} />
@@ -75,24 +72,9 @@ export function Sidebar({ mobileOpen = false, onNavigate, onClose }: SidebarProp
         </NavLink>
         <SidebarSiteToolsNav onNavigate={onNavigate} />
         <SidebarApplicationsNav onNavigate={onNavigate} />
-        <NavLink to="/settings" className={linkClass} onClick={onNavigate}>
-          <Settings size={18} />
-          {t("nav.settings")}
-        </NavLink>
       </nav>
 
       <div className="sidebar-footer">
-        <div className="sidebar-utilities">
-          <LanguageSelect className="sidebar-lang" />
-          <button
-            type="button"
-            className="btn-icon sidebar-theme-btn"
-            onClick={toggleTheme}
-            aria-label={t("header.toggleTheme")}
-          >
-            {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
-          </button>
-        </div>
         <button
           type="button"
           className="sidebar-logout"

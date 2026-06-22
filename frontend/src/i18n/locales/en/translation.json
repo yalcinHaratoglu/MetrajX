@@ -17,6 +17,8 @@
     "siteTools": "Site Tools",
     "toggleSiteTools": "Show or hide site tools",
     "toggleApplications": "Show or hide sub-applications",
+    "collapseSidebar": "Collapse sidebar",
+    "expandSidebar": "Expand sidebar",
     "projects": "Projects",
     "settings": "Settings",
     "openMenu": "Open menu",
@@ -25,7 +27,12 @@
   "header": {
     "welcome": "Welcome",
     "language": "Language",
-    "toggleTheme": "Toggle theme"
+    "toggleTheme": "Toggle theme",
+    "notifications": "Today's events",
+    "todayEvents": "Today",
+    "noEventsToday": "No calendar entries for today.",
+    "selectSiteForEvents": "Select a site to see today's events.",
+    "viewCalendar": "Open calendar"
   },
   "notFound": {
     "title": "Page not found",
@@ -99,8 +106,8 @@
     "recentSites": "Recent Sites",
     "viewAll": "View all",
     "calendar": {
-      "title": "Operation Calendar",
-      "desc": "View planned and completed takeoff operations."
+      "title": "Work Schedule",
+      "desc": "View takeoff work and site events."
     }
   },
   "sites": {
@@ -360,8 +367,11 @@
       "description": "Description",
       "account": "Account",
       "direction": "Direction",
-      "amount": "Amount"
+      "amount": "Amount",
+      "subcontractor": "Subcontractor"
     },
+    "allVendors": "All subcontractors",
+    "noVendor": "Not selected",
     "direction": {
       "credit": "Credit",
       "debit": "Debit"
@@ -394,8 +404,8 @@
     "selectSiteDesc": "Calendar is site-scoped.",
     "addEvent": "Add Event",
     "created": "Calendar event added.",
-    "metrajOps": "Takeoff Operations",
-    "metrajOpsDesc": "Planned work from takeoff items",
+    "metrajOps": "Work Schedule",
+    "metrajOpsDesc": "Takeoff operations and site events",
     "siteEvents": "Site Events",
     "noEvents": "No standalone events yet",
     "columns": {
@@ -419,9 +429,31 @@
     "selectSiteTitle": "Select a site",
     "selectSiteDesc": "Daily logs are site-scoped.",
     "add": "Add Report",
+    "edit": "Edit Report",
+    "editToday": "Edit Today",
+    "updated": "Daily log updated.",
     "created": "Daily log saved.",
     "empty": "No reports yet",
     "emptyDesc": "Add your first field daily report.",
+    "prevWeek": "Previous week",
+    "nextWeek": "Next week",
+    "thisWeek": "This week",
+    "thisMonth": "This month",
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month",
+    "photos": "Photos",
+    "photosHint": "Add site photos to support the daily summary.",
+    "addPhoto": "Add Photo",
+    "addFile": "Add File",
+    "filesHint": "You can attach photos, PDFs, or other documents.",
+    "attachment": "Attachment",
+    "attachedFiles": "Attached files",
+    "fileDeleted": "File removed.",
+    "removeFile": "Remove file",
+    "pendingUpload": "Pending",
+    "summaryPlaceholder": "What was done today? Which work progressed, any issues?",
+    "weatherPlaceholder": "e.g. Sunny, 28°C",
+    "photoAlt": "Daily log photo",
     "columns": {
       "date": "Date",
       "weather": "Weather",
@@ -455,6 +487,9 @@
   },
   "puantaj": {
     "title": "Timesheets & Subcontractors",
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month",
+    "thisMonth": "This month",
     "flowHint": "Daily timesheets are per worker. Settlement amounts come from takeoff progress (m², m³, etc.) — not from timesheets.",
     "tabs": {
       "timesheets": "Daily Timesheets",
@@ -487,6 +522,11 @@
     "subcontractor": {
       "add": "Add Subcontractor",
       "edit": "Edit Subcontractor",
+      "search": "Search subcontractors",
+      "searchPlaceholder": "Company name, trade or phone",
+      "noResults": "No results found",
+      "noResultsDesc": "Try changing your search or filter criteria.",
+      "status": "Status",
       "name": "Company name",
       "category": "Category (Trade)",
       "contractUnit": "Contract unit",
@@ -504,6 +544,32 @@
       "deleted": "Subcontractor removed.",
       "empty": "No subcontractors yet",
       "emptyDesc": "Add a subcontractor to start logging daily timesheets."
+    },
+    "worker": {
+      "add": "Add Worker",
+      "edit": "Edit Worker",
+      "search": "Search workers",
+      "searchPlaceholder": "Name, ID or subcontractor",
+      "noResults": "No results found",
+      "noResultsDesc": "Try changing your search or filter criteria.",
+      "created": "Worker added.",
+      "updated": "Worker updated.",
+      "empty": "No workers yet",
+      "emptyDesc": "Add workers under a subcontractor to log daily attendance.",
+      "needSubcontractor": "Add a subcontractor first.",
+      "columns": {
+        "name": "Full name",
+        "firstName": "First name",
+        "lastName": "Last name",
+        "subcontractor": "Subcontractor",
+        "nationalId": "National ID",
+        "insurance": "Insurance"
+      },
+      "insurance": {
+        "insured": "Insured",
+        "uninsured": "Uninsured",
+        "pending": "Pending"
+      }
     },
     "timesheet": {
       "add": "Add Timesheet",
@@ -541,6 +607,9 @@
       "created": "Settlement period created.",
       "submitted": "Submitted for approval.",
       "approved": "Period approved and locked.",
+      "updated": "Settlement period updated.",
+      "deleted": "Settlement period deleted.",
+      "deleteConfirm": "Delete this settlement period? For approved periods, ledger entries and advance deductions will be reversed.",
       "empty": "No settlement periods yet",
       "emptyDesc": "Create a period document to lock the official amount.",
       "estimate": "Estimated Earned",

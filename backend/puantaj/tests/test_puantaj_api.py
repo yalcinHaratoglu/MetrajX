@@ -168,3 +168,41 @@ class PuantajAPITestCase(TestCase):
         self.assertEqual(first.status_code, status.HTTP_201_CREATED)
         second = self.client.post("/api/puantaj/timesheets/", payload, format="json")
         self.assertEqual(second.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_attendance_matrix_xlsx_export(self):
+        from puantaj.models import Worker
+
+        sub = Subcontractor.objects.create(
+            site=self.site,
+            name="Demir Taşeron",
+            category=self.category,
+        )
+        worker = Worker.objects.create(
+            subcontractor=sub,
+            first_name="Ali",
+            last_name="Yılmaz",
+        )
+        Timesheet.objects.create(
+            site=self.site,
+            subcontractor=sub,
+            worker=worker,
+            date=date(2026, 6, 10),
+            worker_count=1,
+            created_by=self.owner,
+        )
+
+        response = self.client.get(
+            f"/api/puantaj/attendance-matrix/?site_id={self.site.id}"
+            f"&date_from=2026-06-01&date_to=2026-06-30&export=xlsx"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("spreadsheetml", response["Content-Type"])
+        from io import BytesIO
+
+        from openpyxl import load_workbook
+
+        wb = load_workbook(BytesIO(response.content))
+        rows = list(wb.active.iter_rows(values_only=True))
+        flat = " ".join(str(cell) for row in rows for cell in row if cell is not None)
+        self.assertIn("Ali Yılmaz", flat)
+        self.assertIn("Demir Taşeron", flat)

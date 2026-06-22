@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ChevronLeft,
@@ -14,6 +14,7 @@ import { HakedisPeriodWizard } from "../components/puantaj/HakedisPeriodWizard";
 import { AttendanceMatrix } from "../components/puantaj/AttendanceMatrix";
 import { Button } from "../components/ui/Button";
 import { EmptyState } from "../components/ui/EmptyState";
+import { FilterableTable, type FilterableColumn } from "../components/ui/FilterableTable";
 import { Input } from "../components/ui/Input";
 import { Modal } from "../components/ui/Modal";
 import { Select } from "../components/ui/Select";
@@ -21,6 +22,7 @@ import { TablePagination } from "../components/ui/TablePagination";
 import { useAuth } from "../hooks/useAuth";
 import { useSite } from "../hooks/useSite";
 import { useSiteData } from "../hooks/useSiteData";
+import { useTableFilters } from "../hooks/useTableFilters";
 import { useTablePagination } from "../hooks/useTablePagination";
 import { metrajService, type MetrajCategory } from "../services/metrajService";
 import {
@@ -32,6 +34,7 @@ import {
   type Worker,
 } from "../services/puantajService";
 import { toast } from "../lib/toast";
+import { toDateKey } from "../components/metraj/calendarUtils";
 
 type Tab = "timesheets" | "workers" | "subcontractors" | "hakedis";
 
@@ -65,8 +68,8 @@ function monthBounds(year: number, month: number) {
   const start = new Date(year, month - 1, 1);
   const end = new Date(year, month, 0);
   return {
-    start: start.toISOString().slice(0, 10),
-    end: end.toISOString().slice(0, 10),
+    start: toDateKey(start),
+    end: toDateKey(end),
   };
 }
 
@@ -103,6 +106,8 @@ export function PuantajPage() {
   const [viewingPeriod, setViewingPeriod] = useState<HakedisPeriod | null>(null);
   const [subForm, setSubForm] = useState(emptySubForm);
   const [workerForm, setWorkerForm] = useState(emptyWorkerForm());
+  const [workerSearch, setWorkerSearch] = useState("");
+  const [subSearch, setSubSearch] = useState("");
 
   const canApproveHakedis =
     user?.role === "owner" || user?.role === "admin" || user?.role === "accountant";
@@ -165,13 +170,139 @@ export function PuantajPage() {
     { value: "pending", label: t("puantaj.worker.insurance.pending") },
   ];
 
+  const insuranceLabel = useCallback(
+    (status: Worker["insurance_status"]) => t(`puantaj.worker.insurance.${status}`),
+    [t],
+  );
+
+  const workerSearchFiltered = useMemo(() => {
+    const q = workerSearch.trim().toLocaleLowerCase("tr");
+    if (!q) return workers;
+    return workers.filter((worker) => {
+      const haystack = [
+        worker.full_name,
+        worker.first_name,
+        worker.last_name,
+        worker.national_id,
+        worker.subcontractor_name,
+        worker.phone,
+        worker.notes,
+      ]
+        .join(" ")
+        .toLocaleLowerCase("tr");
+      return haystack.includes(q);
+    });
+  }, [workers, workerSearch]);
+
+  const subSearchFiltered = useMemo(() => {
+    const q = subSearch.trim().toLocaleLowerCase("tr");
+    if (!q) return subcontractors;
+    return subcontractors.filter((sub) => {
+      const haystack = [sub.name, sub.category_name, sub.contact_phone, sub.notes]
+        .join(" ")
+        .toLocaleLowerCase("tr");
+      return haystack.includes(q);
+    });
+  }, [subcontractors, subSearch]);
+
+  const workerTableColumns = useMemo<FilterableColumn<Worker>[]>(
+    () => [
+      {
+        key: "name",
+        header: t("puantaj.worker.columns.name"),
+        getFilterValue: (worker) => worker.full_name,
+        render: (worker) => worker.full_name,
+      },
+      {
+        key: "subcontractor",
+        header: t("puantaj.worker.columns.subcontractor"),
+        getFilterValue: (worker) => worker.subcontractor_name,
+        render: (worker) => worker.subcontractor_name,
+      },
+      {
+        key: "nationalId",
+        header: t("puantaj.worker.columns.nationalId"),
+        getFilterValue: (worker) => worker.national_id || "—",
+        render: (worker) => worker.national_id || "—",
+      },
+      {
+        key: "insurance",
+        header: t("puantaj.worker.columns.insurance"),
+        getFilterValue: (worker) => insuranceLabel(worker.insurance_status),
+        render: (worker) => insuranceLabel(worker.insurance_status),
+      },
+    ],
+    [t, insuranceLabel],
+  );
+
+  const subTableColumns = useMemo<FilterableColumn<Subcontractor>[]>(
+    () => [
+      {
+        key: "name",
+        header: t("puantaj.subcontractor.name"),
+        getFilterValue: (sub) => sub.name,
+        render: (sub) => sub.name,
+      },
+      {
+        key: "category",
+        header: t("puantaj.subcontractor.category"),
+        getFilterValue: (sub) => sub.category_name,
+        render: (sub) => sub.category_name,
+      },
+      {
+        key: "status",
+        header: t("puantaj.subcontractor.status"),
+        getFilterValue: (sub) =>
+          sub.is_active ? t("puantaj.subcontractor.active") : t("puantaj.subcontractor.inactive"),
+        render: (sub) =>
+          sub.is_active ? t("puantaj.subcontractor.active") : t("puantaj.subcontractor.inactive"),
+      },
+      {
+        key: "earnedTotal",
+        header: t("puantaj.subcontractor.earnedTotal"),
+        getFilterValue: (sub) => `${Number(sub.earned_total).toLocaleString(locale)} ₺`,
+        render: (sub) => `${Number(sub.earned_total).toLocaleString(locale)} ₺`,
+      },
+      {
+        key: "metrajItems",
+        header: t("puantaj.subcontractor.metrajItems"),
+        getFilterValue: (sub) => String(sub.metraj_item_count),
+        render: (sub) => sub.metraj_item_count,
+      },
+    ],
+    [t, locale],
+  );
+
+  const workerFilterCols = useMemo(
+    () => workerTableColumns.map((col) => ({ key: col.key, getValue: col.getFilterValue })),
+    [workerTableColumns],
+  );
+  const subFilterCols = useMemo(
+    () => subTableColumns.map((col) => ({ key: col.key, getValue: col.getFilterValue })),
+    [subTableColumns],
+  );
+
+  const {
+    filters: workerFilters,
+    setFilter: setWorkerFilter,
+    filteredRows: workerFilteredRows,
+  } = useTableFilters(workerSearchFiltered, workerFilterCols);
+  const {
+    filters: subFilters,
+    setFilter: setSubFilter,
+    filteredRows: subFilteredRows,
+  } = useTableFilters(subSearchFiltered, subFilterCols);
+
+  const workerFilterKey = useMemo(() => JSON.stringify(workerFilters), [workerFilters]);
+  const subFilterKey = useMemo(() => JSON.stringify(subFilters), [subFilters]);
+
   const {
     page: subPage,
     setPage: setSubPage,
     resetPage: resetSubPage,
     paginatedRows: paginatedSubs,
     showPagination: showSubPagination,
-  } = useTablePagination(subcontractors, PAGE_SIZE);
+  } = useTablePagination(subFilteredRows, PAGE_SIZE);
 
   const {
     page: hpPage,
@@ -187,16 +318,42 @@ export function PuantajPage() {
     resetPage: resetWorkerPage,
     paginatedRows: paginatedWorkers,
     showPagination: showWorkerPagination,
-  } = useTablePagination(workers, PAGE_SIZE);
+  } = useTablePagination(workerFilteredRows, PAGE_SIZE);
+
+  useEffect(() => {
+    resetWorkerPage();
+  }, [workerSearch, workerFilterKey, resetWorkerPage]);
+
+  useEffect(() => {
+    resetSubPage();
+  }, [subSearch, subFilterKey, resetSubPage]);
 
   const shiftMonth = (delta: number) => {
     const d = new Date(period.year, period.month - 1 + delta, 1);
-    setPeriod({ year: d.getFullYear(), month: d.getMonth() + 1 });
+    const nextYear = d.getFullYear();
+    const nextMonth = d.getMonth() + 1;
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1;
+    if (nextYear > currentYear || (nextYear === currentYear && nextMonth > currentMonth)) {
+      return;
+    }
+    setPeriod({ year: nextYear, month: nextMonth });
     invalidate();
     resetSubPage();
     resetWorkerPage();
     resetHpPage();
   };
+
+  const canGoNextMonth = useMemo(() => {
+    const next = new Date(period.year, period.month, 1);
+    const nextYear = next.getFullYear();
+    const nextMonth = next.getMonth() + 1;
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1;
+    return nextYear < currentYear || (nextYear === currentYear && nextMonth <= currentMonth);
+  }, [period.year, period.month]);
 
   const openCreateSub = () => {
     if (categoryOptions.length === 0) {
@@ -370,13 +527,30 @@ export function PuantajPage() {
       />
 
       <div className="puantaj-period-bar surface-card">
-        <button type="button" className="btn-icon" onClick={() => shiftMonth(-1)}>
+        <button type="button" className="btn-icon" onClick={() => shiftMonth(-1)} aria-label={t("puantaj.prevMonth")}>
           <ChevronLeft size={18} />
         </button>
         <span className="puantaj-period-label">{monthLabel}</span>
-        <button type="button" className="btn-icon" onClick={() => shiftMonth(1)}>
+        <button
+          type="button"
+          className="btn-icon"
+          onClick={() => shiftMonth(1)}
+          disabled={!canGoNextMonth}
+          aria-label={t("puantaj.nextMonth")}
+        >
           <ChevronRight size={18} />
         </button>
+        <Button
+          variant="ghost"
+          className="btn-sm"
+          onClick={() => {
+            const now = new Date();
+            setPeriod({ year: now.getFullYear(), month: now.getMonth() + 1 });
+            invalidate();
+          }}
+        >
+          {t("puantaj.thisMonth")}
+        </Button>
       </div>
 
       {estimate && (
@@ -423,83 +597,115 @@ export function PuantajPage() {
         workers.length === 0 ? (
           <EmptyState icon={<HardHat size={28} />} title={t("puantaj.worker.empty")} description={t("puantaj.worker.emptyDesc")} />
         ) : (
-          <div className="surface-card metraj-table-card">
-            <div className="table-scroll">
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>{t("puantaj.worker.columns.name")}</th>
-                    <th>{t("puantaj.worker.columns.subcontractor")}</th>
-                    <th>{t("puantaj.worker.columns.nationalId")}</th>
-                    <th>{t("puantaj.worker.columns.insurance")}</th>
-                    <th>{t("common.actions")}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedWorkers.map((worker) => (
-                    <tr key={worker.id}>
-                      <td>{worker.full_name}</td>
-                      <td>{worker.subcontractor_name}</td>
-                      <td>{worker.national_id || "—"}</td>
-                      <td>{t(`puantaj.worker.insurance.${worker.insurance_status}`)}</td>
-                      <td className="table-actions-cell">
-                        <button type="button" className="btn-icon" onClick={() => openEditWorker(worker)}>
-                          <Pencil size={15} />
-                        </button>
-                        <button type="button" className="btn-icon" onClick={() => void puantajService.deleteWorker(worker.id).then(refresh)}>
-                          <Trash2 size={15} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <>
+            <div className="surface-card metraj-filters-panel">
+              <div className="metraj-filters-row">
+                <Input
+                  label={t("puantaj.worker.search")}
+                  value={workerSearch}
+                  onChange={(e) => setWorkerSearch(e.target.value)}
+                  placeholder={t("puantaj.worker.searchPlaceholder")}
+                />
+              </div>
             </div>
-            {showWorkerPagination && (
-              <TablePagination page={workerPage} pageSize={PAGE_SIZE} totalItems={workers.length} onPageChange={setWorkerPage} />
-            )}
-          </div>
+            <div className="surface-card metraj-table-card">
+              <FilterableTable
+                rows={paginatedWorkers}
+                filterSourceRows={workerSearchFiltered}
+                columns={workerTableColumns}
+                filters={workerFilters}
+                onFilterChange={setWorkerFilter}
+                allFilterLabel={t("metraj.tabs.all")}
+                actionsHeader={t("common.actions")}
+                actionsColumn={(worker) => (
+                  <div className="table-row-actions">
+                    <button type="button" className="btn-icon" onClick={() => openEditWorker(worker)}>
+                      <Pencil size={15} />
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-icon"
+                      onClick={() => void puantajService.deleteWorker(worker.id).then(refresh)}
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
+                )}
+                emptyMessage={
+                  <EmptyState
+                    icon={<Inbox size={28} />}
+                    title={t("puantaj.worker.noResults")}
+                    description={t("puantaj.worker.noResultsDesc")}
+                  />
+                }
+              />
+              {showWorkerPagination && (
+                <TablePagination
+                  page={workerPage}
+                  pageSize={PAGE_SIZE}
+                  totalItems={workerFilteredRows.length}
+                  onPageChange={setWorkerPage}
+                />
+              )}
+            </div>
+          </>
         )
       ) : activeTab === "subcontractors" ? (
         subcontractors.length === 0 ? (
           <EmptyState icon={<HardHat size={28} />} title={t("puantaj.subcontractor.empty")} description={t("puantaj.subcontractor.emptyDesc")} />
         ) : (
-          <div className="surface-card metraj-table-card">
-            <div className="table-scroll">
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>{t("puantaj.subcontractor.name")}</th>
-                    <th>{t("puantaj.subcontractor.category")}</th>
-                    <th>{t("puantaj.subcontractor.earnedTotal")}</th>
-                    <th>{t("puantaj.subcontractor.metrajItems")}</th>
-                    <th>{t("common.actions")}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedSubs.map((sub) => (
-                    <tr key={sub.id}>
-                      <td>{sub.name}</td>
-                      <td>{sub.category_name}</td>
-                      <td>{Number(sub.earned_total).toLocaleString(locale)} ₺</td>
-                      <td>{sub.metraj_item_count}</td>
-                      <td className="table-actions-cell">
-                        <button type="button" className="btn-icon" onClick={() => openEditSub(sub)}>
-                          <Pencil size={15} />
-                        </button>
-                        <button type="button" className="btn-icon" onClick={() => void puantajService.deleteSubcontractor(sub.id).then(refresh)}>
-                          <Trash2 size={15} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <>
+            <div className="surface-card metraj-filters-panel">
+              <div className="metraj-filters-row">
+                <Input
+                  label={t("puantaj.subcontractor.search")}
+                  value={subSearch}
+                  onChange={(e) => setSubSearch(e.target.value)}
+                  placeholder={t("puantaj.subcontractor.searchPlaceholder")}
+                />
+              </div>
             </div>
-            {showSubPagination && (
-              <TablePagination page={subPage} pageSize={PAGE_SIZE} totalItems={subcontractors.length} onPageChange={setSubPage} />
-            )}
-          </div>
+            <div className="surface-card metraj-table-card">
+              <FilterableTable
+                rows={paginatedSubs}
+                filterSourceRows={subSearchFiltered}
+                columns={subTableColumns}
+                filters={subFilters}
+                onFilterChange={setSubFilter}
+                allFilterLabel={t("metraj.tabs.all")}
+                actionsHeader={t("common.actions")}
+                actionsColumn={(sub) => (
+                  <div className="table-row-actions">
+                    <button type="button" className="btn-icon" onClick={() => openEditSub(sub)}>
+                      <Pencil size={15} />
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-icon"
+                      onClick={() => void puantajService.deleteSubcontractor(sub.id).then(refresh)}
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
+                )}
+                emptyMessage={
+                  <EmptyState
+                    icon={<Inbox size={28} />}
+                    title={t("puantaj.subcontractor.noResults")}
+                    description={t("puantaj.subcontractor.noResultsDesc")}
+                  />
+                }
+              />
+              {showSubPagination && (
+                <TablePagination
+                  page={subPage}
+                  pageSize={PAGE_SIZE}
+                  totalItems={subFilteredRows.length}
+                  onPageChange={setSubPage}
+                />
+              )}
+            </div>
+          </>
         )
       ) : hakedisPeriods.length === 0 ? (
         <EmptyState icon={<Inbox size={28} />} title={t("puantaj.hakedisPeriod.empty")} description={t("puantaj.hakedisPeriod.emptyDesc")} />

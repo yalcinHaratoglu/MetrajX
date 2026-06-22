@@ -1,8 +1,10 @@
-import { Menu, Moon, Sun } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Menu, Moon, Settings, Sun } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "../../hooks/useAuth";
 import { useTheme } from "../../hooks/useTheme";
 import { LanguageSelect } from "../ui/LanguageSelect";
+import { SiteSelector } from "./SiteSelector";
+import { TodayEventsPopover } from "./TodayEventsPopover";
 
 interface HeaderProps {
   onMenuOpen?: () => void;
@@ -10,7 +12,6 @@ interface HeaderProps {
 
 export function Header({ onMenuOpen }: HeaderProps) {
   const { t } = useTranslation();
-  const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
 
   return (
@@ -24,15 +25,13 @@ export function Header({ onMenuOpen }: HeaderProps) {
         >
           <Menu size={20} />
         </button>
-        <div>
-          <p className="text-sm text-muted">{t("header.welcome")}</p>
-          <p className="font-medium">
-            {user?.first_name} {user?.last_name}
-          </p>
+        <div className="header-site-selector">
+          <SiteSelector variant="header" />
         </div>
       </div>
 
       <div className="header-actions">
+        <TodayEventsPopover />
         <div className="header-lang">
           <LanguageSelect />
         </div>
@@ -44,6 +43,9 @@ export function Header({ onMenuOpen }: HeaderProps) {
         >
           {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
         </button>
+        <Link to="/settings" className="btn-icon header-settings-btn" aria-label={t("nav.settings")}>
+          <Settings size={18} />
+        </Link>
       </div>
     </header>
   );

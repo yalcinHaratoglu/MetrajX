@@ -69,6 +69,9 @@ class LedgerEntryListView(generics.ListAPIView):
         )
         if site_id:
             qs = qs.filter(site_id=site_id)
+        vendor_id = self.request.query_params.get("vendor_id")
+        if vendor_id:
+            qs = qs.filter(vendor_id=vendor_id)
         return qs
 
     def list(self, request, *args, **kwargs):

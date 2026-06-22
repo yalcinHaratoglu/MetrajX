@@ -17,6 +17,8 @@
     "siteTools": "Saha Araçları",
     "toggleSiteTools": "Saha araçlarını göster/gizle",
     "toggleApplications": "Alt uygulamaları göster/gizle",
+    "collapseSidebar": "Kenar çubuğunu gizle",
+    "expandSidebar": "Kenar çubuğunu göster",
     "projects": "Projeler",
     "settings": "Ayarlar",
     "openMenu": "Menüyü aç",
@@ -25,7 +27,12 @@
   "header": {
     "welcome": "Hoş geldiniz",
     "language": "Dil",
-    "toggleTheme": "Tema değiştir"
+    "toggleTheme": "Tema değiştir",
+    "notifications": "Bugünkü olaylar",
+    "todayEvents": "Bugün",
+    "noEventsToday": "Bugün için takvim kaydı yok.",
+    "selectSiteForEvents": "Olayları görmek için şantiye seçin.",
+    "viewCalendar": "Takvime git"
   },
   "notFound": {
     "title": "Sayfa bulunamadı",
@@ -99,8 +106,8 @@
     "recentSites": "Son Şantiyeler",
     "viewAll": "Tümünü gör",
     "calendar": {
-      "title": "İşlem Takvimi",
-      "desc": "Planlanan ve tamamlanan metraj işlemlerini görüntüleyin."
+      "title": "İş Programı",
+      "desc": "Metraj işleri ve şantiye etkinliklerini görüntüleyin."
     }
   },
   "sites": {
@@ -255,8 +262,8 @@
     "itemHint": "İlerleme ve dosyalar kaleme tıklayarak işlem ekledikten sonra yönetilir.",
     "pozTemplateHint": "Poz şablonu, sık kullandığınız iş kalemlerinin hazır tarifidir (ör. «Dış cephe sıvası»). Seçerseniz kategori, açıklama ve birim fiyat otomatik dolar. Boş bırakıp elle de girebilirsiniz.",
     "calendar": {
-      "title": "İşlem Takvimi",
-      "siteDesc": "Tüm kalemlerin planlanan ve tamamlanan işlemleri.",
+      "title": "İş Programı",
+      "siteDesc": "Metraj işleri ve şantiye etkinlikleri.",
       "viewModes": "Takvim görünümü",
       "views": {
         "day": "Gün",
@@ -362,8 +369,11 @@
       "description": "Açıklama",
       "account": "Hesap",
       "direction": "Yön",
-      "amount": "Tutar"
+      "amount": "Tutar",
+      "subcontractor": "Taşeron"
     },
+    "allVendors": "Tüm taşeronlar",
+    "noVendor": "Seçilmedi",
     "direction": {
       "credit": "Alacak",
       "debit": "Borç"
@@ -398,8 +408,8 @@
     "editEvent": "Olayı Düzenle",
     "created": "Takvim olayı eklendi.",
     "updated": "Olay güncellendi.",
-    "metrajOps": "Metraj Operasyonları",
-    "metrajOpsDesc": "Metraj kalemlerinden gelen planlı işler",
+    "metrajOps": "İş Programı",
+    "metrajOpsDesc": "Metraj işleri ve şantiye etkinlikleri",
     "siteEvents": "Şantiye Olayları",
     "siteEventsDesc": "Beton dökümü, malzeme teslimatı, toplantı gibi bağımsız etkinlikler",
     "noEventsTitle": "Henüz şantiye olayı yok",
@@ -425,12 +435,28 @@
     "selectSiteTitle": "Şantiye seçin",
     "selectSiteDesc": "Günlük rapor şantiye bazlıdır.",
     "add": "Rapor Ekle",
+    "edit": "Raporu Düzenle",
+    "editToday": "Bugünü Düzenle",
+    "updated": "Günlük rapor güncellendi.",
     "created": "Günlük rapor kaydedildi.",
     "empty": "Henüz rapor yok",
     "emptyDesc": "İlk günlük saha raporunu ekleyin.",
+    "prevWeek": "Önceki hafta",
+    "nextWeek": "Sonraki hafta",
+    "thisWeek": "Bu hafta",
+    "thisMonth": "Bu ay",
+    "prevMonth": "Önceki ay",
+    "nextMonth": "Sonraki ay",
     "photos": "Fotoğraflar",
     "photosHint": "Saha fotoğrafları ekleyerek günün özetini destekleyin.",
     "addPhoto": "Fotoğraf Ekle",
+    "addFile": "Dosya Ekle",
+    "filesHint": "Fotoğraf, PDF veya diğer belgeleri ekleyebilirsiniz.",
+    "attachment": "Ek",
+    "attachedFiles": "Ekli dosyalar",
+    "fileDeleted": "Dosya silindi.",
+    "removeFile": "Dosyayı kaldır",
+    "pendingUpload": "Yüklenecek",
     "summaryPlaceholder": "Bugün ne yapıldı? Hangi imalatlar ilerledi, hangi sorunlar yaşandı?",
     "weatherPlaceholder": "ör. Güneşli, 28°C",
     "photoAlt": "Günlük rapor fotoğrafı",
@@ -467,6 +493,9 @@
   },
   "puantaj": {
     "title": "Puantaj & Taşeron",
+    "prevMonth": "Önceki ay",
+    "nextMonth": "Sonraki ay",
+    "thisMonth": "Bu ay",
     "flowHint": "Günlük puantaj işçi bazlıdır. Hakediş tutarları metraj ilerlemesinden (m², m³ vb.) hesaplanır; puantaj ile karıştırılmaz.",
     "attendance": {
       "subcontractor": "Taşeron",
@@ -511,6 +540,11 @@
     "subcontractor": {
       "add": "Taşeron Ekle",
       "edit": "Taşeronu Düzenle",
+      "search": "Taşeron ara",
+      "searchPlaceholder": "Firma adı, branş veya telefon",
+      "noResults": "Sonuç bulunamadı",
+      "noResultsDesc": "Arama veya filtre kriterlerinizi değiştirmeyi deneyin.",
+      "status": "Durum",
       "name": "Firma adı",
       "category": "Kategori (Branş)",
       "contractUnit": "Sözleşme birimi",
@@ -533,6 +567,10 @@
     "worker": {
       "add": "İşçi Ekle",
       "edit": "İşçiyi Düzenle",
+      "search": "İşçi ara",
+      "searchPlaceholder": "Ad, kimlik no veya taşeron",
+      "noResults": "Sonuç bulunamadı",
+      "noResultsDesc": "Arama veya filtre kriterlerinizi değiştirmeyi deneyin.",
       "created": "İşçi eklendi.",
       "updated": "İşçi güncellendi.",
       "empty": "Henüz işçi kaydı yok",
@@ -592,6 +630,9 @@
       "created": "Hakediş dönemi oluşturuldu.",
       "submitted": "Onay için gönderildi.",
       "approved": "Dönem onaylandı ve kilitlendi.",
+      "updated": "Hakediş dönemi güncellendi.",
+      "deleted": "Hakediş dönemi silindi.",
+      "deleteConfirm": "Bu hakediş dönemini silmek istediğinize emin misiniz? Onaylı dönemlerde cari kayıtlar ve avans mahsupları geri alınır.",
       "empty": "Henüz hakediş dönemi yok",
       "emptyDesc": "Dönemsel hakediş belgesi oluşturarak resmi tutarı kilitleyin.",
       "estimate": "Tahmini Hakediş",

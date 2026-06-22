@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import type { MetrajOperation } from "../../services/metrajService";
@@ -24,6 +24,8 @@ interface MetrajCalendarProps {
   onSelectOperation?: (op: MetrajOperation) => void;
   onAddForDate?: (dateKey: string) => void;
   selectToday?: boolean;
+  /** Takvimde görünen ay/yıl değişince (şantiye olayları filtresi için). month=0 yıl görünümü. */
+  onVisibleMonthChange?: (year: number, month: number) => void;
 }
 
 function monthGrid(year: number, month: number): (Date | null)[][] {
@@ -72,6 +74,7 @@ export function MetrajCalendar({
   onSelectOperation,
   onAddForDate,
   selectToday = false,
+  onVisibleMonthChange,
 }: MetrajCalendarProps) {
   const { t, i18n } = useTranslation();
   const [view, setView] = useState<CalendarViewMode>("month");
@@ -87,6 +90,15 @@ export function MetrajCalendar({
   }
 
   const locale = i18n.language.startsWith("tr") ? "tr-TR" : "en-US";
+
+  useEffect(() => {
+    if (!onVisibleMonthChange) return;
+    if (view === "year") {
+      onVisibleMonthChange(anchor.getFullYear(), 0);
+      return;
+    }
+    onVisibleMonthChange(anchor.getFullYear(), anchor.getMonth() + 1);
+  }, [anchor, view, onVisibleMonthChange]);
 
   const opsByDate = useMemo(() => {
     const map = new Map<string, MetrajOperation[]>();
@@ -189,7 +201,7 @@ export function MetrajCalendar({
             {hasPlanned && <span className="metraj-calendar-dot metraj-calendar-dot-planned" />}
             {hasDone && <span className="metraj-calendar-dot metraj-calendar-dot-done" />}
             {dayEvents.map((ev) => (
-              <span key={ev.id} className={`metraj-calendar-dot metraj-calendar-dot-event metraj-calendar-dot-event-${ev.event_type}`} />
+              <span key={ev.id} className="metraj-calendar-dot metraj-calendar-dot-event" />
             ))}
           </span>
         )}
@@ -255,9 +267,11 @@ export function MetrajCalendar({
               <ul className="metraj-calendar-events metraj-calendar-site-events">
                 {selectedEvents.map((ev) => (
                   <li key={ev.id}>
-                    <div className={`metraj-calendar-event metraj-calendar-event-site metraj-calendar-event-${ev.event_type}`}>
+                    <div className="metraj-calendar-event metraj-calendar-event-site">
                       <span className="font-medium">{ev.title}</span>
-                      <span className="text-xs text-muted">{t(`calendar.types.${ev.event_type}`)}</span>
+                      {ev.event_time ? (
+                        <span className="text-xs text-muted">{formatTimeLabel(ev.event_time, locale)}</span>
+                      ) : null}
                     </div>
                   </li>
                 ))}

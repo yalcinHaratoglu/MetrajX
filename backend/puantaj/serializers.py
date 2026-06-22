@@ -525,11 +525,14 @@ class HakedisPeriodUpdateSerializer(serializers.ModelSerializer):
         fields = ["notes", "approved_payable"]
 
     def validate(self, attrs):
-        if self.instance and self.instance.is_locked:
-            raise serializers.ValidationError("Kilitli dönem düzenlenemez.")
+        if not self.instance:
+            return attrs
+        if self.instance.status == HakedisPeriod.Status.PAID:
+            raise serializers.ValidationError("Ödenmiş dönem düzenlenemez.")
+        if self.instance.is_locked:
+            return attrs
         if (
             "approved_payable" in attrs
-            and self.instance
             and self.instance.status != HakedisPeriod.Status.PENDING_APPROVAL
         ):
             raise serializers.ValidationError(

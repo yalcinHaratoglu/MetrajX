@@ -1,17 +1,36 @@
-import { useState } from "react";
-import { Menu } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Outlet } from "react-router-dom";
+import { Header } from "./Header";
 import { Sidebar } from "./Sidebar";
+
+const SIDEBAR_COLLAPSED_KEY = "conmanage_sidebar_collapsed";
 
 export function DashboardLayout() {
   const { t } = useTranslation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "1";
+    } catch {
+      return false;
+    }
+  });
 
-  const closeMobile = () => setMobileOpen(false);
+  useEffect(() => {
+    try {
+      localStorage.setItem(SIDEBAR_COLLAPSED_KEY, sidebarCollapsed ? "1" : "0");
+    } catch {
+      /* ignore */
+    }
+  }, [sidebarCollapsed]);
+
+  const closeMobile = useCallback(() => setMobileOpen(false), []);
+  const toggleSidebar = useCallback(() => setSidebarCollapsed((v) => !v), []);
 
   return (
-    <div className="dashboard-layout">
+    <div className={`dashboard-layout${sidebarCollapsed ? " is-sidebar-collapsed" : ""}`}>
       {mobileOpen && (
         <button
           type="button"
@@ -21,17 +40,25 @@ export function DashboardLayout() {
         />
       )}
 
-      <Sidebar mobileOpen={mobileOpen} onNavigate={closeMobile} onClose={closeMobile} />
+      <Sidebar
+        collapsed={sidebarCollapsed}
+        mobileOpen={mobileOpen}
+        onNavigate={closeMobile}
+        onClose={closeMobile}
+      />
+
+      <button
+        type="button"
+        className="sidebar-rail-toggle"
+        onClick={toggleSidebar}
+        aria-label={sidebarCollapsed ? t("nav.expandSidebar") : t("nav.collapseSidebar")}
+        title={sidebarCollapsed ? t("nav.expandSidebar") : t("nav.collapseSidebar")}
+      >
+        {sidebarCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+      </button>
 
       <div className="dashboard-main">
-        <button
-          type="button"
-          className="mobile-menu-fab"
-          onClick={() => setMobileOpen(true)}
-          aria-label={t("nav.openMenu")}
-        >
-          <Menu size={20} />
-        </button>
+        <Header onMenuOpen={() => setMobileOpen(true)} />
         <main className="dashboard-content">
           <Outlet />
         </main>

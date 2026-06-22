@@ -2,6 +2,7 @@ from datetime import date
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
+from django.db.models import Sum
 from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
@@ -180,3 +181,67 @@ class HakedisPeriodTestCase(TestCase):
         self.client.force_authenticate(user=self.owner)
         ok = self.client.post(f"/api/puantaj/hakedis-periods/{period_id}/approve/")
         self.assertEqual(ok.status_code, status.HTTP_200_OK)
+
+    def test_delete_approved_period_reverts_ledger_and_advance(self):
+        from finans.models import LedgerEntry
+
+        AdvancePayment.objects.create(
+            subcontractor=self.sub,
+            site=self.site,
+            amount=Decimal("10000"),
+            payment_date=date(2026, 5, 1),
+            remaining_balance=Decimal("10000"),
+        )
+        resp = self._create_period()
+        period_id = resp.data["id"]
+        advance_before = AdvancePayment.objects.filter(subcontractor=self.sub).aggregate(
+            s=Sum("remaining_balance")
+        )["s"]
+
+        self.client.post(f"/api/puantaj/hakedis-periods/{period_id}/submit/")
+        self.client.force_authenticate(user=self.owner)
+        self.client.post(f"/api/puantaj/hakedis-periods/{period_id}/approve/")
+
+        self.assertGreater(LedgerEntry.objects.filter(hakedis_period_id=period_id).count(), 0)
+
+        delete_resp = self.client.delete(f"/api/puantaj/hakedis-periods/{period_id}/")
+        self.assertEqual(delete_resp.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(HakedisPeriod.objects.filter(pk=period_id).exists())
+        self.assertEqual(LedgerEntry.objects.filter(hakedis_period_id=period_id).count(), 0)
+
+        advance_after = AdvancePayment.objects.filter(subcontractor=self.sub).aggregate(
+            s=Sum("remaining_balance")
+        )["s"]
+        self.assertEqual(advance_after, advance_before)
+
+    def test_update_approved_period_resyncs_ledger(self):
+        from finans.models import LedgerEntry
+
+        resp = self._create_period()
+        period_id = resp.data["id"]
+        self.client.post(f"/api/puantaj/hakedis-periods/{period_id}/submit/")
+        self.client.force_authenticate(user=self.owner)
+        self.client.post(f"/api/puantaj/hakedis-periods/{period_id}/approve/")
+
+        patch = self.client.patch(
+            f"/api/puantaj/hakedis-periods/{period_id}/",
+            {"approved_payable": "40000.00", "notes": "Revize"},
+            format="json",
+        )
+        self.assertEqual(patch.status_code, status.HTTP_200_OK)
+        self.assertEqual(patch.data["notes"], "Revize")
+
+        entries = LedgerEntry.objects.filter(hakedis_period_id=period_id)
+        self.assertEqual(entries.count(), 1)
+        self.assertEqual(entries.first().amount, Decimal("40000.00"))
+
+    def test_site_manager_cannot_delete_approved_period(self):
+        resp = self._create_period()
+        period_id = resp.data["id"]
+        self.client.post(f"/api/puantaj/hakedis-periods/{period_id}/submit/")
+        self.client.force_authenticate(user=self.owner)
+        self.client.post(f"/api/puantaj/hakedis-periods/{period_id}/approve/")
+
+        self.client.force_authenticate(user=self.manager)
+        deny = self.client.delete(f"/api/puantaj/hakedis-periods/{period_id}/")
+        self.assertEqual(deny.status_code, status.HTTP_403_FORBIDDEN)

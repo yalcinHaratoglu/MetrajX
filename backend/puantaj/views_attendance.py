@@ -9,7 +9,7 @@ from sites.services import sites_for_user
 
 from .models import Worker
 from .permissions import can_manage_puantaj
-from .services.attendance import attendance_matrix, export_attendance_csv, toggle_attendance
+from .services.attendance import attendance_matrix, export_attendance_xlsx, toggle_attendance
 
 
 def _parse_date(value: str | None) -> date | None:
@@ -49,8 +49,8 @@ class AttendanceMatrixView(APIView):
         search = request.query_params.get("search", "")
         sub_id = int(subcontractor_id) if subcontractor_id else None
 
-        if request.query_params.get("format") == "csv":
-            return export_attendance_csv(
+        if request.query_params.get("export") == "xlsx":
+            return export_attendance_xlsx(
                 site.id, date_from, date_to, subcontractor_id=sub_id, search=search
             )
 

@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Download, Search } from "lucide-react";
+import { Download } from "lucide-react";
+import { parseDateKey, toDateKey } from "../metraj/calendarUtils";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
 import { Select } from "../ui/Select";
@@ -41,7 +42,7 @@ export function AttendanceMatrix({
   onChanged,
 }: Props) {
   const { t } = useTranslation();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = toDateKey(new Date());
   const [subcontractorId, setSubcontractorId] = useState("");
   const [search, setSearch] = useState("");
   const [busyCell, setBusyCell] = useState<string | null>(null);
@@ -58,7 +59,7 @@ export function AttendanceMatrix({
     });
   }, [siteId, dateFrom, dateTo, subcontractorId, search]);
 
-  const { data, loading, reload, setData } = useSiteData(fetchKey, fetcher, emptyMatrix);
+  const { data, loading, setData } = useSiteData(fetchKey, fetcher, emptyMatrix);
   const rows = data.workers;
   const dates = data.dates;
 
@@ -105,14 +106,18 @@ export function AttendanceMatrix({
     }
   };
 
-  const exportCsv = () => {
-    void puantajService.exportAttendanceCsv({
-      site_id: siteId,
-      date_from: dateFrom,
-      date_to: dateTo,
-      subcontractor_id: subcontractorId ? Number(subcontractorId) : undefined,
-      search: search.trim() || undefined,
-    });
+  const exportXlsx = async () => {
+    try {
+      await puantajService.exportAttendanceXlsx({
+        site_id: siteId,
+        date_from: dateFrom,
+        date_to: dateTo,
+        subcontractor_id: subcontractorId ? Number(subcontractorId) : undefined,
+        search: search.trim() || undefined,
+      });
+    } catch {
+      toast.error(t("common.error"));
+    }
   };
 
   return (
@@ -137,13 +142,9 @@ export function AttendanceMatrix({
           placeholder={t("puantaj.attendance.searchPlaceholder")}
         />
         <div className="attendance-matrix-export">
-          <Button type="button" variant="ghost" onClick={exportCsv}>
+          <Button type="button" variant="ghost" onClick={() => void exportXlsx()}>
             <Download size={16} />
             {t("puantaj.attendance.export")}
-          </Button>
-          <Button type="button" variant="ghost" onClick={() => void reload()}>
-            <Search size={16} />
-            {t("common.refresh")}
           </Button>
         </div>
       </div>
@@ -162,10 +163,10 @@ export function AttendanceMatrix({
                   <th className="attendance-sticky-col-2">{t("puantaj.attendance.subcontractor")}</th>
                   {dates.map((d) => (
                     <th key={d} className="attendance-day-col">
-                      {new Date(d).getDate()}
+                      {parseDateKey(d).getDate()}
                     </th>
                   ))}
-                  <th>{t("puantaj.attendance.totalDays")}</th>
+                  <th className="attendance-total-col">{t("puantaj.attendance.totalDays")}</th>
                 </tr>
               </thead>
               <tbody>

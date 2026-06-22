@@ -25,6 +25,7 @@ interface MetrajCalendarPanelProps {
   onSelectOperation?: (op: MetrajOperation) => void;
   onAddForDate?: (date: string) => void;
   className?: string;
+  onVisibleMonthChange?: (year: number, month: number) => void;
 }
 
 export function MetrajCalendarPanel({
@@ -44,6 +45,7 @@ export function MetrajCalendarPanel({
   onSelectOperation,
   onAddForDate,
   className = "",
+  onVisibleMonthChange,
 }: MetrajCalendarPanelProps) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(defaultOpen);
@@ -59,7 +61,7 @@ export function MetrajCalendarPanel({
     siteIds !== undefined &&
     siteIds.length > 0 &&
     loadedSiteKey !== siteIdsKey;
-  const isLoading = loading || fetchLoading || (open && needsFetch && siteIds !== undefined);
+  const isLoading = loading || fetchLoading || (open && needsFetch);
   const showEmpty = !isLoading && siteIds !== undefined && siteIds.length === 0;
 
   useEffect(() => {
@@ -81,14 +83,14 @@ export function MetrajCalendarPanel({
           setLoadedSiteKey(siteIdsKey);
         }
       } finally {
-        if (!cancelled) setFetchLoading(false);
+        setFetchLoading(false);
       }
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [open, siteIds, siteIdsKey, needsFetch]);
+  }, [open, siteIdsKey, needsFetch]);
 
   const body = showEmpty ? (
     <p className="text-sm text-muted">{emptyMessage ?? t("sites.selector.empty")}</p>
@@ -104,6 +106,7 @@ export function MetrajCalendarPanel({
       onSelectOperation={onSelectOperation}
       onAddForDate={readonly ? undefined : onAddForDate}
       selectToday={selectToday}
+      onVisibleMonthChange={onVisibleMonthChange}
     />
   );
 

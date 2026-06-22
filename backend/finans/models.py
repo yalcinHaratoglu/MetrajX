@@ -95,12 +95,12 @@ class LedgerEntry(models.Model):
         choices=SourceType.choices,
         default=SourceType.MANUAL,
     )
-    hakedis_period = models.OneToOneField(
+    hakedis_period = models.ForeignKey(
         "puantaj.HakedisPeriod",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name="ledger_entry",
+        related_name="ledger_entries",
     )
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,

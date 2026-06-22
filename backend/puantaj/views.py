@@ -47,8 +47,10 @@ from .services.hakedis import hakedis_for_site, hakedis_for_subcontractor
 from .services.hakedis_period import (
     approve_period,
     calculate_period_lines,
+    delete_hakedis_period,
     recalculate_period_totals,
     submit_period,
+    update_locked_period,
 )
 from .services.settlement import settlement_for_site
 
@@ -97,6 +99,9 @@ class SubcontractorListCreateView(generics.ListCreateAPIView):
             status=SubcontractorContract.Status.ACTIVE,
             defaults={"retainage_percent": 0, "total_amount": 0},
         )
+        from finans.services.ledger_sync import get_or_create_vendor_for_subcontractor
+
+        get_or_create_vendor_for_subcontractor(sub)
         return Response(SubcontractorSerializer(sub).data, status=status.HTTP_201_CREATED)
 
 
@@ -336,10 +341,39 @@ class HakedisPeriodDetailView(generics.RetrieveUpdateDestroyAPIView):
             "subcontractor_deductions__subcontractor",
         )
 
+    def update(self, request, *args, **kwargs):
+        period = self.get_object()
+        if period.status == HakedisPeriod.Status.PAID:
+            return Response({"detail": "Ödenmiş dönem düzenlenemez."}, status=status.HTTP_400_BAD_REQUEST)
+        if period.is_locked:
+            if not can_approve_hakedis_period(request.user):
+                return _deny()
+            serializer = HakedisPeriodUpdateSerializer(period, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            try:
+                update_locked_period(period, request.user, **serializer.validated_data)
+            except ValueError as exc:
+                return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+            period.refresh_from_db()
+            return Response(HakedisPeriodSerializer(period).data)
+        if not can_prepare_hakedis_period(request.user):
+            return _deny()
+        return super().update(request, *args, **kwargs)
+
     def destroy(self, request, *args, **kwargs):
         period = self.get_object()
+        if period.status == HakedisPeriod.Status.PAID:
+            return Response({"detail": "Ödenmiş dönem silinemez."}, status=status.HTTP_400_BAD_REQUEST)
         if period.is_locked:
-            return Response({"detail": "Kilitli dönem silinemez."}, status=status.HTTP_400_BAD_REQUEST)
+            if not can_approve_hakedis_period(request.user):
+                return _deny()
+            try:
+                delete_hakedis_period(period)
+            except ValueError as exc:
+                return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        if not can_prepare_hakedis_period(request.user):
+            return _deny()
         return super().destroy(request, *args, **kwargs)
 
 
@@ -402,8 +436,18 @@ class HakedisPeriodDeductionDetailView(generics.RetrieveUpdateAPIView):
 
     def update(self, request, *args, **kwargs):
         deduction = self.get_object()
-        if deduction.period.is_locked:
-            return Response({"detail": "Kilitli dönem düzenlenemez."}, status=status.HTTP_400_BAD_REQUEST)
+        period = deduction.period
+        if period.status == HakedisPeriod.Status.PAID:
+            return Response({"detail": "Ödenmiş dönem düzenlenemez."}, status=status.HTTP_400_BAD_REQUEST)
+        if period.is_locked:
+            if not can_approve_hakedis_period(request.user):
+                return _deny()
+            response = super().update(request, *args, **kwargs)
+            recalculate_period_totals(period, allow_locked=True)
+            from finans.services.ledger_sync import resync_hakedis_period_to_ledger
+
+            resync_hakedis_period_to_ledger(period, request.user)
+            return response
         response = super().update(request, *args, **kwargs)
         recalculate_period_totals(deduction.period)
         return response

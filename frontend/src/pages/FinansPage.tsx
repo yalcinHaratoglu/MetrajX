@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Plus, Wallet } from "lucide-react";
 import { PageHeader } from "../components/layout/PageHeader";
@@ -7,6 +7,8 @@ import { Button } from "../components/ui/Button";
 import { EmptyState } from "../components/ui/EmptyState";
 import { Input } from "../components/ui/Input";
 import { Modal } from "../components/ui/Modal";
+import { Select } from "../components/ui/Select";
+import { toDateKey } from "../components/metraj/calendarUtils";
 import { useSite } from "../hooks/useSite";
 import { useSiteData } from "../hooks/useSiteData";
 import {
@@ -14,6 +16,7 @@ import {
   type LedgerEntry,
   type LedgerSummary,
   type MaterialStockItem,
+  type Vendor,
 } from "../services/finansService";
 import { toast } from "../lib/toast";
 
@@ -23,9 +26,10 @@ type FinansData = {
   entries: LedgerEntry[];
   summary: LedgerSummary | null;
   stock: MaterialStockItem[];
+  vendors: Vendor[];
 };
 
-const emptyFinans: FinansData = { entries: [], summary: null, stock: [] };
+const emptyFinans: FinansData = { entries: [], summary: null, stock: [], vendors: [] };
 
 export function FinansPage() {
   const { t, i18n } = useTranslation();
@@ -33,32 +37,52 @@ export function FinansPage() {
   const { selectedSiteId, sites } = useSite();
   const selectedSite = sites.find((s) => s.id === selectedSiteId);
   const [tab, setTab] = useState<Tab>("ledger");
+  const [vendorFilter, setVendorFilter] = useState("");
   const [payModal, setPayModal] = useState(false);
   const [stockModal, setStockModal] = useState(false);
   const [payForm, setPayForm] = useState({
     amount: "",
     description: "",
-    entry_date: new Date().toISOString().slice(0, 10),
+    entry_date: toDateKey(new Date()),
+    vendor_id: "",
   });
   const [stockForm, setStockForm] = useState({ name: "", unit: "adet", quantity_on_hand: "0" });
 
   const fetcher = useCallback(async (): Promise<FinansData> => {
     if (!selectedSiteId) return emptyFinans;
     try {
-      const [list, sum, items] = await Promise.all([
-        finansService.listLedger(selectedSiteId),
+      const [list, sum, items, vendors] = await Promise.all([
+        finansService.listLedger(selectedSiteId, vendorFilter ? Number(vendorFilter) : undefined),
         finansService.summary(selectedSiteId),
         finansService.listStock(selectedSiteId),
+        finansService.listVendors(),
       ]);
-      return { entries: list, summary: sum, stock: items };
+      return { entries: list, summary: sum, stock: items, vendors };
     } catch {
       toast.error(t("common.error"));
       return emptyFinans;
     }
-  }, [selectedSiteId, t]);
+  }, [selectedSiteId, vendorFilter, t]);
 
-  const { data, loading, reload } = useSiteData(selectedSiteId, fetcher, emptyFinans);
-  const { entries, summary, stock } = data;
+  const { data, loading, reload } = useSiteData(
+    selectedSiteId ? `${selectedSiteId}-${vendorFilter}` : null,
+    fetcher,
+    emptyFinans,
+  );
+  const { entries, summary, stock, vendors } = data;
+
+  const siteVendors = useMemo(
+    () => vendors.filter((v) => v.is_active),
+    [vendors],
+  );
+
+  const vendorOptions = useMemo(
+    () => [
+      { value: "", label: t("finans.allVendors") },
+      ...siteVendors.map((v) => ({ value: String(v.id), label: v.name })),
+    ],
+    [siteVendors, t],
+  );
 
   if (!selectedSiteId) {
     return (
@@ -82,9 +106,10 @@ export function FinansPage() {
         amount: payForm.amount,
         description: payForm.description,
         entry_date: payForm.entry_date,
+        vendor_id: payForm.vendor_id ? Number(payForm.vendor_id) : null,
       });
       setPayModal(false);
-      setPayForm({ amount: "", description: "", entry_date: new Date().toISOString().slice(0, 10) });
+      setPayForm({ amount: "", description: "", entry_date: toDateKey(new Date()), vendor_id: "" });
       toast.success(t("finans.paymentRecorded"));
       await reload();
     } catch {
@@ -142,12 +167,14 @@ export function FinansPage() {
         }
       />
 
-      <div className="tab-row">
+      <div className="metraj-tabs" role="tablist">
         {(["ledger", "stock", "payment"] as Tab[]).map((key) => (
           <button
             key={key}
             type="button"
-            className={`tab-btn${tab === key ? " is-active" : ""}`}
+            role="tab"
+            aria-selected={tab === key}
+            className={tab === key ? "metraj-tab-active" : "metraj-tab"}
             onClick={() => setTab(key)}
           >
             {t(`finans.tabs.${key}`)}
@@ -157,19 +184,19 @@ export function FinansPage() {
 
       {summary && tab === "ledger" && (
         <div className="stats-grid">
-          <div className="stat-card">
+          <div className="metraj-stat-card surface-card">
             <span className="stat-label">{t("finans.stats.credit")}</span>
             <span className="stat-value">{formatMoney(summary.total_credit)}</span>
           </div>
-          <div className="stat-card">
+          <div className="metraj-stat-card surface-card">
             <span className="stat-label">{t("finans.stats.debit")}</span>
             <span className="stat-value">{formatMoney(summary.total_debit)}</span>
           </div>
-          <div className="stat-card">
+          <div className="metraj-stat-card surface-card">
             <span className="stat-label">{t("finans.stats.balance")}</span>
             <span className="stat-value">{formatMoney(summary.balance)}</span>
           </div>
-          <div className="stat-card">
+          <div className="metraj-stat-card surface-card">
             <span className="stat-label">{t("finans.stats.entries")}</span>
             <span className="stat-value">{summary.entry_count}</span>
           </div>
@@ -186,32 +213,44 @@ export function FinansPage() {
             description={t("finans.emptyDesc")}
           />
         ) : (
-          <div className="surface-card metraj-table-card">
-            <div className="table-scroll">
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>{t("finans.columns.date")}</th>
-                    <th>{t("finans.columns.description")}</th>
-                    <th>{t("finans.columns.account")}</th>
-                    <th>{t("finans.columns.direction")}</th>
-                    <th>{t("finans.columns.amount")}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {entries.map((entry) => (
-                    <tr key={entry.id}>
-                      <td>{new Date(entry.entry_date).toLocaleDateString(locale)}</td>
-                      <td>{entry.description || "—"}</td>
-                      <td>{entry.account_name}</td>
-                      <td>{t(`finans.direction.${entry.direction}`)}</td>
-                      <td>{formatMoney(entry.amount)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <>
+            <div className="finans-filter-row">
+              <Select
+                label={t("finans.columns.subcontractor")}
+                value={vendorFilter}
+                onChange={setVendorFilter}
+                options={vendorOptions}
+              />
             </div>
-          </div>
+            <div className="surface-card metraj-table-card">
+              <div className="table-scroll">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>{t("finans.columns.date")}</th>
+                      <th>{t("finans.columns.subcontractor")}</th>
+                      <th>{t("finans.columns.description")}</th>
+                      <th>{t("finans.columns.account")}</th>
+                      <th>{t("finans.columns.direction")}</th>
+                      <th>{t("finans.columns.amount")}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {entries.map((entry) => (
+                      <tr key={entry.id}>
+                        <td>{new Date(entry.entry_date).toLocaleDateString(locale)}</td>
+                        <td>{entry.vendor_name ?? "—"}</td>
+                        <td>{entry.description || "—"}</td>
+                        <td>{entry.account_name}</td>
+                        <td>{t(`finans.direction.${entry.direction}`)}</td>
+                        <td>{formatMoney(entry.amount)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
         )
       ) : tab === "stock" ? (
         stock.length === 0 ? (
@@ -264,6 +303,15 @@ export function FinansPage() {
         }
       >
         <form id="pay-form" onSubmit={handlePayment} className="form-stack">
+          <Select
+            label={t("finans.columns.subcontractor")}
+            value={payForm.vendor_id}
+            onChange={(v) => setPayForm((p) => ({ ...p, vendor_id: v }))}
+            options={[
+              { value: "", label: t("finans.noVendor") },
+              ...siteVendors.map((v) => ({ value: String(v.id), label: v.name })),
+            ]}
+          />
           <Input
             label={t("finans.columns.amount")}
             type="number"

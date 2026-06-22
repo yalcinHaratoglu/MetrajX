@@ -342,6 +342,10 @@ export const puantajService = {
     return data;
   },
 
+  async deleteHakedisPeriod(id: number): Promise<void> {
+    await api.delete(`/puantaj/hakedis-periods/${id}/`);
+  },
+
   async getAttendanceMatrix(params: {
     site_id: number;
     date_from: string;
@@ -362,7 +366,7 @@ export const puantajService = {
     await api.post("/puantaj/attendance-toggle/", payload);
   },
 
-  async exportAttendanceCsv(params: {
+  async exportAttendanceXlsx(params: {
     site_id: number;
     date_from: string;
     date_to: string;
@@ -370,13 +374,13 @@ export const puantajService = {
     search?: string;
   }): Promise<void> {
     const response = await api.get("/puantaj/attendance-matrix/", {
-      params: { ...params, format: "csv" },
+      params: { ...params, export: "xlsx" },
       responseType: "blob",
     });
     const url = URL.createObjectURL(response.data);
     const anchor = document.createElement("a");
     anchor.href = url;
-    anchor.download = `puantaj_${params.date_from}_${params.date_to}.csv`;
+    anchor.download = `puantaj_${params.date_from}_${params.date_to}.xlsx`;
     anchor.click();
     URL.revokeObjectURL(url);
   },

@@ -52,3 +52,29 @@ class DailyLogAPITestCase(TestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Asset.objects.count(), 1)
+
+    def test_delete_daily_log_photo(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        from daily_log.models import DailyLogPhoto
+
+        self.client.force_authenticate(user=self.user)
+        log = DailyLog.objects.create(
+            site=self.site,
+            created_by=self.user,
+            log_date="2026-07-02",
+            summary="Test raporu",
+            worker_count=5,
+        )
+        upload = SimpleUploadedFile("rapor.pdf", b"pdf-content", content_type="application/pdf")
+        create_resp = self.client.post(
+            f"/api/daily-logs/{log.id}/photos/",
+            {"file": upload},
+            format="multipart",
+        )
+        self.assertEqual(create_resp.status_code, status.HTTP_201_CREATED)
+        photo_id = create_resp.data["id"]
+
+        delete_resp = self.client.delete(f"/api/daily-logs/{log.id}/photos/{photo_id}/")
+        self.assertEqual(delete_resp.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(DailyLogPhoto.objects.filter(pk=photo_id).exists())

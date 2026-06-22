@@ -1,4 +1,3 @@
-import csv
 import io
 from datetime import date, timedelta
 from decimal import Decimal
@@ -100,14 +99,16 @@ def toggle_attendance(site_id: int, worker_id: int, day: date, present: bool, us
         existing.delete()
 
 
-def export_attendance_csv(site_id: int, date_from: date, date_to: date, **filters) -> HttpResponse:
+def export_attendance_xlsx(site_id: int, date_from: date, date_to: date, **filters) -> HttpResponse:
+    from openpyxl import Workbook
+
     data = attendance_matrix(site_id, date_from, date_to, **filters)
-    output = io.StringIO()
-    writer = csv.writer(output)
-    header = ["İşçi", "Taşeron", *data["dates"], "Toplam Gün"]
-    writer.writerow(header)
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Puantaj"
+    ws.append(["İşçi", "Taşeron", *data["dates"], "Toplam Gün"])
     for row in data["workers"]:
-        writer.writerow(
+        ws.append(
             [
                 row["full_name"],
                 row["subcontractor_name"],
@@ -115,8 +116,14 @@ def export_attendance_csv(site_id: int, date_from: date, date_to: date, **filter
                 row["total_days"],
             ]
         )
-    response = HttpResponse(output.getvalue(), content_type="text/csv; charset=utf-8")
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+    response = HttpResponse(
+        output.getvalue(),
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
     response["Content-Disposition"] = (
-        f'attachment; filename="puantaj_{date_from}_{date_to}.csv"'
+        f'attachment; filename="puantaj_{date_from}_{date_to}.xlsx"'
     )
     return response

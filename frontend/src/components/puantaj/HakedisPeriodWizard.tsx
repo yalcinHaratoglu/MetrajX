@@ -142,7 +142,42 @@ export function HakedisPeriodWizard({
       });
       setPeriod(updated);
       setApprovedPayable(updated.approved_payable ?? updated.net_payable);
-        toast.success(t("common.saved"));
+      toast.success(t("common.saved"));
+    } catch {
+      toast.error(t("common.error"));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleSaveApproved = async () => {
+    if (!period || !isApproved) return;
+    setBusy(true);
+    try {
+      const updated = await puantajService.updateHakedisPeriod(period.id, {
+        notes,
+        approved_payable: approvedPayable || null,
+      });
+      setPeriod(updated);
+      setApprovedPayable(updated.approved_payable ?? updated.net_payable);
+      toast.success(t("puantaj.hakedisPeriod.updated"));
+      onSaved();
+    } catch {
+      toast.error(t("common.error"));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!period) return;
+    if (!window.confirm(t("puantaj.hakedisPeriod.deleteConfirm"))) return;
+    setBusy(true);
+    try {
+      await puantajService.deleteHakedisPeriod(period.id);
+      toast.success(t("puantaj.hakedisPeriod.deleted"));
+      onSaved();
+      onClose();
     } catch {
       toast.error(t("common.error"));
     } finally {
@@ -152,6 +187,13 @@ export function HakedisPeriodWizard({
 
   const isDraft = !period || period.status === "draft";
   const isPending = period?.status === "pending_approval";
+  const isApproved = period?.status === "approved";
+  const isPaid = period?.status === "paid";
+  const canEditNotes = isDraft || isPending || (isApproved && canApprove);
+  const canDelete =
+    period &&
+    !isPaid &&
+    ((isApproved && canApprove) || isDraft || (isPending && canApprove));
 
   return (
     <Modal
@@ -162,6 +204,11 @@ export function HakedisPeriodWizard({
       bodyClassName="modal-body-scroll"
       footer={
         <div className="flex gap-2 flex-wrap justify-end">
+          {canDelete && (
+            <Button type="button" variant="ghost" className="text-danger" onClick={() => void handleDelete()} disabled={busy}>
+              {t("common.delete")}
+            </Button>
+          )}
           {!period && (
             <Button type="button" onClick={() => void handleCreate()} disabled={busy}>
               {t("puantaj.hakedisPeriod.create")}
@@ -180,6 +227,11 @@ export function HakedisPeriodWizard({
           {period && isPending && canApprove && (
             <Button type="button" onClick={() => void handleApprove()} disabled={busy}>
               {t("puantaj.hakedisPeriod.approve")}
+            </Button>
+          )}
+          {period && isApproved && canApprove && (
+            <Button type="button" onClick={() => void handleSaveApproved()} disabled={busy}>
+              {t("common.save")}
             </Button>
           )}
         </div>
@@ -209,7 +261,7 @@ export function HakedisPeriodWizard({
           label={t("metraj.columns.notes")}
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          disabled={Boolean(period && !isDraft)}
+          disabled={!canEditNotes}
         />
 
         {period && (
@@ -238,7 +290,7 @@ export function HakedisPeriodWizard({
                 {Number(period.net_payable).toLocaleString(locale)} ₺
               </strong>
             </div>
-            {isPending && canApprove && (
+            {(isPending || isApproved) && canApprove && (
               <div className="hakedis-period-stat">
                 <Input
                   label={t("puantaj.hakedisPeriod.payableAmount")}
@@ -246,13 +298,16 @@ export function HakedisPeriodWizard({
                   step="0.01"
                   value={approvedPayable}
                   onChange={(e) => setApprovedPayable(e.target.value)}
+                  disabled={isPaid}
                 />
-                <Button type="button" variant="ghost" onClick={() => void handleSavePayable()} disabled={busy}>
-                  {t("common.save")}
-                </Button>
+                {isPending && (
+                  <Button type="button" variant="ghost" onClick={() => void handleSavePayable()} disabled={busy}>
+                    {t("common.save")}
+                  </Button>
+                )}
               </div>
             )}
-            {period.approved_payable && !isPending && (
+            {period.approved_payable && !isPending && !canApprove && (
               <div className="hakedis-period-stat">
                 <span className="hakedis-period-stat-label">{t("puantaj.hakedisPeriod.payableAmount")}</span>
                 <strong className="hakedis-period-stat-value">
