@@ -5358,6 +5358,117 @@
   margin-bottom: 0.75rem;
 }
 
+.finans-vendor-cards-desc {
+  margin: 0 0 0.75rem;
+}
+
+.finans-vendor-grid {
+  margin-bottom: 0.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+}
+
+.finans-vendor-card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5rem;
+  text-align: left;
+  cursor: pointer;
+  border: 1px solid var(--border-color, rgb(226 232 240));
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  width: 100%;
+}
+
+.finans-vendor-card:hover {
+  border-color: var(--accent, rgb(249 115 22));
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.06);
+}
+
+.finans-vendor-card-name {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgb(var(--muted-foreground));
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  line-height: 1.3;
+}
+
+.finans-vendor-card-balance {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.finans-vendor-card-balance-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: rgb(var(--muted-foreground));
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.finans-vendor-card-balance-value {
+  font-size: 1.375rem;
+  font-weight: 700;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+.finans-vendor-card-rows {
+  width: 100%;
+  margin: 0;
+  padding: 0.5rem 0 0;
+  border-top: 1px solid rgb(var(--border) / 0.6);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.finans-vendor-card-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.75rem;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+}
+
+.finans-vendor-card-row dt {
+  margin: 0;
+  color: rgb(var(--muted-foreground));
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.finans-vendor-card-row dd {
+  margin: 0;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.finans-vendor-card-link {
+  font-size: 0.8125rem;
+  color: var(--accent, rgb(249 115 22));
+  margin-top: 0.15rem;
+}
+
+.finans-vendor-detail-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+
+.finans-vendor-detail-title {
+  margin: 0 0 0.75rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
 .metraj-calendar-dot-event {
   background: rgb(100 116 139);
 }

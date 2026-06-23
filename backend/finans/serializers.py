@@ -94,6 +94,16 @@ class LedgerSummarySerializer(serializers.Serializer):
     )
 
 
+class VendorBalanceSerializer(serializers.Serializer):
+    vendor_id = serializers.IntegerField()
+    vendor_name = serializers.CharField()
+    subcontractor_id = serializers.IntegerField(allow_null=True)
+    total_credit = serializers.DecimalField(max_digits=14, decimal_places=2)
+    total_debit = serializers.DecimalField(max_digits=14, decimal_places=2)
+    balance = serializers.DecimalField(max_digits=14, decimal_places=2)
+    entry_count = serializers.IntegerField()
+
+
 class MaterialStockItemSerializer(serializers.ModelSerializer):
     is_low = serializers.SerializerMethodField()
 

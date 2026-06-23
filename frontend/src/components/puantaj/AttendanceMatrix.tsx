@@ -12,6 +12,7 @@ import {
   puantajService,
   type AttendanceMatrixData,
   type Subcontractor,
+  type EmploymentType,
 } from "../../services/puantajService";
 import { toast } from "../../lib/toast";
 
@@ -44,10 +45,11 @@ export function AttendanceMatrix({
   const { t } = useTranslation();
   const today = toDateKey(new Date());
   const [subcontractorId, setSubcontractorId] = useState("");
+  const [employmentType, setEmploymentType] = useState("");
   const [search, setSearch] = useState("");
   const [busyCell, setBusyCell] = useState<string | null>(null);
 
-  const fetchKey = `${siteId}|${dateFrom}|${dateTo}|${subcontractorId}|${search}`;
+  const fetchKey = `${siteId}|${dateFrom}|${dateTo}|${subcontractorId}|${employmentType}|${search}`;
 
   const fetcher = useCallback(async (): Promise<AttendanceMatrixData> => {
     return puantajService.getAttendanceMatrix({
@@ -55,9 +57,10 @@ export function AttendanceMatrix({
       date_from: dateFrom,
       date_to: dateTo,
       subcontractor_id: subcontractorId ? Number(subcontractorId) : undefined,
+      employment_type: employmentType ? (employmentType as EmploymentType) : undefined,
       search: search.trim() || undefined,
     });
-  }, [siteId, dateFrom, dateTo, subcontractorId, search]);
+  }, [siteId, dateFrom, dateTo, subcontractorId, employmentType, search]);
 
   const { data, loading, setData } = useSiteData(fetchKey, fetcher, emptyMatrix);
   const rows = data.workers;
@@ -73,6 +76,15 @@ export function AttendanceMatrix({
         .map((s) => ({ value: String(s.id), label: s.name })),
     ],
     [subcontractors, t],
+  );
+
+  const employmentOptions = useMemo(
+    () => [
+      { value: "", label: t("puantaj.attendance.allWorkers") },
+      { value: "subcontractor", label: t("puantaj.worker.employment.subcontractor") },
+      { value: "direct", label: t("puantaj.worker.employment.direct") },
+    ],
+    [t],
   );
 
   const toggleDay = async (workerId: number, date: string, present: boolean) => {
@@ -113,6 +125,7 @@ export function AttendanceMatrix({
         date_from: dateFrom,
         date_to: dateTo,
         subcontractor_id: subcontractorId ? Number(subcontractorId) : undefined,
+        employment_type: employmentType ? (employmentType as EmploymentType) : undefined,
         search: search.trim() || undefined,
       });
     } catch {
@@ -124,14 +137,26 @@ export function AttendanceMatrix({
     <div className="attendance-matrix-panel">
       <div className="attendance-matrix-filters">
         <Select
-          label={t("puantaj.attendance.subcontractor")}
-          value={subcontractorId}
+          label={t("puantaj.attendance.workerType")}
+          value={employmentType}
           onChange={(v) => {
-            setSubcontractorId(v);
+            setEmploymentType(v);
+            if (v === "direct") setSubcontractorId("");
             setPage(1);
           }}
-          options={subOptions}
+          options={employmentOptions}
         />
+        {employmentType !== "direct" && (
+          <Select
+            label={t("puantaj.attendance.subcontractor")}
+            value={subcontractorId}
+            onChange={(v) => {
+              setSubcontractorId(v);
+              setPage(1);
+            }}
+            options={subOptions}
+          />
+        )}
         <Input
           label={t("puantaj.attendance.search")}
           value={search}
@@ -160,7 +185,7 @@ export function AttendanceMatrix({
               <thead>
                 <tr>
                   <th className="attendance-sticky-col">{t("puantaj.attendance.worker")}</th>
-                  <th className="attendance-sticky-col-2">{t("puantaj.attendance.subcontractor")}</th>
+                  <th className="attendance-sticky-col-2">{t("puantaj.attendance.employer")}</th>
                   {dates.map((d) => (
                     <th key={d} className="attendance-day-col">
                       {parseDateKey(d).getDate()}

@@ -9,6 +9,7 @@ from sites.services import sites_for_user
 
 from .models import Worker
 from .permissions import can_manage_puantaj
+from .services.workers import worker_belongs_to_site
 from .services.attendance import attendance_matrix, export_attendance_xlsx, toggle_attendance
 
 
@@ -49,13 +50,29 @@ class AttendanceMatrixView(APIView):
         search = request.query_params.get("search", "")
         sub_id = int(subcontractor_id) if subcontractor_id else None
 
+        employment_type = request.query_params.get("employment_type")
+        if employment_type not in (Worker.EmploymentType.SUBCONTRACTOR, Worker.EmploymentType.DIRECT):
+            employment_type = None
+
         if request.query_params.get("export") == "xlsx":
             return export_attendance_xlsx(
-                site.id, date_from, date_to, subcontractor_id=sub_id, search=search
+                site.id,
+                date_from,
+                date_to,
+                subcontractor_id=sub_id,
+                employment_type=employment_type,
+                search=search,
             )
 
         return Response(
-            attendance_matrix(site.id, date_from, date_to, subcontractor_id=sub_id, search=search)
+            attendance_matrix(
+                site.id,
+                date_from,
+                date_to,
+                subcontractor_id=sub_id,
+                employment_type=employment_type,
+                search=search,
+            )
         )
 
 
@@ -76,7 +93,7 @@ class AttendanceToggleView(APIView):
         if not site:
             return Response({"detail": "Şantiye bulunamadı."}, status=status.HTTP_404_NOT_FOUND)
 
-        if not Worker.objects.filter(pk=worker_id, subcontractor__site=site).exists():
+        if not worker_belongs_to_site(int(worker_id), site.id):
             return Response({"detail": "İşçi bulunamadı."}, status=status.HTTP_404_NOT_FOUND)
 
         try:

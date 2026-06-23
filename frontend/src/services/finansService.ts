@@ -39,6 +39,16 @@ export interface LedgerSummary {
   budget_remaining?: string | null;
 }
 
+export interface VendorBalance {
+  vendor_id: number;
+  vendor_name: string;
+  subcontractor_id: number | null;
+  total_credit: string;
+  total_debit: string;
+  balance: string;
+  entry_count: number;
+}
+
 export interface MaterialStockItem {
   id: number;
   site: number;
@@ -77,6 +87,13 @@ export const finansService = {
 
   async summary(siteId: number) {
     const { data } = await api.get<LedgerSummary>("/finans/summary/", {
+      params: { site_id: siteId },
+    });
+    return data;
+  },
+
+  async listVendorBalances(siteId: number) {
+    const { data } = await api.get<VendorBalance[]>("/finans/vendor-balances/", {
       params: { site_id: siteId },
     });
     return data;

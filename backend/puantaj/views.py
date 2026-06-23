@@ -1,4 +1,4 @@
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.utils import timezone
 from rest_framework import generics, status
 from rest_framework.response import Response
@@ -109,14 +109,24 @@ class WorkerListCreateView(generics.ListCreateAPIView):
     def get_queryset(self):
         site_id = self.request.query_params.get("site_id")
         accessible = sites_for_user(self.request.user)
-        qs = Worker.objects.filter(subcontractor__site__in=accessible).select_related(
-            "subcontractor"
-        )
+        qs = Worker.objects.filter(
+            Q(subcontractor__site__in=accessible)
+            | Q(site__in=accessible, employment_type=Worker.EmploymentType.DIRECT)
+        ).select_related("subcontractor", "site")
         if site_id:
-            qs = qs.filter(subcontractor__site_id=site_id)
+            qs = qs.filter(
+                Q(subcontractor__site_id=site_id)
+                | Q(site_id=site_id, employment_type=Worker.EmploymentType.DIRECT)
+            )
         subcontractor_id = self.request.query_params.get("subcontractor_id")
         if subcontractor_id:
-            qs = qs.filter(subcontractor_id=subcontractor_id)
+            qs = qs.filter(
+                subcontractor_id=subcontractor_id,
+                employment_type=Worker.EmploymentType.SUBCONTRACTOR,
+            )
+        employment_type = self.request.query_params.get("employment_type")
+        if employment_type in (Worker.EmploymentType.SUBCONTRACTOR, Worker.EmploymentType.DIRECT):
+            qs = qs.filter(employment_type=employment_type)
         return qs
 
     def get_serializer_class(self):
@@ -136,9 +146,10 @@ class WorkerListCreateView(generics.ListCreateAPIView):
 
         serializer = WorkerCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        worker = Worker.objects.create(
-            **{k: v for k, v in serializer.validated_data.items() if k != "site_id"},
-        )
+        data = {k: v for k, v in serializer.validated_data.items() if k != "site_id"}
+        if data.get("employment_type", Worker.EmploymentType.SUBCONTRACTOR) == Worker.EmploymentType.DIRECT:
+            data["site"] = site
+        worker = Worker.objects.create(**data)
         return Response(WorkerSerializer(worker).data, status=status.HTTP_201_CREATED)
 
 
@@ -150,9 +161,10 @@ class WorkerDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         accessible = sites_for_user(self.request.user)
-        return Worker.objects.filter(subcontractor__site__in=accessible).select_related(
-            "subcontractor"
-        )
+        return Worker.objects.filter(
+            Q(subcontractor__site__in=accessible)
+            | Q(site__in=accessible, employment_type=Worker.EmploymentType.DIRECT)
+        ).select_related("subcontractor", "site")
 
     def update(self, request, *args, **kwargs):
         if not can_manage_puantaj(request.user):

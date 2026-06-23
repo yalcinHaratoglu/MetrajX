@@ -2,7 +2,7 @@
 
 > **Amaç:** Veritabanını sıfırlayıp tüm modülleri uçtan uca manuel test etmek.  
 > **Hedef kitle:** Geliştirici / QA / demo hazırlığı  
-> **Son güncelleme:** 2026-06-22  
+> **Son güncelleme:** 2026-06-22 (firma çalışanı / puantaj güncellemeleri)  
 > **İlgili belgeler:** [`CONMANAGE_IS_AKISLARI.md`](CONMANAGE_IS_AKISLARI.md), [`README.md`](../README.md)
 
 ---
@@ -129,7 +129,7 @@ pnpm dev
 Sıfırlama sonrası regresyon kontrolü:
 
 ```bash
-# Lint + TypeScript + tüm backend testleri (~68 test)
+# Lint + TypeScript + tüm backend testleri (~71 test)
 pnpm check
 
 # Sadece backend
@@ -189,6 +189,15 @@ Tüm senaryolarda aynı veriyi kullanırsanız sonuçları karşılaştırmak ko
 |----|----------|-----------|
 | ABC Beton Ltd. | Beton | 10 |
 | XYZ Sıva Ltd. | Sıva | 5 |
+
+### İşçiler (puantaj)
+
+| Ad | Tür | İşveren | Görev | Ücret |
+|----|-----|---------|-------|-------|
+| Ali Yılmaz | Taşeron işçisi | ABC Beton Ltd. | İnşaat işçisi | Yevmiye |
+| Mehmet Bekçi | **Firma çalışanı** | Test Şantiyesi (şantiye adı) | Bekçi | Maaşlı |
+
+> **Firma çalışanı:** Taşerona bağlı değildir; yalnızca günlük puantaj matrisinde takip edilir. Hakediş ve Finans cari akışına **dahil olmaz**.
 
 ### Metraj kalemleri
 
@@ -279,44 +288,61 @@ Tüm sayfalarda üst **header** sabittir. Şantiye seçici artık sidebar'da de�
 | 2.1 | **Taşeronlar** sekmesi → **Ekle** | ABC Beton, XYZ Sıva oluşur |
 | 2.2 | Kategori alanı | Metraj kategorilerinden seçim (dropdown) |
 | 2.3 | Taşeron oluşturulunca | Finans'ta otomatik **Vendor** (cari kart) oluşur |
+| 2.4 | Taşeron listesinde **ara** + sütun filtreleri | Branş, durum vb. ile süzülür |
 
-### İşçi sekmesi (opsiyonel)
-
-| # | Yap | Beklenen |
-|---|-----|----------|
-| 2.4 | **İşçiler** → taşerona bağlı işçi ekle | İşçi listelenir |
-
-### Günlük puantaj sekmesi
+### İşçi sekmesi
 
 | # | Yap | Beklenen |
 |---|-----|----------|
-| 2.5 | Ay seçici: test ayı (ör. Haziran 2026) | Ay etiketi güncellenir |
-| 2.6 | Puantaj satırı ekle: taşeron + tarih + işçi sayısı | Kayıt oluşur, durum `pending` |
-| 2.7 | **Onayla** (şef veya owner) | Durum `approved` |
+| 2.5 | **İşçiler** → **Ekle** → Tür: **Taşeron işçisi** | Taşeron seçimi zorunlu; kayıt listelenir |
+| 2.6 | **İşçiler** → **Ekle** → Tür: **Firma çalışanı** | Taşeron alanı **görünmez**; görev (ör. Bekçi), ücret tipi (Maaşlı) seçilir |
+| 2.7 | Firma çalışanı kaydı | Tabloda Tür = Firma çalışanı, İşveren = şantiye adı |
+| 2.8 | İşçi listesinde **ara** + sütun filtreleri | Ad, tür, işveren, görev ile süzülür |
+| 2.9 | Firma çalışanını düzenle / sil | Liste güncellenir |
+
+### Ay seçici (tüm puantaj sekmeleri)
+
+| # | Yap | Beklenen |
+|---|-----|----------|
+| 2.10 | Ay çubuğu: **önceki ay** | Geçmiş aya gider (ör. Mayıs 2026) |
+| 2.11 | Ay çubuğu: **sonraki ay** | Yalnızca bugünden **önceki veya içinde bulunulan** aya kadar; gelecek ay **kapalı** (Haziran 2026 iken Temmuz 2026'ya gidilemez) |
+| 2.12 | **Bu ay** butonu | Güncel aya döner |
+
+### Günlük puantaj sekmesi (eski kayıt akışı — opsiyonel)
+
+| # | Yap | Beklenen |
+|---|-----|----------|
+| 2.13 | Puantaj satırı ekle: taşeron + tarih + işçi sayısı | Kayıt oluşur, durum `pending` |
+| 2.14 | **Onayla** (şef veya owner) | Durum `approved` |
 
 ### Avans (hakediş kesintisi testi için)
 
 | # | Yap | Beklenen |
 |---|-----|----------|
-| 2.8 | Taşerona avans kaydı ekle (ör. 10.000 ₺) | Avans listesinde görünür |
+| 2.15 | Taşerona avans kaydı ekle (ör. 10.000 ₺) | Avans listesinde görünür |
 
-**Kontrol:** Puantaj onayı **parayı değiştirmez**; yalnızca işçi-gün istatistiğidir.
+**Kontrol:** Puantaj onayı **parayı değiştirmez**; yalnızca işçi-gün istatistiğidir. **Firma çalışanları** hakediş dönemine ve Finans cari satırlarına **yansımaz**.
 
 ---
 
 ## Senaryo 3 — Günlük puantaj matrisi & Excel
 
-**Sayfa:** `/puantaj` → **Günlük Puantaj** (timesheets sekmesi / matris paneli)
+**Sayfa:** `/puantaj` → **Günlük Puantaj** sekmesi
 
 | # | Yap | Beklenen |
 |---|-----|----------|
 | 3.1 | Matriste ay 1'den başlamalı (UTC kayması yok) | Sütunlar `1 … 30/31` |
 | 3.2 | Hücreye tıkla → geldi/gelmedi işaretle | Puantaj kaydı oluşur/silinir |
-| 3.3 | Yatay scroll | İşçi ve taşeron sütunları sabit kalır, rakam sızması yok |
-| 3.4 | **Excel/CSV indir** | `.csv` dosyası iner, 404 hatası yok |
-| 3.5 | Taşeron filtresi / arama | Matris filtrelenir |
+| 3.3 | **Taşeron işçisi** ve **firma çalışanı** için aynı matriste işaretle | Her iki tür de satırda görünür |
+| 3.4 | Yatay scroll | İşçi ve **İşveren** sütunları sabit kalır, rakam sızması yok |
+| 3.5 | **Excel İndir** | `.xlsx` dosyası iner (sütunlar: İşçi, İşveren, Tür, günler, Toplam) |
+| 3.6 | **Çalışan türü** filtresi: Firma çalışanı | Yalnızca firma çalışanları (ör. bekçi) listelenir |
+| 3.7 | **Çalışan türü** filtresi: Taşeron işçisi | Yalnızca taşeron altı işçiler |
+| 3.8 | Taşeron filtresi + arama | Matris filtrelenir (firma filtresindeyken taşeron filtresi gizli) |
+| 3.9 | Gelecek güne tıklama | Hücre pasif; puantaj girilemez |
+| 3.10 | Ay seçici: gelecek aya ileri ok | Devre dışı (Senaryo 2.11) |
 
-> CSV endpoint: `?export=csv` (DRF `format=csv` **kullanılmaz**).
+> Excel endpoint: `?export=xlsx` (CSV kullanılmaz).
 
 ---
 
@@ -347,6 +373,8 @@ Tüm sayfalarda üst **header** sabittir. Şantiye seçici artık sidebar'da de�
 |---|-----|----------|
 | 4.8 | Temmuz dönemi oluştur | `prev_cumulative` önceki onaylı dönemden gelir |
 | 4.9 | Brüt tutar | Yalnızca **delta** (yeni ilerleme farkı) hesaplanır |
+
+**Kontrol:** Hakediş satırları yalnızca **metraj kalemi + taşeron** içerir. Senaryo 2.6'daki **firma çalışanı** puantajı hakedişe **yansımaz**.
 
 **Çıkar:** Senaryo 11'de onaylı dönemi silmeden önce Finans senaryosunu tamamlayın.
 
@@ -396,6 +424,8 @@ Tüm sayfalarda üst **header** sabittir. Şantiye seçici artık sidebar'da de�
 | 6.3 | Olay kaydet | Tek renk olay noktası |
 | 6.4 | Gün detayı | Başlık + saat (tür etiketi yok) |
 | 6.5 | Olay düzenle / sil | Liste güncellenir |
+| 6.6 | Takvimde ay değiştir (ileri/geri) | Alttaki **Şantiye Olayları** listesi yalnızca **seçili ay** kayıtlarını gösterir |
+| 6.7 | Takvim başlığı | **İş Programı** — metraj işleri + şantiye etkinlikleri (yalnızca metraj operasyonları değil) |
 
 ---
 
@@ -410,9 +440,11 @@ Tüm sayfalarda üst **header** sabittir. Şantiye seçici artık sidebar'da de�
 | 7.3 | Önceki / sonraki ok | Hafta veya ay kayar |
 | 7.4 | **Bugünü Düzenle** | Modal açılır, özet düzenlenebilir |
 | 7.5 | Özet alanı | Çerçeveli textarea |
-| 7.6 | **Dosya Ekle** (PDF, fotoğraf) | Dosya yüklenir, listede link |
-| 7.7 | Aynı güne tekrar rapor ekleme | 409 yerine düzenleme akışı (çift kayıt yok) |
-| 7.8 | Otomatik özet | Tamamlanan metraj + puantaj satırları `[Otomatik]` altında |
+| 7.6 | **Dosya Ekle** (PDF, fotoğraf, Excel) | Dosya yüklenir; kartta düzenli satır olarak görünür |
+| 7.7 | Rapor **düzenle** → ekli dosyalar listesi | Modalda mevcut dosyalar listelenir |
+| 7.8 | Modalda dosya **sil** (çöp kutusu) | Dosya kaldırılır; kart listesi güncellenir |
+| 7.9 | Aynı güne tekrar rapor ekleme | 409 yerine düzenleme akışı (çift kayıt yok) |
+| 7.10 | Otomatik özet | Tamamlanan metraj + puantaj satırları `[Otomatik]` altında |
 
 **Hava durumu alanı:** UI'da kaldırıldı (backend alanı korunur).
 
@@ -505,12 +537,13 @@ Aynı veri seti üzerinde **her rol ile ayrı oturum** açın (gizli pencere).
 | DB bağlantı hatası | Docker kapalı / şifre uyumsuz | `pnpm docker:up`, `.env` kontrol |
 | `FATAL: password authentication failed` | Eski volume | `pnpm setup:db` |
 | API 404 ama kod var | Backend eski süreç | `pnpm dev` yeniden başlat |
-| Puantaj CSV 404 | `format=csv` kullanımı | `export=csv` olmalı (güncel kod) |
+| Puantaj export 404 | Eski `export=csv` | `export=xlsx` olmalı (güncel kod) |
+| Firma çalışanı hakedişte görünüyor | Yanlış tür / eski veri | Tür = Firma çalışanı; hakediş yalnızca metraj+taşeron |
 | Giriş olmuyor | Kullanıcı pasif | `create_superuser` veya aktivasyon linki |
 | Davet maili gelmiyor | Dev ortamı | Backend terminalinde e-posta çıktısına bak |
 | Finans boş | Dönem onaylanmamış | Hakediş onayı → tekrar kontrol |
 | Tarih bir gün kayık | UTC | `toDateKey` kullanan sayfalar güncel mi kontrol |
-| Migrasyon hatası | Eksik migration | `pnpm migrate` |
+| Migrasyon hatası | Eksik migration | `pnpm migrate` (`puantaj.0007_worker_direct_employment` firma çalışanı için) |
 
 ### Sağlık kontrolleri
 
@@ -531,12 +564,14 @@ Tüm sprint / release öncesi tek sayfa özeti:
 - [ ] Header: zil (bugünkü olaylar), dil, tema, ayarlar kısayolu
 - [ ] Sidebar rail: gizle / göster
 - [ ] Metraj kalemi + operasyon → ilerleme %
-- [ ] Taşeron + puantaj + onay
-- [ ] Puantaj matrisi: ay 1'den başlar, sticky sütun, CSV iner
+- [ ] Taşeron + **firma çalışanı** (bekçi) + puantaj matrisi
+- [ ] Puantaj matrisi: ay 1'den başlar, sticky sütun, **XLSX** iner, tür filtresi
+- [ ] Puantaj ay seçici: geçmişe gider, gelecek ay kapalı
+- [ ] İşçiler / Taşeronlar: arama + sütun filtreleri
 - [ ] Hakediş: taslak → onay → snapshot kilitli
 - [ ] Finans: taşeron bazlı cari + ödeme
-- [ ] Takvim: olay ekle (tür yok, tek renk)
-- [ ] Günlük rapor: hafta/ay, düzenle, dosya ekle
+- [ ] Takvim: olay ekle (tür yok, tek renk); şantiye olayları **ay filtresi**
+- [ ] Günlük rapor: hafta/ay, düzenle, dosya ekle/sil (modal)
 - [ ] Onaylı hakediş: düzenle + sil (cari geri alınır)
 - [ ] Rol testi: şef / muhasebeci sınırları
 - [ ] Demirbaş CRUD

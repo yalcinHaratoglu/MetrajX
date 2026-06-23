@@ -151,6 +151,71 @@ class FinansAPITestCase(TestCase):
         vendor_names = {r["vendor_name"] for r in hakedis_rows}
         self.assertEqual(vendor_names, {"Taşeron A", "Taşeron B"})
 
+    def test_vendor_balances_per_subcontractor(self):
+        from finans.services.ledger_sync import get_or_create_vendor_for_subcontractor, sync_hakedis_period_to_ledger
+
+        category = MetrajCategory.objects.create(
+            company=self.company,
+            slug="beton-b",
+            name="Beton B",
+            default_unit="m3",
+            is_custom=True,
+        )
+        sub_a = Subcontractor.objects.create(site=self.site, name="Taşeron A", category=category)
+        sub_b = Subcontractor.objects.create(site=self.site, name="Taşeron B", category=category)
+        item_a = MetrajItem.objects.create(
+            site=self.site, category=category, description="İş A", subcontractor=sub_a
+        )
+        item_b = MetrajItem.objects.create(
+            site=self.site, category=category, description="İş B", subcontractor=sub_b
+        )
+        period = HakedisPeriod.objects.create(
+            site=self.site,
+            period_start="2026-06-01",
+            period_end="2026-06-30",
+            status=HakedisPeriod.Status.APPROVED,
+            net_payable=Decimal("30000.00"),
+            prepared_by=self.owner,
+        )
+        HakedisPeriodLine.objects.create(
+            period=period,
+            metraj_item=item_a,
+            subcontractor=sub_a,
+            quantity=Decimal("1"),
+            line_gross=Decimal("20000.00"),
+        )
+        HakedisPeriodLine.objects.create(
+            period=period,
+            metraj_item=item_b,
+            subcontractor=sub_b,
+            quantity=Decimal("1"),
+            line_gross=Decimal("10000.00"),
+        )
+        sync_hakedis_period_to_ledger(period, self.owner)
+        vendor_a = get_or_create_vendor_for_subcontractor(sub_a)
+
+        self.client.force_authenticate(user=self.owner)
+        self.client.post(
+            "/api/finans/payments/",
+            {
+                "site_id": self.site.id,
+                "vendor_id": vendor_a.id,
+                "amount": "5000.00",
+                "description": "Kısmi ödeme",
+                "entry_date": "2026-06-15",
+            },
+            format="json",
+        )
+
+        resp = self.client.get(f"/api/finans/vendor-balances/?site_id={self.site.id}")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(resp.data), 2)
+        by_name = {r["vendor_name"]: r for r in resp.data}
+        self.assertEqual(Decimal(by_name["Taşeron A"]["total_credit"]), Decimal("20000.00"))
+        self.assertEqual(Decimal(by_name["Taşeron A"]["total_debit"]), Decimal("5000.00"))
+        self.assertEqual(Decimal(by_name["Taşeron A"]["balance"]), Decimal("15000.00"))
+        self.assertEqual(Decimal(by_name["Taşeron B"]["balance"]), Decimal("10000.00"))
+
 
 class LedgerSyncTestCase(TestCase):
     def setUp(self):

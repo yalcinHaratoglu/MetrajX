@@ -98,6 +98,30 @@ class DailyLogTodayView(APIView):
         return Response(DailyLogSerializer(log, context={"request": request}).data)
 
 
+class DailyLogSuggestView(APIView):
+    def get(self, request):
+        site_id = request.query_params.get("site_id")
+        log_date = request.query_params.get("log_date")
+        if not site_id:
+            return Response({"detail": "site_id gerekli."}, status=status.HTTP_400_BAD_REQUEST)
+        if not log_date:
+            return Response({"detail": "log_date gerekli."}, status=status.HTTP_400_BAD_REQUEST)
+        site = _get_site(request, int(site_id))
+        if not site:
+            return Response({"detail": "Şantiye bulunamadı."}, status=status.HTTP_404_NOT_FOUND)
+
+        from datetime import datetime
+
+        from .services.draft import build_daily_log_suggestions
+
+        try:
+            parsed_date = datetime.strptime(log_date, "%Y-%m-%d").date()
+        except ValueError:
+            return Response({"detail": "Geçersiz log_date."}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(build_daily_log_suggestions(site, parsed_date))
+
+
 class DailyLogDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = DailyLogSerializer
 

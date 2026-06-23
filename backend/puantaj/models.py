@@ -35,10 +35,49 @@ class Worker(models.Model):
         UNINSURED = "uninsured", "Sigortasız"
         PENDING = "pending", "Beklemede"
 
+    class EmploymentType(models.TextChoices):
+        SUBCONTRACTOR = "subcontractor", "Taşeron işçisi"
+        DIRECT = "direct", "Firma çalışanı"
+
+    class Role(models.TextChoices):
+        CONSTRUCTION = "construction_worker", "İnşaat işçisi"
+        SECURITY = "security_guard", "Bekçi"
+        FOREMAN = "foreman", "Formen"
+        OTHER = "other", "Diğer"
+
+    class PayType(models.TextChoices):
+        DAILY = "daily", "Yevmiye"
+        MONTHLY = "monthly", "Maaşlı"
+
+    site = models.ForeignKey(
+        "sites.Site",
+        on_delete=models.CASCADE,
+        related_name="direct_workers",
+        null=True,
+        blank=True,
+        help_text="Firma çalışanları için şantiye",
+    )
     subcontractor = models.ForeignKey(
         Subcontractor,
         on_delete=models.CASCADE,
         related_name="workers",
+        null=True,
+        blank=True,
+    )
+    employment_type = models.CharField(
+        max_length=20,
+        choices=EmploymentType.choices,
+        default=EmploymentType.SUBCONTRACTOR,
+    )
+    role = models.CharField(
+        max_length=32,
+        choices=Role.choices,
+        default=Role.CONSTRUCTION,
+    )
+    pay_type = models.CharField(
+        max_length=20,
+        choices=PayType.choices,
+        default=PayType.DAILY,
     )
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
@@ -56,6 +95,22 @@ class Worker(models.Model):
 
     class Meta:
         ordering = ["last_name", "first_name", "id"]
+        constraints = [
+            models.CheckConstraint(
+                condition=(
+                    models.Q(
+                        employment_type="subcontractor",
+                        subcontractor__isnull=False,
+                    )
+                    | models.Q(
+                        employment_type="direct",
+                        site__isnull=False,
+                        subcontractor__isnull=True,
+                    )
+                ),
+                name="worker_employment_consistency",
+            ),
+        ]
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
@@ -63,6 +118,14 @@ class Worker(models.Model):
     @property
     def full_name(self) -> str:
         return f"{self.first_name} {self.last_name}".strip()
+
+    @property
+    def employer_name(self) -> str:
+        if self.employment_type == self.EmploymentType.DIRECT:
+            return self.site.name if self.site_id else "Firma"
+        if self.subcontractor_id:
+            return self.subcontractor.name
+        return "—"
 
 
 class SubcontractorContract(models.Model):
@@ -275,6 +338,8 @@ class Timesheet(models.Model):
         Subcontractor,
         on_delete=models.CASCADE,
         related_name="timesheets",
+        null=True,
+        blank=True,
     )
     worker = models.ForeignKey(
         Worker,

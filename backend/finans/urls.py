@@ -6,11 +6,13 @@ from .views import (
     MaterialMovementListCreateView,
     MaterialStockListCreateView,
     PaymentCreateView,
+    VendorBalanceListView,
     VendorListCreateView,
 )
 
 urlpatterns = [
     path("finans/vendors/", VendorListCreateView.as_view(), name="finans-vendors"),
+    path("finans/vendor-balances/", VendorBalanceListView.as_view(), name="finans-vendor-balances"),
     path("finans/ledger/", LedgerEntryListView.as_view(), name="finans-ledger"),
     path("finans/summary/", LedgerSummaryView.as_view(), name="finans-summary"),
     path("finans/payments/", PaymentCreateView.as_view(), name="finans-payments"),

@@ -18,6 +18,7 @@ from .serializers import (
     MaterialStockItemCreateSerializer,
     MaterialStockItemSerializer,
     PaymentCreateSerializer,
+    VendorBalanceSerializer,
     VendorCreateSerializer,
     VendorSerializer,
 )
@@ -118,6 +119,64 @@ class LedgerSummaryView(APIView):
             "budget_remaining": budget_remaining,
         }
         return Response(LedgerSummarySerializer(data).data)
+
+
+class VendorBalanceListView(APIView):
+    def get(self, request):
+        if not can_access_finans(request.user):
+            return _deny()
+        site_id = request.query_params.get("site_id")
+        if not site_id:
+            return Response({"detail": "site_id gerekli."}, status=status.HTTP_400_BAD_REQUEST)
+        site = _get_site(request, int(site_id))
+        if not site:
+            return Response({"detail": "Şantiye bulunamadı."}, status=status.HTTP_404_NOT_FOUND)
+
+        from puantaj.models import Subcontractor
+
+        from .services.ledger_sync import get_or_create_vendor_for_subcontractor
+
+        vendors_map: dict[int, Vendor] = {}
+        for sub in Subcontractor.objects.filter(site_id=site_id, is_active=True):
+            vendor = get_or_create_vendor_for_subcontractor(sub)
+            vendors_map[vendor.id] = vendor
+
+        extra_vendor_ids = (
+            LedgerEntry.objects.filter(site_id=site_id, vendor__isnull=False)
+            .values_list("vendor_id", flat=True)
+            .distinct()
+        )
+        for vendor_id in extra_vendor_ids:
+            if vendor_id not in vendors_map:
+                vendor = Vendor.objects.filter(
+                    id=vendor_id, company_id=request.user.company_id
+                ).first()
+                if vendor:
+                    vendors_map[vendor.id] = vendor
+
+        rows = []
+        for vendor in vendors_map.values():
+            qs = LedgerEntry.objects.filter(site_id=site_id, vendor=vendor)
+            credit = qs.filter(direction=LedgerEntry.Direction.CREDIT).aggregate(
+                total=Sum("amount")
+            )["total"] or Decimal("0")
+            debit = qs.filter(direction=LedgerEntry.Direction.DEBIT).aggregate(
+                total=Sum("amount")
+            )["total"] or Decimal("0")
+            rows.append(
+                {
+                    "vendor_id": vendor.id,
+                    "vendor_name": vendor.name,
+                    "subcontractor_id": vendor.subcontractor_id,
+                    "total_credit": credit,
+                    "total_debit": debit,
+                    "balance": credit - debit,
+                    "entry_count": qs.count(),
+                }
+            )
+
+        rows.sort(key=lambda r: r["vendor_name"].casefold())
+        return Response(VendorBalanceSerializer(rows, many=True).data)
 
 
 class PaymentCreateView(APIView):

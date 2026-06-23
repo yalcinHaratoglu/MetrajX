@@ -32,6 +32,9 @@ import {
   type HakedisSiteSummary,
   type Subcontractor,
   type Worker,
+  type EmploymentType,
+  type WorkerRole,
+  type PayType,
 } from "../services/puantajService";
 import { toast } from "../lib/toast";
 import { toDateKey } from "../components/metraj/calendarUtils";
@@ -55,7 +58,10 @@ const emptySubForm = (categoryId = "") => ({
 });
 
 const emptyWorkerForm = (subcontractor = "") => ({
+  employment_type: "subcontractor" as EmploymentType,
   subcontractor,
+  role: "construction_worker" as WorkerRole,
+  pay_type: "daily" as PayType,
   first_name: "",
   last_name: "",
   national_id: "",
@@ -175,6 +181,16 @@ export function PuantajPage() {
     [t],
   );
 
+  const employmentLabel = useCallback(
+    (type: EmploymentType) => t(`puantaj.worker.employment.${type}`),
+    [t],
+  );
+
+  const roleLabel = useCallback(
+    (role: WorkerRole) => t(`puantaj.worker.roles.${role}`),
+    [t],
+  );
+
   const workerSearchFiltered = useMemo(() => {
     const q = workerSearch.trim().toLocaleLowerCase("tr");
     if (!q) return workers;
@@ -214,10 +230,22 @@ export function PuantajPage() {
         render: (worker) => worker.full_name,
       },
       {
-        key: "subcontractor",
-        header: t("puantaj.worker.columns.subcontractor"),
-        getFilterValue: (worker) => worker.subcontractor_name,
-        render: (worker) => worker.subcontractor_name,
+        key: "employment",
+        header: t("puantaj.worker.columns.type"),
+        getFilterValue: (worker) => employmentLabel(worker.employment_type),
+        render: (worker) => employmentLabel(worker.employment_type),
+      },
+      {
+        key: "employer",
+        header: t("puantaj.worker.columns.employer"),
+        getFilterValue: (worker) => worker.employer_name,
+        render: (worker) => worker.employer_name,
+      },
+      {
+        key: "role",
+        header: t("puantaj.worker.columns.role"),
+        getFilterValue: (worker) => roleLabel(worker.role),
+        render: (worker) => roleLabel(worker.role),
       },
       {
         key: "nationalId",
@@ -232,7 +260,7 @@ export function PuantajPage() {
         render: (worker) => insuranceLabel(worker.insurance_status),
       },
     ],
-    [t, insuranceLabel],
+    [t, insuranceLabel, employmentLabel, roleLabel],
   );
 
   const subTableColumns = useMemo<FilterableColumn<Subcontractor>[]>(
@@ -377,10 +405,6 @@ export function PuantajPage() {
   };
 
   const openCreateWorker = () => {
-    if (subOptions.length === 0) {
-      toast.error(t("puantaj.worker.needSubcontractor"));
-      return;
-    }
     setEditingWorker(null);
     setWorkerForm(emptyWorkerForm(subOptions[0]?.value ?? ""));
     setWorkerModalOpen(true);
@@ -389,7 +413,10 @@ export function PuantajPage() {
   const openEditWorker = (worker: Worker) => {
     setEditingWorker(worker);
     setWorkerForm({
-      subcontractor: String(worker.subcontractor),
+      employment_type: worker.employment_type,
+      subcontractor: worker.subcontractor ? String(worker.subcontractor) : "",
+      role: worker.role,
+      pay_type: worker.pay_type,
       first_name: worker.first_name,
       last_name: worker.last_name,
       national_id: worker.national_id,
@@ -402,32 +429,38 @@ export function PuantajPage() {
 
   const handleSaveWorker = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedSiteId || !workerForm.subcontractor) {
+    if (!selectedSiteId) return;
+    if (workerForm.employment_type === "subcontractor" && !workerForm.subcontractor) {
       toast.error(t("puantaj.worker.needSubcontractor"));
       return;
     }
+    const basePayload = {
+      employment_type: workerForm.employment_type,
+      role: workerForm.role,
+      pay_type: workerForm.pay_type,
+      first_name: workerForm.first_name.trim(),
+      last_name: workerForm.last_name.trim(),
+      national_id: workerForm.national_id,
+      insurance_status: workerForm.insurance_status,
+      phone: workerForm.phone,
+      notes: workerForm.notes,
+    };
     try {
       if (editingWorker) {
         await puantajService.updateWorker(editingWorker.id, {
-          subcontractor: Number(workerForm.subcontractor),
-          first_name: workerForm.first_name.trim(),
-          last_name: workerForm.last_name.trim(),
-          national_id: workerForm.national_id,
-          insurance_status: workerForm.insurance_status,
-          phone: workerForm.phone,
-          notes: workerForm.notes,
+          ...basePayload,
+          ...(workerForm.employment_type === "subcontractor"
+            ? { subcontractor: Number(workerForm.subcontractor) }
+            : { subcontractor: undefined }),
         });
         toast.success(t("puantaj.worker.updated"));
       } else {
         await puantajService.createWorker({
           site_id: selectedSiteId,
-          subcontractor: Number(workerForm.subcontractor),
-          first_name: workerForm.first_name.trim(),
-          last_name: workerForm.last_name.trim(),
-          national_id: workerForm.national_id,
-          insurance_status: workerForm.insurance_status,
-          phone: workerForm.phone,
-          notes: workerForm.notes,
+          ...basePayload,
+          ...(workerForm.employment_type === "subcontractor"
+            ? { subcontractor: Number(workerForm.subcontractor) }
+            : {}),
         });
         toast.success(t("puantaj.worker.created"));
       }
@@ -778,7 +811,50 @@ export function PuantajPage() {
 
       <Modal open={workerModalOpen} onClose={() => setWorkerModalOpen(false)} title={editingWorker ? t("puantaj.worker.edit") : t("puantaj.worker.add")} footer={<Button type="submit" form="worker-form">{t("common.save")}</Button>}>
         <form id="worker-form" onSubmit={handleSaveWorker} className="form-stack">
-          <Select label={t("puantaj.worker.columns.subcontractor")} value={workerForm.subcontractor} onChange={(v) => setWorkerForm((p) => ({ ...p, subcontractor: v }))} options={subOptions} />
+          <Select
+            label={t("puantaj.worker.columns.type")}
+            value={workerForm.employment_type}
+            onChange={(v) =>
+              setWorkerForm((p) => ({
+                ...p,
+                employment_type: v as EmploymentType,
+                subcontractor: v === "direct" ? "" : p.subcontractor,
+                pay_type: v === "direct" ? "monthly" : p.pay_type,
+              }))
+            }
+            options={[
+              { value: "subcontractor", label: t("puantaj.worker.employment.subcontractor") },
+              { value: "direct", label: t("puantaj.worker.employment.direct") },
+            ]}
+          />
+          {workerForm.employment_type === "subcontractor" && (
+            <Select
+              label={t("puantaj.worker.columns.subcontractor")}
+              value={workerForm.subcontractor}
+              onChange={(v) => setWorkerForm((p) => ({ ...p, subcontractor: v }))}
+              options={subOptions}
+            />
+          )}
+          <Select
+            label={t("puantaj.worker.columns.role")}
+            value={workerForm.role}
+            onChange={(v) => setWorkerForm((p) => ({ ...p, role: v as WorkerRole }))}
+            options={[
+              { value: "construction_worker", label: t("puantaj.worker.roles.construction_worker") },
+              { value: "security_guard", label: t("puantaj.worker.roles.security_guard") },
+              { value: "foreman", label: t("puantaj.worker.roles.foreman") },
+              { value: "other", label: t("puantaj.worker.roles.other") },
+            ]}
+          />
+          <Select
+            label={t("puantaj.worker.columns.payType")}
+            value={workerForm.pay_type}
+            onChange={(v) => setWorkerForm((p) => ({ ...p, pay_type: v as PayType }))}
+            options={[
+              { value: "daily", label: t("puantaj.worker.payType.daily") },
+              { value: "monthly", label: t("puantaj.worker.payType.monthly") },
+            ]}
+          />
           <Input label={t("puantaj.worker.columns.firstName")} value={workerForm.first_name} onChange={(e) => setWorkerForm((p) => ({ ...p, first_name: e.target.value }))} required />
           <Input label={t("puantaj.worker.columns.lastName")} value={workerForm.last_name} onChange={(e) => setWorkerForm((p) => ({ ...p, last_name: e.target.value }))} required />
           <Input label={t("puantaj.worker.columns.nationalId")} value={workerForm.national_id} onChange={(e) => setWorkerForm((p) => ({ ...p, national_id: e.target.value }))} />

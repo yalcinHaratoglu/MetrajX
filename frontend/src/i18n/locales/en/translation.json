@@ -389,6 +389,13 @@
     "stockEmpty": "No stock items",
     "stockEmptyDesc": "Define material stock items here.",
     "paymentHint": "Use the button above to record subcontractor payments.",
+    "vendorCardsTitle": "Subcontractor Ledgers",
+    "vendorCardsDesc": "Click a subcontractor card to view ledger entries and record payments.",
+    "backToVendors": "Back to all subcontractors",
+    "vendorLedger": "{{name}} — Ledger",
+    "noVendors": "No subcontractor ledgers yet",
+    "noVendorsDesc": "Add subcontractors to the site or approve a settlement period.",
+    "viewLedger": "View ledger",
     "lowStock": "Low",
     "stockColumns": {
       "name": "Material",
@@ -491,6 +498,21 @@
     "nextMonth": "Next month",
     "thisMonth": "This month",
     "flowHint": "Daily timesheets are per worker. Settlement amounts come from takeoff progress (m², m³, etc.) — not from timesheets.",
+    "attendance": {
+      "subcontractor": "Subcontractor",
+      "allSubcontractors": "All subcontractors",
+      "allWorkers": "All workers",
+      "workerType": "Worker type",
+      "employer": "Employer",
+      "search": "Search workers",
+      "searchPlaceholder": "Name or ID",
+      "worker": "Worker",
+      "totalDays": "Total days",
+      "export": "Export Excel",
+      "empty": "No workers in this range.",
+      "present": "Present",
+      "absent": "Absent"
+    },
     "tabs": {
       "timesheets": "Daily Timesheets",
       "workers": "Workers",
@@ -561,9 +583,27 @@
         "name": "Full name",
         "firstName": "First name",
         "lastName": "Last name",
+        "type": "Type",
+        "employer": "Employer",
         "subcontractor": "Subcontractor",
+        "role": "Role",
+        "payType": "Pay type",
         "nationalId": "National ID",
         "insurance": "Insurance"
+      },
+      "employment": {
+        "subcontractor": "Subcontractor worker",
+        "direct": "Company employee"
+      },
+      "roles": {
+        "construction_worker": "Construction worker",
+        "security_guard": "Security guard",
+        "foreman": "Foreman",
+        "other": "Other"
+      },
+      "payType": {
+        "daily": "Daily wage",
+        "monthly": "Monthly salary"
       },
       "insurance": {
         "insured": "Insured",

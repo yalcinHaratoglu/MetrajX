@@ -1,12 +1,12 @@
 import io
 from datetime import date, timedelta
-from decimal import Decimal
 
 from django.db.models import Q
 from django.http import HttpResponse
 from django.utils import timezone
 
 from ..models import Timesheet, Worker
+from .workers import workers_for_site_qs
 
 
 def _date_range(date_from: date, date_to: date) -> list[date]:
@@ -23,15 +23,18 @@ def attendance_matrix(
     date_from: date,
     date_to: date,
     subcontractor_id: int | None = None,
+    employment_type: str | None = None,
     search: str = "",
 ) -> dict:
-    workers_qs = Worker.objects.filter(
-        subcontractor__site_id=site_id,
-        is_active=True,
-    ).select_related("subcontractor")
+    workers_qs = workers_for_site_qs(site_id)
 
+    if employment_type in (Worker.EmploymentType.SUBCONTRACTOR, Worker.EmploymentType.DIRECT):
+        workers_qs = workers_qs.filter(employment_type=employment_type)
     if subcontractor_id:
-        workers_qs = workers_qs.filter(subcontractor_id=subcontractor_id)
+        workers_qs = workers_qs.filter(
+            subcontractor_id=subcontractor_id,
+            employment_type=Worker.EmploymentType.SUBCONTRACTOR,
+        )
     if search.strip():
         q = search.strip()
         workers_qs = workers_qs.filter(
@@ -55,15 +58,18 @@ def attendance_matrix(
         present_map.setdefault(worker_id, set()).add(ts_date.isoformat())
 
     worker_rows = []
-    for worker in workers_qs.order_by("last_name", "first_name"):
+    for worker in workers_qs.order_by("employment_type", "last_name", "first_name"):
         days_set = present_map.get(worker.id, set())
         days_dict = {dk: dk in days_set for dk in date_keys}
         worker_rows.append(
             {
                 "id": worker.id,
                 "full_name": worker.full_name,
+                "employment_type": worker.employment_type,
+                "role": worker.role,
+                "pay_type": worker.pay_type,
                 "subcontractor_id": worker.subcontractor_id,
-                "subcontractor_name": worker.subcontractor.name,
+                "subcontractor_name": worker.employer_name,
                 "days": days_dict,
                 "total_days": len(days_set),
             }
@@ -78,9 +84,7 @@ def attendance_matrix(
 
 
 def toggle_attendance(site_id: int, worker_id: int, day: date, present: bool, user) -> None:
-    worker = Worker.objects.select_related("subcontractor").get(
-        pk=worker_id, subcontractor__site_id=site_id
-    )
+    worker = workers_for_site_qs(site_id, active_only=False).get(pk=worker_id)
     if day > timezone.localdate():
         raise ValueError("Gelecek tarih için puantaj girilemez.")
 
@@ -106,12 +110,17 @@ def export_attendance_xlsx(site_id: int, date_from: date, date_to: date, **filte
     wb = Workbook()
     ws = wb.active
     ws.title = "Puantaj"
-    ws.append(["İşçi", "Taşeron", *data["dates"], "Toplam Gün"])
+    ws.append(["İşçi", "İşveren", "Tür", *data["dates"], "Toplam Gün"])
+    type_labels = {
+        Worker.EmploymentType.SUBCONTRACTOR: "Taşeron",
+        Worker.EmploymentType.DIRECT: "Firma",
+    }
     for row in data["workers"]:
         ws.append(
             [
                 row["full_name"],
                 row["subcontractor_name"],
+                type_labels.get(row["employment_type"], row["employment_type"]),
                 *["1" if row["days"].get(d) else "" for d in data["dates"]],
                 row["total_days"],
             ]

@@ -7,11 +7,13 @@ from .views import (
     DailyLogListCreateView,
     DailyLogPhotoDeleteView,
     DailyLogPhotoUploadView,
+    DailyLogSuggestView,
     DailyLogTodayView,
 )
 
 urlpatterns = [
     path("daily-logs/", DailyLogListCreateView.as_view(), name="daily-logs"),
+    path("daily-logs/suggest/", DailyLogSuggestView.as_view(), name="daily-log-suggest"),
     path("daily-logs/today/", DailyLogTodayView.as_view(), name="daily-log-today"),
     path("daily-logs/<int:pk>/", DailyLogDetailView.as_view(), name="daily-log-detail"),
     path("daily-logs/<int:pk>/photos/", DailyLogPhotoUploadView.as_view(), name="daily-log-photo"),

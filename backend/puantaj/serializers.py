@@ -120,15 +120,21 @@ class SubcontractorUpdateSerializer(serializers.ModelSerializer):
 
 
 class WorkerSerializer(serializers.ModelSerializer):
-    subcontractor_name = serializers.CharField(source="subcontractor.name", read_only=True)
+    subcontractor_name = serializers.SerializerMethodField()
+    employer_name = serializers.CharField(read_only=True)
     full_name = serializers.CharField(read_only=True)
 
     class Meta:
         model = Worker
         fields = [
             "id",
+            "site",
             "subcontractor",
             "subcontractor_name",
+            "employer_name",
+            "employment_type",
+            "role",
+            "pay_type",
             "first_name",
             "last_name",
             "full_name",
@@ -140,7 +146,32 @@ class WorkerSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["created_at", "updated_at", "full_name"]
+        read_only_fields = ["created_at", "updated_at", "full_name", "employer_name", "site"]
+
+    def get_subcontractor_name(self, obj: Worker) -> str:
+        if obj.subcontractor_id:
+            return obj.subcontractor.name
+        return ""
+
+
+def _validate_worker_employment(attrs: dict, *, site_id: int | None = None) -> dict:
+    employment_type = attrs.get("employment_type", Worker.EmploymentType.SUBCONTRACTOR)
+    subcontractor = attrs.get("subcontractor")
+    site = attrs.get("site")
+
+    if employment_type == Worker.EmploymentType.SUBCONTRACTOR:
+        if not subcontractor:
+            raise serializers.ValidationError({"subcontractor": "Taşeron işçisi için taşeron seçin."})
+        if site_id and subcontractor.site_id != int(site_id):
+            raise serializers.ValidationError({"subcontractor": "Taşeron seçili şantiyeye ait değil."})
+        attrs["site"] = None
+    elif employment_type == Worker.EmploymentType.DIRECT:
+        if subcontractor:
+            raise serializers.ValidationError({"subcontractor": "Firma çalışanı taşerona bağlanamaz."})
+        if not site and not site_id:
+            raise serializers.ValidationError({"site_id": "Firma çalışanı için şantiye gerekli."})
+        attrs["subcontractor"] = None
+    return attrs
 
 
 class WorkerCreateSerializer(serializers.ModelSerializer):
@@ -151,6 +182,9 @@ class WorkerCreateSerializer(serializers.ModelSerializer):
         fields = [
             "site_id",
             "subcontractor",
+            "employment_type",
+            "role",
+            "pay_type",
             "first_name",
             "last_name",
             "national_id",
@@ -161,13 +195,13 @@ class WorkerCreateSerializer(serializers.ModelSerializer):
         ]
 
     def validate(self, attrs):
-        subcontractor: Subcontractor = attrs["subcontractor"]
+        from sites.models import Site
+
         site_id = self.initial_data.get("site_id")
-        if site_id and subcontractor.site_id != int(site_id):
-            raise serializers.ValidationError(
-                {"subcontractor": "Taşeron seçili şantiyeye ait değil."}
-            )
-        return attrs
+        site = Site.objects.filter(pk=site_id).first() if site_id else None
+        if site:
+            attrs["site"] = site
+        return _validate_worker_employment(attrs, site_id=int(site_id) if site_id else None)
 
 
 class WorkerUpdateSerializer(serializers.ModelSerializer):
@@ -175,6 +209,9 @@ class WorkerUpdateSerializer(serializers.ModelSerializer):
         model = Worker
         fields = [
             "subcontractor",
+            "employment_type",
+            "role",
+            "pay_type",
             "first_name",
             "last_name",
             "national_id",
@@ -183,6 +220,25 @@ class WorkerUpdateSerializer(serializers.ModelSerializer):
             "is_active",
             "notes",
         ]
+
+    def validate(self, attrs):
+        instance: Worker = self.instance
+        merged = {
+            "employment_type": attrs.get("employment_type", instance.employment_type),
+            "subcontractor": attrs.get("subcontractor", instance.subcontractor),
+            "site": instance.site,
+        }
+        site_id = instance.site_id or (
+            instance.subcontractor.site_id if instance.subcontractor_id else None
+        )
+        validated = _validate_worker_employment(merged, site_id=site_id)
+        if validated.get("site") is None and instance.site_id:
+            attrs["site"] = None
+        elif validated.get("site"):
+            attrs["site"] = validated["site"]
+        if "subcontractor" in attrs or validated.get("subcontractor") is None:
+            attrs["subcontractor"] = validated.get("subcontractor")
+        return attrs
 
 
 class TimesheetSerializer(serializers.ModelSerializer):

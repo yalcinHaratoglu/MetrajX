@@ -21,6 +21,21 @@ const emptyForm = () => ({
   worker_count: "0",
 });
 
+const AUTO_MARKER = "[Otomatik]";
+
+function mergeAutoSummary(current: string, suggested: string): string {
+  const idx = current.indexOf(AUTO_MARKER);
+  if (idx === -1) {
+    if (!current.trim()) return suggested;
+    return current;
+  }
+  const afterMarker = current.slice(idx);
+  const splitAt = afterMarker.indexOf("\n\n");
+  const userSuffix = splitAt >= 0 ? afterMarker.slice(splitAt + 2).trim() : "";
+  if (!userSuffix) return suggested;
+  return `${suggested}\n\n${userSuffix}`;
+}
+
 type RangeMode = "week" | "month";
 
 function startOfMonth(d: Date): Date {
@@ -96,6 +111,27 @@ export function GunlukRaporPage() {
       cancelled = true;
     };
   }, [selectedSiteId, todayDraftLoaded, reload]);
+
+  useEffect(() => {
+    if (!modalOpen || !selectedSiteId) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const suggest = await dailyLogService.suggest(selectedSiteId, form.log_date);
+        if (cancelled) return;
+        setForm((prev) => ({
+          ...prev,
+          worker_count: String(suggest.worker_count),
+          summary: mergeAutoSummary(prev.summary, suggest.summary),
+        }));
+      } catch {
+        /* öneri yüklenemezse mevcut form korunur */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [modalOpen, selectedSiteId, form.log_date]);
 
   const openCreate = () => {
     setEditingLog(null);

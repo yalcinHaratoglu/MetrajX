@@ -206,3 +206,60 @@ class PuantajAPITestCase(TestCase):
         flat = " ".join(str(cell) for row in rows for cell in row if cell is not None)
         self.assertIn("Ali Yılmaz", flat)
         self.assertIn("Demir Taşeron", flat)
+
+    def test_direct_worker_attendance(self):
+        from puantaj.models import Worker
+
+        guard = Worker.objects.create(
+            site=self.site,
+            employment_type=Worker.EmploymentType.DIRECT,
+            role=Worker.Role.SECURITY,
+            pay_type=Worker.PayType.MONTHLY,
+            first_name="Mehmet",
+            last_name="Bekçi",
+        )
+        self.client.force_authenticate(user=self.owner)
+        matrix = self.client.get(
+            f"/api/puantaj/attendance-matrix/?site_id={self.site.id}"
+            f"&date_from=2026-06-01&date_to=2026-06-30&employment_type=direct"
+        )
+        self.assertEqual(matrix.status_code, status.HTTP_200_OK)
+        names = [row["full_name"] for row in matrix.data["workers"]]
+        self.assertIn("Mehmet Bekçi", names)
+
+        toggle = self.client.post(
+            "/api/puantaj/attendance-toggle/",
+            {
+                "site_id": self.site.id,
+                "worker_id": guard.id,
+                "date": "2026-06-12",
+                "present": True,
+            },
+            format="json",
+        )
+        self.assertEqual(toggle.status_code, status.HTTP_200_OK)
+        self.assertTrue(
+            Timesheet.objects.filter(worker=guard, date=date(2026, 6, 12)).exists()
+        )
+
+    def test_create_direct_worker(self):
+        from puantaj.models import Worker
+
+        self.client.force_authenticate(user=self.owner)
+        response = self.client.post(
+            "/api/puantaj/workers/",
+            {
+                "site_id": self.site.id,
+                "employment_type": "direct",
+                "role": "security_guard",
+                "pay_type": "monthly",
+                "first_name": "Ayşe",
+                "last_name": "Kapıcı",
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        worker = Worker.objects.get(pk=response.data["id"])
+        self.assertEqual(worker.employment_type, Worker.EmploymentType.DIRECT)
+        self.assertIsNone(worker.subcontractor_id)
+        self.assertEqual(worker.site_id, self.site.id)

@@ -4,11 +4,19 @@ export type TimesheetStatus = "pending" | "approved" | "disputed";
 export type HakedisPeriodStatus = "draft" | "pending_approval" | "approved" | "paid";
 export type ContractStatus = "draft" | "active" | "closed";
 export type InsuranceStatus = "insured" | "uninsured" | "pending";
+export type EmploymentType = "subcontractor" | "direct";
+export type WorkerRole = "construction_worker" | "security_guard" | "foreman" | "other";
+export type PayType = "daily" | "monthly";
 
 export interface Worker {
   id: number;
-  subcontractor: number;
+  site: number | null;
+  subcontractor: number | null;
   subcontractor_name: string;
+  employer_name: string;
+  employment_type: EmploymentType;
+  role: WorkerRole;
+  pay_type: PayType;
   first_name: string;
   last_name: string;
   full_name: string;
@@ -120,7 +128,10 @@ export interface HakedisPeriod {
 export interface AttendanceMatrixRow {
   id: number;
   full_name: string;
-  subcontractor_id: number;
+  employment_type: EmploymentType;
+  role: WorkerRole;
+  pay_type: PayType;
+  subcontractor_id: number | null;
   subcontractor_name: string;
   days: Record<string, boolean>;
   total_days: number;
@@ -204,7 +215,10 @@ export type TimesheetInput = {
 
 export type WorkerInput = {
   site_id: number;
-  subcontractor: number;
+  employment_type?: EmploymentType;
+  role?: WorkerRole;
+  pay_type?: PayType;
+  subcontractor?: number;
   first_name: string;
   last_name: string;
   national_id?: string;
@@ -236,9 +250,13 @@ export const puantajService = {
     await api.delete(`/puantaj/subcontractors/${id}/`);
   },
 
-  async listWorkers(siteId: number, subcontractorId?: number): Promise<Worker[]> {
+  async listWorkers(siteId: number, params?: { subcontractorId?: number; employmentType?: EmploymentType }): Promise<Worker[]> {
     const { data } = await api.get<Worker[]>("/puantaj/workers/", {
-      params: { site_id: siteId, subcontractor_id: subcontractorId },
+      params: {
+        site_id: siteId,
+        subcontractor_id: params?.subcontractorId,
+        employment_type: params?.employmentType,
+      },
     });
     return data;
   },
@@ -351,6 +369,7 @@ export const puantajService = {
     date_from: string;
     date_to: string;
     subcontractor_id?: number;
+    employment_type?: EmploymentType;
     search?: string;
   }): Promise<AttendanceMatrixData> {
     const { data } = await api.get<AttendanceMatrixData>("/puantaj/attendance-matrix/", { params });
@@ -371,6 +390,7 @@ export const puantajService = {
     date_from: string;
     date_to: string;
     subcontractor_id?: number;
+    employment_type?: EmploymentType;
     search?: string;
   }): Promise<void> {
     const response = await api.get("/puantaj/attendance-matrix/", {

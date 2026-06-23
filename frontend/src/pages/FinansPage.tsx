@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Plus, Wallet } from "lucide-react";
+import { ArrowLeft, Plus, Wallet } from "lucide-react";
 import { PageHeader } from "../components/layout/PageHeader";
 import { PageInfoTooltip } from "../components/ui/PageInfoTooltip";
 import { Button } from "../components/ui/Button";
@@ -17,19 +17,70 @@ import {
   type LedgerSummary,
   type MaterialStockItem,
   type Vendor,
+  type VendorBalance,
 } from "../services/finansService";
 import { toast } from "../lib/toast";
 
-type Tab = "ledger" | "stock" | "payment";
+type Tab = "ledger" | "stock";
 
 type FinansData = {
   entries: LedgerEntry[];
   summary: LedgerSummary | null;
+  vendorBalances: VendorBalance[];
   stock: MaterialStockItem[];
   vendors: Vendor[];
 };
 
-const emptyFinans: FinansData = { entries: [], summary: null, stock: [], vendors: [] };
+const emptyFinans: FinansData = {
+  entries: [],
+  summary: null,
+  vendorBalances: [],
+  stock: [],
+  vendors: [],
+};
+
+function LedgerTable({
+  entries,
+  locale,
+  t,
+  formatMoney,
+}: {
+  entries: LedgerEntry[];
+  locale: string;
+  t: (key: string) => string;
+  formatMoney: (value: string | number | null | undefined) => string;
+}) {
+  return (
+    <div className="surface-card metraj-table-card">
+      <div className="table-scroll">
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>{t("finans.columns.date")}</th>
+              <th>{t("finans.columns.subcontractor")}</th>
+              <th>{t("finans.columns.description")}</th>
+              <th>{t("finans.columns.account")}</th>
+              <th>{t("finans.columns.direction")}</th>
+              <th>{t("finans.columns.amount")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {entries.map((entry) => (
+              <tr key={entry.id}>
+                <td>{new Date(entry.entry_date).toLocaleDateString(locale)}</td>
+                <td>{entry.vendor_name ?? "—"}</td>
+                <td>{entry.description || "—"}</td>
+                <td>{entry.account_name}</td>
+                <td>{t(`finans.direction.${entry.direction}`)}</td>
+                <td>{formatMoney(entry.amount)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
 
 export function FinansPage() {
   const { t, i18n } = useTranslation();
@@ -37,7 +88,7 @@ export function FinansPage() {
   const { selectedSiteId, sites } = useSite();
   const selectedSite = sites.find((s) => s.id === selectedSiteId);
   const [tab, setTab] = useState<Tab>("ledger");
-  const [vendorFilter, setVendorFilter] = useState("");
+  const [selectedVendorId, setSelectedVendorId] = useState<number | null>(null);
   const [payModal, setPayModal] = useState(false);
   const [stockModal, setStockModal] = useState(false);
   const [payForm, setPayForm] = useState({
@@ -51,38 +102,47 @@ export function FinansPage() {
   const fetcher = useCallback(async (): Promise<FinansData> => {
     if (!selectedSiteId) return emptyFinans;
     try {
-      const [list, sum, items, vendors] = await Promise.all([
-        finansService.listLedger(selectedSiteId, vendorFilter ? Number(vendorFilter) : undefined),
+      const [list, sum, balances, items, vendors] = await Promise.all([
+        finansService.listLedger(selectedSiteId, selectedVendorId ?? undefined),
         finansService.summary(selectedSiteId),
+        finansService.listVendorBalances(selectedSiteId),
         finansService.listStock(selectedSiteId),
         finansService.listVendors(),
       ]);
-      return { entries: list, summary: sum, stock: items, vendors };
+      return { entries: list, summary: sum, vendorBalances: balances, stock: items, vendors };
     } catch {
       toast.error(t("common.error"));
       return emptyFinans;
     }
-  }, [selectedSiteId, vendorFilter, t]);
+  }, [selectedSiteId, selectedVendorId, t]);
 
   const { data, loading, reload } = useSiteData(
-    selectedSiteId ? `${selectedSiteId}-${vendorFilter}` : null,
+    selectedSiteId ? `${selectedSiteId}-${selectedVendorId ?? "all"}` : null,
     fetcher,
     emptyFinans,
   );
-  const { entries, summary, stock, vendors } = data;
+  const { entries, summary, vendorBalances, stock, vendors } = data;
 
   const siteVendors = useMemo(
     () => vendors.filter((v) => v.is_active),
     [vendors],
   );
 
-  const vendorOptions = useMemo(
-    () => [
-      { value: "", label: t("finans.allVendors") },
-      ...siteVendors.map((v) => ({ value: String(v.id), label: v.name })),
-    ],
-    [siteVendors, t],
+  const selectedVendorBalance = useMemo(
+    () => vendorBalances.find((vb) => vb.vendor_id === selectedVendorId) ?? null,
+    [vendorBalances, selectedVendorId],
   );
+
+  const openPayModal = (vendorId?: number) => {
+    const preset = vendorId ?? selectedVendorId;
+    setPayForm({
+      amount: "",
+      description: "",
+      entry_date: toDateKey(new Date()),
+      vendor_id: preset ? String(preset) : "",
+    });
+    setPayModal(true);
+  };
 
   if (!selectedSiteId) {
     return (
@@ -139,6 +199,27 @@ export function FinansPage() {
   const formatMoney = (value: string | number | null | undefined) =>
     Number(value ?? 0).toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+  const renderSummaryCards = (s: LedgerSummary) => (
+    <div className="stats-grid">
+      <div className="metraj-stat-card surface-card">
+        <span className="stat-label">{t("finans.stats.credit")}</span>
+        <span className="stat-value">{formatMoney(s.total_credit)}</span>
+      </div>
+      <div className="metraj-stat-card surface-card">
+        <span className="stat-label">{t("finans.stats.debit")}</span>
+        <span className="stat-value">{formatMoney(s.total_debit)}</span>
+      </div>
+      <div className="metraj-stat-card surface-card">
+        <span className="stat-label">{t("finans.stats.balance")}</span>
+        <span className="stat-value">{formatMoney(s.balance)}</span>
+      </div>
+      <div className="metraj-stat-card surface-card">
+        <span className="stat-label">{t("finans.stats.entries")}</span>
+        <span className="stat-value">{s.entry_count}</span>
+      </div>
+    </div>
+  );
+
   return (
     <div className="page-stack dashboard-page">
       <PageHeader
@@ -150,109 +231,108 @@ export function FinansPage() {
         }
         subtitle={selectedSite?.name}
         actions={
-          <div className="flex gap-2 flex-wrap">
-            {tab !== "stock" && (
-              <Button onClick={() => setPayModal(true)}>
-                <Plus size={16} />
-                {t("finans.recordPayment")}
-              </Button>
-            )}
-            {tab === "stock" && (
-              <Button onClick={() => setStockModal(true)}>
-                <Plus size={16} />
-                {t("finans.addStock")}
-              </Button>
-            )}
-          </div>
+          tab === "stock" ? (
+            <Button onClick={() => setStockModal(true)}>
+              <Plus size={16} />
+              {t("finans.addStock")}
+            </Button>
+          ) : undefined
         }
       />
 
       <div className="metraj-tabs" role="tablist">
-        {(["ledger", "stock", "payment"] as Tab[]).map((key) => (
+        {(["ledger", "stock"] as Tab[]).map((key) => (
           <button
             key={key}
             type="button"
             role="tab"
             aria-selected={tab === key}
             className={tab === key ? "metraj-tab-active" : "metraj-tab"}
-            onClick={() => setTab(key)}
+            onClick={() => {
+              setTab(key);
+              if (key === "stock") setSelectedVendorId(null);
+            }}
           >
             {t(`finans.tabs.${key}`)}
           </button>
         ))}
       </div>
 
-      {summary && tab === "ledger" && (
-        <div className="stats-grid">
-          <div className="metraj-stat-card surface-card">
-            <span className="stat-label">{t("finans.stats.credit")}</span>
-            <span className="stat-value">{formatMoney(summary.total_credit)}</span>
-          </div>
-          <div className="metraj-stat-card surface-card">
-            <span className="stat-label">{t("finans.stats.debit")}</span>
-            <span className="stat-value">{formatMoney(summary.total_debit)}</span>
-          </div>
-          <div className="metraj-stat-card surface-card">
-            <span className="stat-label">{t("finans.stats.balance")}</span>
-            <span className="stat-value">{formatMoney(summary.balance)}</span>
-          </div>
-          <div className="metraj-stat-card surface-card">
-            <span className="stat-label">{t("finans.stats.entries")}</span>
-            <span className="stat-value">{summary.entry_count}</span>
-          </div>
-        </div>
-      )}
+      {summary && tab === "ledger" && !selectedVendorId && renderSummaryCards(summary)}
 
       {loading ? (
         <p className="text-muted">{t("common.loading")}</p>
       ) : tab === "ledger" ? (
-        entries.length === 0 ? (
+        selectedVendorId && selectedVendorBalance ? (
+          <>
+            <div className="finans-vendor-detail-head">
+              <Button variant="ghost" onClick={() => setSelectedVendorId(null)}>
+                <ArrowLeft size={16} />
+                {t("finans.backToVendors")}
+              </Button>
+              <Button onClick={() => openPayModal(selectedVendorId)}>
+                <Plus size={16} />
+                {t("finans.recordPayment")}
+              </Button>
+            </div>
+            <h2 className="finans-vendor-detail-title">
+              {t("finans.vendorLedger", { name: selectedVendorBalance.vendor_name })}
+            </h2>
+            {renderSummaryCards({
+              total_credit: selectedVendorBalance.total_credit,
+              total_debit: selectedVendorBalance.total_debit,
+              balance: selectedVendorBalance.balance,
+              entry_count: selectedVendorBalance.entry_count,
+            })}
+            {entries.length === 0 ? (
+              <EmptyState
+                icon={<Wallet size={28} />}
+                title={t("finans.empty")}
+                description={t("finans.emptyDesc")}
+              />
+            ) : (
+              <LedgerTable entries={entries} locale={locale} t={t} formatMoney={formatMoney} />
+            )}
+          </>
+        ) : vendorBalances.length === 0 ? (
           <EmptyState
             icon={<Wallet size={28} />}
-            title={t("finans.empty")}
-            description={t("finans.emptyDesc")}
+            title={t("finans.noVendors")}
+            description={t("finans.noVendorsDesc")}
           />
         ) : (
           <>
-            <div className="finans-filter-row">
-              <Select
-                label={t("finans.columns.subcontractor")}
-                value={vendorFilter}
-                onChange={setVendorFilter}
-                options={vendorOptions}
-              />
-            </div>
-            <div className="surface-card metraj-table-card">
-              <div className="table-scroll">
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>{t("finans.columns.date")}</th>
-                      <th>{t("finans.columns.subcontractor")}</th>
-                      <th>{t("finans.columns.description")}</th>
-                      <th>{t("finans.columns.account")}</th>
-                      <th>{t("finans.columns.direction")}</th>
-                      <th>{t("finans.columns.amount")}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {entries.map((entry) => (
-                      <tr key={entry.id}>
-                        <td>{new Date(entry.entry_date).toLocaleDateString(locale)}</td>
-                        <td>{entry.vendor_name ?? "—"}</td>
-                        <td>{entry.description || "—"}</td>
-                        <td>{entry.account_name}</td>
-                        <td>{t(`finans.direction.${entry.direction}`)}</td>
-                        <td>{formatMoney(entry.amount)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+            <p className="text-muted finans-vendor-cards-desc">{t("finans.vendorCardsDesc")}</p>
+            <div className="stats-grid finans-vendor-grid">
+              {vendorBalances.map((vb) => (
+                <button
+                  key={vb.vendor_id}
+                  type="button"
+                  className="metraj-stat-card surface-card finans-vendor-card"
+                  onClick={() => setSelectedVendorId(vb.vendor_id)}
+                >
+                  <span className="finans-vendor-card-name">{vb.vendor_name}</span>
+                  <div className="finans-vendor-card-balance">
+                    <span className="finans-vendor-card-balance-label">{t("finans.stats.balance")}</span>
+                    <span className="finans-vendor-card-balance-value">{formatMoney(vb.balance)}</span>
+                  </div>
+                  <dl className="finans-vendor-card-rows">
+                    <div className="finans-vendor-card-row">
+                      <dt>{t("finans.stats.credit")}</dt>
+                      <dd>{formatMoney(vb.total_credit)}</dd>
+                    </div>
+                    <div className="finans-vendor-card-row">
+                      <dt>{t("finans.stats.debit")}</dt>
+                      <dd>{formatMoney(vb.total_debit)}</dd>
+                    </div>
+                  </dl>
+                  <span className="finans-vendor-card-link">{t("finans.viewLedger")}</span>
+                </button>
+              ))}
             </div>
           </>
         )
-      ) : tab === "stock" ? (
+      ) : (
         stock.length === 0 ? (
           <EmptyState
             icon={<Wallet size={28} />}
@@ -288,8 +368,6 @@ export function FinansPage() {
             </div>
           </div>
         )
-      ) : (
-        <p className="text-muted">{t("finans.paymentHint")}</p>
       )}
 
       <Modal

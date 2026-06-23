@@ -90,7 +90,7 @@ export function MetrajCalendarPanel({
     return () => {
       cancelled = true;
     };
-  }, [open, siteIdsKey, needsFetch]);
+  }, [open, siteIdsKey, needsFetch, siteIds]);
 
   const body = showEmpty ? (
     <p className="text-sm text-muted">{emptyMessage ?? t("sites.selector.empty")}</p>

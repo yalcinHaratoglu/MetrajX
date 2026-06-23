@@ -21,6 +21,12 @@ export interface DailyLog {
   created_at: string;
 }
 
+export interface DailyLogSuggestion {
+  summary: string;
+  worker_count: number;
+  attendance_lines: string[];
+}
+
 export interface Asset {
   id: number;
   site: number;
@@ -48,6 +54,13 @@ export const dailyLogService = {
 
   async getToday(siteId: number) {
     const { data } = await api.get<DailyLog>("/daily-logs/today/", { params: { site_id: siteId } });
+    return data;
+  },
+
+  async suggest(siteId: number, logDate: string) {
+    const { data } = await api.get<DailyLogSuggestion>("/daily-logs/suggest/", {
+      params: { site_id: siteId, log_date: logDate },
+    });
     return data;
   },
 

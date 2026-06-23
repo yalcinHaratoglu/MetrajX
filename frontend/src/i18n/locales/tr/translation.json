@@ -391,6 +391,13 @@
     "stockEmpty": "Stok kaydı yok",
     "stockEmptyDesc": "Malzeme stok kalemlerini buradan tanımlayın.",
     "paymentHint": "Taşeron ödemesi kaydetmek için sağ üstteki butonu kullanın.",
+    "vendorCardsTitle": "Taşeron Carileri",
+    "vendorCardsDesc": "Taşeron kartına tıklayarak cari hareketleri görüntüleyin ve ödeme kaydedin.",
+    "backToVendors": "Tüm taşeronlara dön",
+    "vendorLedger": "{{name}} — Cari",
+    "noVendors": "Henüz taşeron cari kaydı yok",
+    "noVendorsDesc": "Şantiyeye taşeron ekleyin veya hakediş onaylayın.",
+    "viewLedger": "Cariyi görüntüle",
     "lowStock": "Düşük",
     "stockColumns": {
       "name": "Malzeme",
@@ -500,6 +507,9 @@
     "attendance": {
       "subcontractor": "Taşeron",
       "allSubcontractors": "Tüm taşeronlar",
+      "allWorkers": "Tüm işçiler",
+      "workerType": "Çalışan türü",
+      "employer": "İşveren",
       "search": "İşçi ara",
       "searchPlaceholder": "Ad veya kimlik no",
       "worker": "İşçi",
@@ -580,9 +590,27 @@
         "name": "Ad Soyad",
         "firstName": "Ad",
         "lastName": "Soyad",
+        "type": "Tür",
+        "employer": "İşveren",
         "subcontractor": "Taşeron",
+        "role": "Görev",
+        "payType": "Ücret tipi",
         "nationalId": "TC Kimlik",
         "insurance": "Sigorta"
+      },
+      "employment": {
+        "subcontractor": "Taşeron işçisi",
+        "direct": "Firma çalışanı"
+      },
+      "roles": {
+        "construction_worker": "İnşaat işçisi",
+        "security_guard": "Bekçi",
+        "foreman": "Formen",
+        "other": "Diğer"
+      },
+      "payType": {
+        "daily": "Yevmiye",
+        "monthly": "Maaşlı"
       },
       "insurance": {
         "insured": "Sigortalı",
